@@ -58,8 +58,22 @@ export const SEL = {
   moreOptions: ['button[aria-label="More options"]'],
   settingsMenuItemText: 'Settings',
   captionsSettingsTab: ['button[aria-label="Captions"]'],
-  /** @param {string} code caption language code, e.g. 'cmn-Hant-TW' */
-  captionLangItem: (code) => `li[data-value="${code}"]`,
+  /**
+   * Settings > Captions list item. Function-valued, so it is dropped by serializableSel().
+   * @param {string} code caption language code, e.g. 'cmn-Hant-TW'
+   */
+  captionLangItem: (code) => fillLangCode('li[data-value="{code}"]', code),
+  /**
+   * Addition to spec 5.5 (verified Sep-Oct 2026 Meet DOM): while captions are on, the caption
+   * bar shows a "Meeting language" combobox; clicking it opens a `[role=listbox]`.
+   */
+  captionLangCombobox: ['[role="combobox"][aria-label="Meeting language"]'],
+  /**
+   * Options of that listbox, as templates: `{code}` stands for the BCP-47 caption language code
+   * (`data-value`, e.g. "cmn-Hant-TW"). Plain strings so the list stays serializable; fill it
+   * with {@link captionLangOptionSelectors}.
+   */
+  captionLangOption: ['li[role="option"][data-value="{code}"]', '[role="option"][data-value="{code}"]'],
   closeDialog: ['button[aria-label="Close dialog"]', 'button[aria-label="Close dialogue"]'],
   captionRegion: ['[role="region"][aria-label="Captions"]', 'div[role="region"][tabindex="0"]', '.vNKgIf'],
   captionBlock: '.nMcdL',
@@ -98,6 +112,32 @@ export function matchAny(text, list) {
     if (needle && hay.includes(needle)) return entry;
   }
   return null;
+}
+
+/**
+ * Replace every `{code}` in a selector template with `code`, escaped for a double-quoted CSS
+ * attribute value (backslashes and double quotes), so an odd code cannot break the selector.
+ * Self-contained, so it can also be inlined into browser-side code.
+ * @param {string} template e.g. 'li[data-value="{code}"]'
+ * @param {string} code
+ * @returns {string}
+ */
+export function fillLangCode(template, code) {
+  const escaped = String(code).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return String(template).split('{code}').join(escaped);
+}
+
+/**
+ * Caption-language option selectors for `code`: `templates` (default `SEL.captionLangOption`)
+ * filled with {@link fillLangCode}, in order. Empty for an empty/non-string code.
+ * @param {string} code
+ * @param {string|string[]} [templates]
+ * @returns {string[]}
+ */
+export function captionLangOptionSelectors(code, templates = SEL.captionLangOption) {
+  if (typeof code !== 'string' || !code) return [];
+  const list = Array.isArray(templates) ? templates : [templates];
+  return list.filter((t) => typeof t === 'string' && t).map((t) => fillLangCode(t, code));
 }
 
 /**

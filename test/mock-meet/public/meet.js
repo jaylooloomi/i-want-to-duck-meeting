@@ -28,6 +28,10 @@ const state = {
   name: '',
   captionsOn: false,
   captionLang: 'en-US',
+  /** How the caption language was last changed: 'combobox' | 'settings' | 'reset' (null: never). */
+  captionLangVia: null,
+  /** langpicker query param: 'combobox' | 'settings' | 'both'. */
+  langPicker: cfg.langPicker,
   speechStarted: false,
   timelineDone: false,
   stepIndex: 0,
@@ -78,18 +82,46 @@ function enterLobby() {
 // --- in call ---------------------------------------------------------------------------------
 
 function enterCall() {
+  let resetsLeft = cfg.langResets;
+  /**
+   * Meet (or a participant) switches the caption language back to English langResetAtMs from
+   * now; with langResets > 1, again langResetAtMs after each switch away from en-US.
+   */
+  function scheduleLangReset() {
+    later(cfg.langResetAtMs, () => {
+      if (state.phase !== 'in_call' || resetsLeft <= 0) return;
+      resetsLeft -= 1;
+      captions.setLanguage('en-US', 'reset', { rerender: false });
+      if (resetsLeft <= 0) return;
+      const watch = setInterval(() => {
+        if (state.phase !== 'in_call') clearInterval(watch);
+        else if (state.captionLang !== 'en-US') {
+          clearInterval(watch);
+          scheduleLangReset();
+        }
+      }, 50);
+    });
+  }
   const captions = createCaptions({
     state,
     timeline: HAPPY_TIMELINE,
     stepScale: cfg.stepScale,
     leadMs: cfg.captionLeadMs,
     log,
-    onDone: () => later(cfg.endAfterMs, scenarioEnd),
+    langPicker: cfg.langPicker,
+    langList: cfg.langList,
+    onDone: () => {
+      later(cfg.endAfterMs, scenarioEnd);
+      // Meet (or a participant) switches the caption language back to English mid-call
+      scheduleLangReset();
+    },
   });
   const ui = createInCall({ state, cfg, captions, onLeave: () => finish('left', screens.leftScreen()), log });
-  const audio = startRemoteAudio((s) => {
-    state.audioState = s;
-  });
+  const audio = cfg.noAudio
+    ? { stop() {} }
+    : startRemoteAudio((s) => {
+      state.audioState = s;
+    });
   const maxTimer = later(cfg.maxCallMs, () => finish('ended', screens.callEndedScreen(cfg.endText)));
 
   /** Leave the in-call phase for an end screen (idempotent). */

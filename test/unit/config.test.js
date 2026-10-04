@@ -28,6 +28,26 @@ test('defaults with an empty env', () => {
   assert.equal(c.maxDurationMs, 4 * 3600_000);
   assert.equal(c.pollMs, 1500);
   assert.equal(c.sttVenv, path.join(REPO_ROOT, '.venv-stt'));
+  assert.equal(c.trackMirror, false);
+  assert.equal(c.langCheckMs, 60_000);
+  assert.equal(c.noAudioWarnMs, 60_000);
+});
+
+test('trackMirror: off by default, on only for OPENMEETING_TRACK_MIRROR=1', () => {
+  assert.equal(getConfig({}).trackMirror, false);
+  assert.equal(getConfig({ OPENMEETING_TRACK_MIRROR: '1' }).trackMirror, true);
+  for (const v of ['0', 'true', 'yes', '', ' 1']) {
+    assert.equal(getConfig({ OPENMEETING_TRACK_MIRROR: v }).trackMirror, false, JSON.stringify(v));
+  }
+});
+
+test('langCheckMs / noAudioWarnMs come from OPENMEETING_LANG_CHECK_MS / OPENMEETING_NO_AUDIO_WARN_MS', () => {
+  const c = getConfig({ OPENMEETING_LANG_CHECK_MS: '1000', OPENMEETING_NO_AUDIO_WARN_MS: '2500' });
+  assert.equal(c.langCheckMs, 1000);
+  assert.equal(c.noAudioWarnMs, 2500);
+  const bad = getConfig({ OPENMEETING_LANG_CHECK_MS: 'soon', OPENMEETING_NO_AUDIO_WARN_MS: '-1' });
+  assert.equal(bad.langCheckMs, 60_000);
+  assert.equal(bad.noAudioWarnMs, 60_000);
 });
 
 test('repoRoot is always the code location, even when home is overridden', () => {
@@ -97,7 +117,11 @@ test('every *_MS timeout can be overridden via OPENMEETING_<UPPER_SNAKE>_MS', ()
     OPENMEETING_MAX_DURATION_MS: '4000',
     OPENMEETING_POLL_MS: '250',
     OPENMEETING_UNKNOWN_END_MS: '5000',
+    OPENMEETING_LANG_CHECK_MS: '6000',
+    OPENMEETING_NO_AUDIO_WARN_MS: '7000',
   });
+  assert.equal(c.langCheckMs, 6000);
+  assert.equal(c.noAudioWarnMs, 7000);
   assert.equal(c.unknownEndMs, 5000);
   assert.equal(getConfig({}).unknownEndMs, 60_000);
   assert.equal(c.lobbyTimeoutMs, 1000);

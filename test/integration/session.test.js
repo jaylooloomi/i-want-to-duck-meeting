@@ -66,6 +66,8 @@ async function runMock(params, envOverrides = {}) {
   const dir = createMeetingDir(config.meetingsDir, id);
   /** @type {any} */
   let mockState = null;
+  /** @type {boolean|null} whether the RTCPeerConnection track mirror was installed in the page */
+  let mirror = null;
   const final = await runSession({
     url,
     code,
@@ -76,11 +78,18 @@ async function runMock(params, envOverrides = {}) {
     hooks: {
       beforeClose: async (page) => {
         mockState = await page.evaluate(() => JSON.parse(JSON.stringify(/** @type {any} */ (window).__mock ?? null)));
+        mirror = await page.evaluate(() => !!(/** @type {any} */ (window).__omTrackMirror));
       },
     },
   });
-  return { final, dir, mockState, status: readStatus(dir) };
+  return { final, dir, mockState, mirror, status: readStatus(dir) };
 }
+
+/** @param {string} dir */
+const readLog = (dir) => fs.readFileSync(path.join(dir, 'bot.log'), 'utf8');
+
+/** Caption-language changes in the mock, as 'code/via' strings. @param {any} mockState */
+const langChanges = (mockState) => mockState.events.filter((e) => e.type === 'caption_language').map((e) => `${e.detail.code}/${e.detail.via}`);
 
 /** @param {string} dir */
 function readUtterances(dir) {
@@ -113,7 +122,8 @@ function assertTerminalShape(status) {
 }
 
 test('happy: joins silently, records the exact transcript, audio and stats', { timeout: TEST_TIMEOUT }, async () => {
-  const { final, dir, mockState, status } = await runMock({ scenario: 'happy', lobbyMs: 1500 });
+  // langpicker=combobox: only the caption bar's "Meeting language" combobox can set the language
+  const { final, dir, mockState, mirror, status } = await runMock({ scenario: 'happy', lobbyMs: 1500, langpicker: 'combobox' });
   assertTerminalShape(status);
   assert.equal(final.state, 'done');
   assert.equal(final.endReason, 'meeting_ended');
@@ -151,13 +161,97 @@ test('happy: joins silently, records the exact transcript, audio and stats', { t
   assert.equal(mockState.name, NAME, 'typed display name');
   assert.equal(mockState.captionLang, 'cmn-Hant-TW');
   assert.equal(mockState.timelineDone, true);
+
+  // caption language via the caption bar (path A), with real clicks, on the first try
+  assert.deepEqual(langChanges(mockState), ['cmn-Hant-TW/combobox']);
+  assert.ok(!mockState.events.some((e) => e.type === 'caption_lang_picker' && /untrusted/.test(e.detail)), 'no synthetic clicks');
+  const log = readLog(dir);
+  assert.match(log, /caption language set to cmn-Hant-TW via the caption bar/);
+  assert.doesNotMatch(log, /Settings > Captions/);
+
+  // audio is recorded without the RTCPeerConnection track mirror (off by default)
+  assert.equal(mirror, false, 'track mirror not installed');
+  assert.doesNotMatch(log, /track mirror enabled/);
+  assert.equal(final.stats.audioTracks, undefined, 'no "no audio tracks" warning');
 });
 
-test('signedin=1 (no name input, "Join now") joins and records', { timeout: TEST_TIMEOUT }, async () => {
-  const { final, dir, mockState } = await runMock({ scenario: 'happy', signedin: 1, ...QUICK });
+test('langpicker=settings: no caption-bar combobox → the Settings fallback sets the caption language', { timeout: TEST_TIMEOUT }, async () => {
+  const { final, dir, mockState } = await runMock({ scenario: 'happy', ...QUICK, langpicker: 'settings' });
+  assert.equal(final.state, 'done');
+  assert.equal(final.endReason, 'meeting_ended');
+  assert.equal(final.stats.captionLang, 'cmn-Hant-TW');
+  assert.equal(mockState.captionLang, 'cmn-Hant-TW');
+  assert.deepEqual(langChanges(mockState), ['cmn-Hant-TW/settings']);
+  const log = readLog(dir);
+  assert.match(log, /no "Meeting language" combobox in the caption bar; using Settings > Captions/);
+  assert.match(log, /caption language set to cmn-Hant-TW via Settings/);
+  assert.doesNotMatch(log, /last resort/, 'the Settings list item was clicked with a real click');
+  const utterances = readUtterances(dir);
+  assert.ok(utterances.length >= 1);
+  assert.ok(utterances.every((u) => !u.text.includes('(english captions)')), 'captions were Chinese throughout');
+});
+
+test('a mid-call switch of the caption language back to English is detected and corrected', { timeout: TEST_TIMEOUT }, async () => {
+  const { final, dir, mockState } = await runMock(
+    { scenario: 'happy', ...QUICK, endAfterMs: 9000, langResetAtMs: 1000 },
+    { OPENMEETING_LANG_CHECK_MS: '1000' },
+  );
+  assert.equal(final.state, 'done');
+  assert.equal(final.endReason, 'meeting_ended');
+  assert.deepEqual(langChanges(mockState), ['cmn-Hant-TW/combobox', 'en-US/reset', 'cmn-Hant-TW/combobox']);
+  const changes = mockState.events.filter((e) => e.type === 'caption_language');
+  const fixedAfterMs = changes[2].at - changes[1].at;
+  assert.ok(fixedAfterMs < 6000, `corrected ${fixedAfterMs} ms after the switch`);
+  assert.equal(mockState.captionLang, 'cmn-Hant-TW');
+  assert.equal(final.stats.captionLang, 'cmn-Hant-TW');
+  const log = readLog(dir);
+  assert.match(log, /WARN \[session\] caption language changed to en-US/);
+  assert.match(log, /caption language set to cmn-Hant-TW via the caption bar[\s\S]*caption language changed to en-US[\s\S]*caption language set to cmn-Hant-TW via the caption bar/);
+  const utterances = readUtterances(dir);
+  assert.ok(utterances.length >= 1);
+  assert.ok(utterances.every((u) => !u.text.includes('(english captions)')));
+});
+
+test('a caption language that keeps being switched away is set back twice, then left alone (no fight)', { timeout: TEST_TIMEOUT }, async () => {
+  const { final, dir, mockState } = await runMock(
+    { scenario: 'happy', ...QUICK, endAfterMs: 14_000, langResetAtMs: 500, langResets: 10 },
+    { OPENMEETING_LANG_CHECK_MS: '700' },
+  );
+  assert.equal(final.state, 'done');
+  assert.equal(final.endReason, 'meeting_ended');
+  const C = 'cmn-Hant-TW/combobox';
+  const R = 'en-US/reset';
+  // the initial set, two switch-backs, then the third switch away is left alone until the end
+  assert.deepEqual(langChanges(mockState), [C, R, C, R, C, R]);
+  assert.equal(mockState.captionLang, 'en-US');
+  assert.equal(final.stats.captionLang, 'en-US', 'stats follow what the caption bar shows');
+  const log = readLog(dir);
+  assert.equal((log.match(/WARN \[session\] caption language changed to en-US/g) || []).length, 2, log);
+  assert.equal((log.match(/leaving it/g) || []).length, 1, 'one "leaving it" warning');
+  assert.doesNotMatch(log, /giving up/);
+  // the speech happened in Chinese before the switches
+  const utterances = readUtterances(dir);
+  assert.ok(utterances.length >= 1);
+  assert.ok(utterances.every((u) => !u.text.includes('(english captions)')));
+});
+
+test('no remote audio track: one warning after OPENMEETING_NO_AUDIO_WARN_MS and stats.audioTracks = 0', { timeout: TEST_TIMEOUT }, async () => {
+  const { final, dir, mirror } = await runMock({ scenario: 'happy', ...QUICK, noaudio: 1 }, { OPENMEETING_NO_AUDIO_WARN_MS: '1500' });
+  assert.equal(final.state, 'done');
+  assert.equal(final.stats.audioTracks, 0);
+  assert.equal(mirror, false, 'the mirror is not switched on mid-call');
+  const warnings = readLog(dir).match(/WARN \[session\] no remote audio track/g) || [];
+  assert.equal(warnings.length, 1, 'warned exactly once');
+});
+
+test('signedin=1 (no name input, "Join now") joins and records; OPENMEETING_TRACK_MIRROR=1 installs the track mirror', { timeout: TEST_TIMEOUT }, async () => {
+  const { final, dir, mockState, mirror } = await runMock({ scenario: 'happy', signedin: 1, ...QUICK }, { OPENMEETING_TRACK_MIRROR: '1' });
   assert.equal(final.state, 'done');
   assert.equal(final.endReason, 'meeting_ended');
   assert.ok(readUtterances(dir).length >= 1);
+  assert.equal(mirror, true, 'track mirror installed');
+  assert.match(readLog(dir), /track mirror enabled/);
+  assert.ok(final.stats.audioSeconds > 0, 'audio still recorded with the mirror on');
   assert.equal(mockState.signedIn, true);
   assert.equal(mockState.name, 'OpenMeeting Bot');
   assert.equal(mockState.micOff && mockState.camOff, true);
@@ -272,7 +366,8 @@ test('caption language item without data-value is found by its label', { timeout
 test('caption language that cannot be set: still recorded, transcript.md warns about it', { timeout: TEST_TIMEOUT }, async () => {
   const { final, dir } = await runMock({ scenario: 'happy', ...QUICK, captionLeadMs: 9000, langlist: 'missing' });
   assert.equal(final.state, 'done');
-  assert.equal(final.stats.captionLang, 'unknown');
+  // the caption bar shows what Meet really uses: still English
+  assert.equal(final.stats.captionLang, 'en-US');
   assert.ok(readUtterances(dir).length >= 1);
   const md = fs.readFileSync(path.join(dir, 'transcript.md'), 'utf8');
   assert.ok(md.includes('字幕語言未能設定為 cmn-Hant-TW'), md.slice(0, 400));

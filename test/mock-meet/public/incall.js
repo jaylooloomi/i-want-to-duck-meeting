@@ -80,7 +80,9 @@ export function createInCall({ state, cfg, captions, onLeave, log }) {
     log,
     onSettings: () => {
       closeSettings();
-      settingsDialog = createSettingsDialog({ state, onLanguage: (code) => captions.setLanguage(code), onClose: closeSettings, langList: cfg.langList });
+      settingsDialog = createSettingsDialog({
+        state, onLanguage: (code) => captions.setLanguage(code, 'settings'), onClose: closeSettings, langList: cfg.langList, langPicker: cfg.langPicker,
+      });
       overlays.append(settingsDialog);
     },
   });

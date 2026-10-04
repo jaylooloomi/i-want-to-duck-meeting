@@ -290,6 +290,55 @@ describe('installCaptionObserver (headless Chrome, fixture DOM)', () => {
     }
   });
 
+  test('the caption bar\'s language combobox, listbox and options are controls, never caption blocks', async () => {
+    // Meet (Sep-Oct 2026) shows a [role=combobox][aria-label="Meeting language"] in the caption
+    // region; its listbox may be rendered next to it, inside it, or as a portal elsewhere.
+    const fallback = { ...SEL, captionBlock: '.no-such-block', captionSpeaker: '.no-such-speaker', captionText: '.no-such-text' };
+    for (const sel of [SEL, fallback]) {
+      const { page, payloads } = await open({ install: false, sel });
+      try {
+        await page.evaluate(() => {
+          const region = document.querySelector('[role="region"][aria-label="Captions"]');
+          const before = region.querySelector('.IMKgW');
+          // 1. a bare combobox as a direct child of the region (its listbox is a portal in <body>)
+          const combo = document.createElement('div');
+          combo.setAttribute('role', 'combobox');
+          combo.setAttribute('aria-label', 'Meeting language');
+          combo.setAttribute('aria-expanded', 'false');
+          combo.textContent = 'Chinese (Mandarin, Traditional)';
+          region.insertBefore(combo, before);
+          // 2. a wrapper holding only a combobox
+          const wrap = document.createElement('div');
+          wrap.innerHTML = '<div role="combobox" aria-label="Meeting language"><span>English (combobox)</span></div>';
+          region.insertBefore(wrap, before);
+          // 3. an open option list (options as direct children of the region, as some builds do)
+          const opt = document.createElement('li');
+          opt.setAttribute('role', 'option');
+          opt.setAttribute('data-value', 'ja-JP');
+          opt.textContent = 'Japanese';
+          region.insertBefore(opt, before);
+          const list = document.createElement('ul');
+          list.setAttribute('role', 'listbox');
+          list.innerHTML = '<li role="option" data-value="en-US" aria-selected="false">English</li><li role="option" data-value="cmn-Hant-TW" aria-selected="true">Chinese (Mandarin, Traditional)</li>';
+          region.insertBefore(list, before);
+        });
+        await page.evaluate(installCaptionObserver, sel);
+        const p = await waitFor(payloads, (x) => x.blocks?.length > 0);
+        assert.deepEqual(
+          p.blocks.map(({ speaker, text }) => ({ speaker, text })),
+          [
+            { speaker: '王小明', text: '大家好，今天我們來討論新版本的上線時間' },
+            { speaker: 'Arthur Wang', text: '好的，我先review一下' },
+          ],
+          `selectors: ${sel.captionBlock}`,
+        );
+        for (const b of p.blocks) assert.doesNotMatch(`${b.speaker} ${b.text}`, /English|Japanese|Chinese \(Mandarin/);
+      } finally {
+        await page.close();
+      }
+    }
+  });
+
   test('end to end: payloads from a Meet-like caption timeline assemble into the expected utterances', async () => {
     const { page, payloads } = await open({ install: false });
     try {

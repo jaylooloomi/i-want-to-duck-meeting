@@ -23,6 +23,13 @@ import { fileURLToPath } from 'node:url';
  * @property {number} blockedBackoffMs OPENMEETING_BLOCKED_BACKOFF_MS (join retry n waits n × this after BLOCKED/BLANK; 20 s, 40 s)
  * @property {number} unknownEndMs   OPENMEETING_UNKNOWN_END_MS (addition to spec 5.1: in the call, an unrecognized
  *   screen with no call controls at all for this long counts as the meeting having ended)
+ * @property {number} langCheckMs    OPENMEETING_LANG_CHECK_MS: how often, in the call, the caption language is
+ *   re-read (and set again when Meet or a participant switched it, or retried while it is unknown)
+ * @property {number} noAudioWarnMs  OPENMEETING_NO_AUDIO_WARN_MS: no remote audio track for this long in the call →
+ *   one warning and stats.audioTracks = 0
+ * @property {boolean} trackMirror env OPENMEETING_TRACK_MIRROR === '1' (default off): install the RTCPeerConnection
+ *   track mirror (src/page/audio-capture.js). Off because wrapping RTCPeerConnection leaves a detectable
+ *   main-world fingerprint, and Meet already plays remote audio through <audio>/<video> elements with a srcObject.
  * @property {string} sttVenv    home/.venv-stt
  */
 
@@ -35,6 +42,8 @@ export const TIMEOUT_DEFAULTS = Object.freeze({
   pollMs: 1500,
   blockedBackoffMs: 20_000,
   unknownEndMs: 60_000,
+  langCheckMs: 60_000,
+  noAudioWarnMs: 60_000,
 });
 
 export const DEFAULT_DISPLAY_NAME = 'Arthur 的會議記錄';
@@ -101,6 +110,7 @@ export function getConfig(env = process.env) {
     headless: env.OPENMEETING_HEADLESS === '1',
     muteAudio: env.OPENMEETING_MUTE !== '0',
     allowAnyHost: env.OPENMEETING_ALLOW_ANY_HOST === '1',
+    trackMirror: env.OPENMEETING_TRACK_MIRROR === '1',
     lobbyTimeoutMs: timeouts.lobbyTimeoutMs,
     aloneTimeoutMs: timeouts.aloneTimeoutMs,
     noOneTimeoutMs: timeouts.noOneTimeoutMs,
@@ -108,6 +118,8 @@ export function getConfig(env = process.env) {
     pollMs: timeouts.pollMs,
     blockedBackoffMs: timeouts.blockedBackoffMs,
     unknownEndMs: timeouts.unknownEndMs,
+    langCheckMs: timeouts.langCheckMs,
+    noAudioWarnMs: timeouts.noAudioWarnMs,
     sttVenv: path.join(home, '.venv-stt'),
   };
 }

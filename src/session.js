@@ -10,7 +10,7 @@ import { readStatus, writeStatus } from './status.js';
 import { createLogger } from './log.js';
 import { launchChrome, connectChrome } from './chrome.js';
 import { JoinError, clickElement, joinMeeting, sleep, takeSnapshot, toLog, withTimeout } from './meet/join.js';
-import { dismissModals, ensureCaptions, leaveCall, prepareInCall, setCaptionLanguage } from './meet/incall.js';
+import { dismissModals, ensureCaptions, getCaptionLanguage, leaveCall, prepareInCall, setCaptionLanguage } from './meet/incall.js';
 import { classifyInCall, inCallSignal, STATES } from './meet/state.js';
 import { SEL, TEXT, matchAny, serializableSel } from './meet/selectors.js';
 import { installCaptionObserver } from './page/caption-observer.js';
@@ -37,9 +37,18 @@ const NO_CAPTIONS_WARN_MS = 90_000;
 const MIN_WHISPER_AUDIO_S = 20;
 /** Popups are re-dismissed at most this often while the page is UNKNOWN / RECONNECTING. */
 const DISMISS_OUT_OF_CALL_MS = 10_000;
-/** Retry setting the caption language this often while it is unknown, at most this many times. */
-const LANG_RETRY_MS = 60_000;
+/**
+ * The caption language is re-checked every config.langCheckMs (60 s); after this many failed
+ * attempts in a row to set it, the session stops trying.
+ */
 const LANG_MAX_RETRIES = 4;
+/**
+ * A caption language switched away from the requested one after it was set (by Meet, or by a
+ * participant / the person at the bot's window who wants another language) is set back at most
+ * this many times per meeting; a further switch is left alone, so the bot never keeps fighting
+ * someone over it (each switch is visible to everyone when the language is meeting-wide).
+ */
+const LANG_MAX_SWITCHBACKS = 2;
 /** Without a readable participant count, the self-only tile view must last this many aloneTimeouts. */
 const TILE_ALONE_FACTOR = 5;
 const COUNT_MISSING_WARN_MS = 60_000;
@@ -92,6 +101,8 @@ export async function runSession(opts) {
   const captionLang = opts.captionLang || config.captionLang;
   const maintenanceMs = opts.maintenanceMs ?? 30_000;
   const pollMs = Math.max(50, config.pollMs);
+  const langCheckMs = Math.max(250, config.langCheckMs ?? 60_000);
+  const noAudioWarnMs = config.noAudioWarnMs ?? 60_000;
   // UNKNOWN with no leave button and no in-call element at all for this long = an end screen we don't know
   const unknownEndMs = config.unknownEndMs ?? 60_000;
   const log = opts.log || createLogger({
@@ -106,7 +117,12 @@ export async function runSession(opts) {
 
   const previous = readStatus(dir) || {};
   const startedAt = previous.startedAt || new Date().toISOString();
-  const stats = { utterances: 0, speakers: /** @type {string[]} */ ([]), audioSeconds: 0, captionLang: 'unknown', captionsOn: false };
+  /**
+   * audioTracks: only present once the "no remote audio track" warning fired (then 0, later the
+   * captured track count).
+   * @type {{ utterances: number, speakers: string[], audioSeconds: number, captionLang: string, captionsOn: boolean, audioTracks?: number }}
+   */
+  const stats = { utterances: 0, speakers: [], audioSeconds: 0, captionLang: 'unknown', captionsOn: false };
   writeStatus(dir, {
     id, code, url, displayName, pid: process.pid, state: 'starting', startedAt,
     joinedAt: null, endedAt: null, endReason: null, error: null, stats, heartbeatAt: new Date().toISOString(),
@@ -175,6 +191,9 @@ export async function runSession(opts) {
   let sawCaptions = false;
   let lastStatsWrite = 0;
   /** @type {number|null} */ let lastAudioTracks = null;
+  /** Since when no remote audio track has been captured (null: tracks are being captured). */
+  /** @type {number|null} */ let noTracksSince = null;
+  let noAudioWarned = false;
 
   const mono = (/** @type {number} */ t) => {
     monoClock = Math.max(monoClock, Number.isFinite(t) ? t : Date.now());
@@ -246,6 +265,12 @@ export async function runSession(opts) {
     } else {
       L.debug('audio capture status', s);
     }
+    if (tracks !== null) {
+      if (tracks > 0) noTracksSince = null;
+      else noTracksSince ??= Date.now();
+      // after the "no remote audio track" warning, stats.audioTracks follows the capture
+      if (noAudioWarned) stats.audioTracks = tracks;
+    }
   };
 
   const ensureAudioCapture = async () => {
@@ -290,13 +315,79 @@ export async function runSession(opts) {
     let lastMaintenance = Date.now();
     let lastOutOfCallDismiss = 0;
     let lastCaptionRetry = Date.now();
-    let lastLangTry = Date.now();
+    let lastLangCheck = Date.now();
     let langRetries = 0;
+    let langGaveUp = false;
+    let langSwitchbacks = 0;
+    let langLeftAlone = false;
     let lastDeviceFix = 0;
     let countWarned = false;
     let snapFailures = 0;
     const joined = /** @type {number} */ (joinedAtMs);
     lastCaptionActivity = Date.now();
+
+    /**
+     * Every langCheckMs in the call: read the caption language from the caption bar. Meet or a
+     * participant may switch it: a known code other than `captionLang` → warn and set it again,
+     * at most LANG_MAX_SWITCHBACKS times per meeting (then the switch is left alone for good).
+     * Unreadable (null) while it was never set → retry. After LANG_MAX_RETRIES failed attempts
+     * in a row it stops trying. stats.captionLang follows the language the caption bar shows.
+     */
+    const checkCaptionLanguage = async () => {
+      if (!page) return;
+      const current = await getCaptionLanguage(page);
+      if (current === captionLang) {
+        langRetries = 0;
+        langGaveUp = false;
+        if (stats.captionLang !== captionLang) {
+          L.info(`caption language is ${captionLang} now`);
+          stats.captionLang = captionLang;
+          writeStats(true);
+        }
+        return;
+      }
+      if (current === null && stats.captionLang === captionLang) return; // set earlier; not readable here
+      // it was set (or believed set), and now shows another language
+      const switchedAway = !!current && stats.captionLang === captionLang;
+      if (current && stats.captionLang !== current) {
+        stats.captionLang = current;
+        writeStats(true);
+      }
+      if (langLeftAlone) return;
+      if (switchedAway) {
+        if (langSwitchbacks >= LANG_MAX_SWITCHBACKS) {
+          langLeftAlone = true;
+          L.warn(`caption language is ${current} again after ${LANG_MAX_SWITCHBACKS} switch-backs to ${captionLang}; leaving it `
+            + `(someone probably wants it; captions may not be ${captionLang}, audio is still recorded)`);
+          return;
+        }
+        langSwitchbacks += 1;
+      }
+      if (langRetries >= LANG_MAX_RETRIES) {
+        if (!langGaveUp) {
+          langGaveUp = true;
+          L.warn(`could not set the caption language to ${captionLang} after ${LANG_MAX_RETRIES} attempts; giving up (captions may be wrong, audio is still recorded)`);
+        }
+        return;
+      }
+      langRetries += 1;
+      if (current) {
+        L.warn(`caption language changed to ${current} (by Meet or a participant?); setting it back to ${captionLang} `
+          + `(attempt ${langRetries}/${LANG_MAX_RETRIES}, switch-back ${langSwitchbacks}/${LANG_MAX_SWITCHBACKS})`);
+      } else {
+        L.warn(`caption language is still not ${captionLang}; retrying (${langRetries}/${LANG_MAX_RETRIES})`);
+      }
+      let ok = false;
+      try {
+        ok = await setCaptionLanguage(page, captionLang, { log: sub('incall') });
+      } catch (err) {
+        L.debug(`setCaptionLanguage failed: ${err && err.message}`);
+      }
+      const shown = await getCaptionLanguage(page);
+      stats.captionLang = shown || (ok ? captionLang : current || stats.captionLang);
+      if (stats.captionLang === captionLang) langRetries = 0;
+      writeStats(true);
+    };
 
     for (;;) {
       const stop = stopRequested();
@@ -462,19 +553,21 @@ export async function runSession(opts) {
           L.debug(`ensureCaptions failed: ${err && err.message}`);
         }
       }
-      if (state === STATES.IN_CALL && captionLang && stats.captionLang !== captionLang
-        && langRetries < LANG_MAX_RETRIES && Date.now() - lastLangTry >= LANG_RETRY_MS) {
-        lastLangTry = Date.now();
-        langRetries += 1;
-        L.warn(`caption language is still not ${captionLang}; retrying (${langRetries}/${LANG_MAX_RETRIES})`);
+      if (state === STATES.IN_CALL && captionLang && Date.now() - lastLangCheck >= langCheckMs) {
         try {
-          if (await setCaptionLanguage(page, captionLang, { log: sub('incall') })) {
-            stats.captionLang = captionLang;
-            writeStats(true);
-          }
+          await checkCaptionLanguage();
         } catch (err) {
-          L.debug(`setCaptionLanguage failed: ${err && err.message}`);
+          L.debug(`caption language check failed: ${err && err.message}`);
         }
+        lastLangCheck = Date.now();
+      }
+      // no remote audio track at all: warn once (the track mirror is NOT switched on mid-call)
+      if (!noAudioWarned && state === STATES.IN_CALL && noTracksSince !== null && Date.now() - noTracksSince >= noAudioWarnMs) {
+        noAudioWarned = true;
+        stats.audioTracks = 0;
+        L.warn(`no remote audio track for ${Math.round(noAudioWarnMs / 1000)} s; audio.wav stays silent until one appears`
+          + (config.trackMirror ? '' : ' (the RTCPeerConnection track mirror is off; OPENMEETING_TRACK_MIRROR=1 enables it for the next meeting)'));
+        writeStats(true);
       }
 
       writeStats(false);
@@ -504,8 +597,14 @@ export async function runSession(opts) {
       pageGone = true;
     });
 
-    // before navigation: track mirror, page→node bindings, deny mic/cam for the meeting origin
-    await conn.context.addInitScript(installTrackMirror);
+    // before navigation: page→node bindings, deny mic/cam for the meeting origin. The
+    // RTCPeerConnection track mirror is opt-in (OPENMEETING_TRACK_MIRROR=1): wrapping
+    // RTCPeerConnection leaves a detectable main-world fingerprint, and Meet already plays remote
+    // audio through <audio>/<video> elements with a srcObject, which audio capture taps directly.
+    if (config.trackMirror) {
+      await conn.context.addInitScript(installTrackMirror);
+      L.info('RTCPeerConnection track mirror enabled (OPENMEETING_TRACK_MIRROR=1)');
+    }
     await page.exposeFunction('__omCaptions', onCaptions);
     await page.exposeFunction('__omAudio', onAudio);
     await page.exposeFunction('__omAudioStatus', onAudioStatus);
@@ -553,6 +652,7 @@ export async function runSession(opts) {
       onState: (s) => setStatus({ state: s }),
     });
     joinedAtMs = Date.now();
+    noTracksSince = joinedAtMs; // until audio capture reports a remote track
     setStatus({ state: 'in_call', joinedAt: new Date(joinedAtMs).toISOString() });
     L.info(`joined the meeting (waited ${Math.round(admittedAfterMs / 1000)} s for admission)`);
 

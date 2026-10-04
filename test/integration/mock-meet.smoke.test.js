@@ -345,7 +345,9 @@ test('happy: prejoin → lobby → in call → Chinese captions → end screen',
   const region = page.locator('div[role="region"][aria-label="Captions"][tabindex="0"].vNKgIf.UDinHf');
   await region.waitFor();
   const controls = await region.evaluate((el) => [...el.children].slice(-2).map((c) => c.tagName + ':' + c.innerText.trim()));
-  assert.deepEqual(controls, ['BUTTON:English', 'BUTTON:Jump to bottom']);
+  assert.deepEqual(controls, ['DIV:English', 'BUTTON:Jump to bottom']);
+  // the trailing language control is the "Meeting language" combobox (langpicker=both, the default)
+  assert.equal(await region.locator('[role="combobox"][aria-label="Meeting language"]').count(), 1);
 
   // caption language through More options > Settings > Captions
   await page.locator('button[aria-label="More options"]').click();
@@ -357,11 +359,13 @@ test('happy: prejoin → lobby → in call → Chinese captions → end screen',
   assert.equal(await list.evaluate((el) => getComputedStyle(el).display), 'none');
   assert.deepEqual(await list.locator('li').evaluateAll((els) => els.slice(0, 3).map((e) => e.dataset.value)),
     ['en-US', 'cmn-Hant-TW', 'cmn-Hans-CN']);
-  await page.locator('li[data-value="cmn-Hant-TW"]').evaluate((el) => el.click());
+  await dialog.locator('li[data-value="cmn-Hant-TW"]').evaluate((el) => el.click());
   await page.locator('button[aria-label="Close dialog"]').click();
   await dialog.waitFor({ state: 'detached' });
   st = await mockState(page);
   assert.equal(st.captionLang, 'cmn-Hant-TW');
+  assert.equal(st.captionLangVia, 'settings');
+  assert.ok(st.events.some((e) => e.type === 'caption_language' && e.detail.code === 'cmn-Hant-TW' && e.detail.via === 'settings'));
   assert.equal(st.captionsOn, true);
   assert.equal(await region.evaluate((el) => [...el.children].at(-2).innerText.trim()), 'Chinese (Mandarin, Traditional)');
 
@@ -565,4 +569,193 @@ test('in call: "c" toggles captions, timeline pauses while off, huge endAfterMs 
   await page.locator('button[aria-label="Leave call"]').click();
   await waitText(page, 'You left the meeting');
   assert.equal((await mockState(page)).phase, 'left');
+});
+
+// ---------------------------------------------------------------------------------------------
+// caption-bar language picker (langpicker=combobox|settings|both), langResetAtMs, noaudio
+
+/** Speech waits for the target caption language (captionLeadMs is huge), the call never ends. */
+const LANG = { lobbyMs: 200, captionLeadMs: 600_000, captionStepMs: 0.03, endAfterMs: 1e12 };
+
+/** Turn captions on and return locators for the caption-bar combobox and its listbox. */
+async function captionBarPicker(page) {
+  await page.locator('button[aria-label="Turn on captions"]').click();
+  const region = page.locator('[role="region"][aria-label="Captions"]');
+  await region.waitFor();
+  const combo = region.locator('[role="combobox"][aria-label="Meeting language"]');
+  await combo.waitFor();
+  const listId = await combo.getAttribute('aria-controls');
+  assert.ok(listId, 'the combobox names its listbox (aria-controls)');
+  return { region, combo, list: page.locator(`[id="${listId}"]`) };
+}
+
+test('caption bar: the "Meeting language" combobox opens a listbox and switches the caption language', async (t) => {
+  const page = await openMeet(t, { scenario: 'happy', ...LANG });
+  await joinCall(page);
+  const { combo, list } = await captionBarPicker(page);
+  assert.equal(await combo.getAttribute('aria-expanded'), 'false');
+  assert.equal(await combo.getAttribute('aria-haspopup'), 'listbox');
+  assert.equal((await combo.innerText()).trim(), 'English');
+  assert.equal(await list.getAttribute('role'), 'listbox');
+  assert.equal(await list.isVisible(), false, 'the listbox is hidden until the combobox is clicked');
+  // the selected option can be read while the listbox is hidden
+  assert.equal(await list.locator('li[role="option"][aria-selected="true"]').getAttribute('data-value'), 'en-US');
+  assert.equal(await list.locator('li[role="option"][aria-selected="true"]').count(), 1);
+
+  // synthetic clicks are ignored: the bot must use real mouse clicks
+  await combo.evaluate((el) => el.click());
+  await page.waitForTimeout(100);
+  assert.equal(await list.isVisible(), false);
+
+  await combo.click();
+  await list.waitFor({ state: 'visible' });
+  assert.equal(await combo.getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(await list.locator('li[role="option"]').evaluateAll((els) => els.slice(0, 3).map((e) => e.dataset.value)),
+    ['en-US', 'cmn-Hant-TW', 'cmn-Hans-CN']);
+  assert.equal(await list.locator('li[data-value="cmn-Hant-TW"]').innerText(), 'Chinese (Mandarin, Traditional)');
+  await page.keyboard.press('Escape');
+  await list.waitFor({ state: 'hidden' });
+  assert.equal(await combo.getAttribute('aria-expanded'), 'false');
+
+  // a click elsewhere closes it too
+  await combo.click();
+  await list.waitFor({ state: 'visible' });
+  await page.locator('.tiles').click({ position: { x: 5, y: 5 } });
+  await list.waitFor({ state: 'hidden' });
+
+  await combo.click();
+  const option = list.locator('li[role="option"][data-value="cmn-Hant-TW"]');
+  await option.evaluate((el) => el.click()); // synthetic: ignored
+  assert.equal((await mockState(page)).captionLang, 'en-US');
+  await option.click();
+  await list.waitFor({ state: 'hidden' });
+  const st = await mockState(page);
+  assert.equal(st.captionLang, 'cmn-Hant-TW');
+  assert.equal(st.captionLangVia, 'combobox');
+  assert.ok(st.events.some((e) => e.type === 'caption_language' && e.detail.code === 'cmn-Hant-TW' && e.detail.via === 'combobox'));
+  assert.equal((await combo.innerText()).trim(), 'Chinese (Mandarin, Traditional)');
+  assert.equal(await combo.getAttribute('aria-expanded'), 'false');
+  assert.equal(await list.locator('[aria-selected="true"]').getAttribute('data-value'), 'cmn-Hant-TW');
+
+  // speech starts once the language is right, and is captioned in Chinese
+  await page.waitForFunction(() => window.__mock.timelineDone === true, null, { timeout: 10_000 });
+  const done = await mockState(page);
+  assert.deepEqual(done.rendered.map((r) => r.text), HAPPY_TIMELINE.map((s) => s.text));
+});
+
+test('langpicker=settings: the caption bar shows a plain language button (no combobox); Settings still works', async (t) => {
+  const page = await openMeet(t, { scenario: 'happy', ...LANG, langpicker: 'settings' });
+  await joinCall(page);
+  await page.locator('button[aria-label="Turn on captions"]').click();
+  const region = page.locator('[role="region"][aria-label="Captions"]');
+  await region.waitFor();
+  const controls = await region.evaluate((el) => [...el.children].slice(-2).map((c) => c.tagName + ':' + c.innerText.trim()));
+  assert.deepEqual(controls, ['BUTTON:English', 'BUTTON:Jump to bottom']);
+  assert.equal(await page.locator('[role="combobox"]').count(), 0);
+  assert.equal(await page.locator('[role="option"]').count(), 0);
+
+  await page.locator('button[aria-label="More options"]').click();
+  await page.locator('[role="menu"] li[role="menuitem"]', { hasText: 'Settings' }).click();
+  const dialog = page.locator('[role="dialog"][aria-label="Settings"]');
+  await page.locator('button[aria-label="Captions"]').click();
+  // real clicks: open the dropdown, pick the language
+  await dialog.locator('button.select-trigger[aria-haspopup="listbox"]').click();
+  await dialog.locator('li[data-value="cmn-Hant-TW"]').click();
+  await page.locator('button[aria-label="Close dialog"]').click();
+  await dialog.waitFor({ state: 'detached' });
+  const st = await mockState(page);
+  assert.equal(st.captionLang, 'cmn-Hant-TW');
+  assert.equal(st.captionLangVia, 'settings');
+  assert.equal(await region.evaluate((el) => [...el.children].at(-2).innerText.trim()), 'Chinese (Mandarin, Traditional)');
+});
+
+test('langpicker=combobox: Settings > Captions has no language list, only the caption bar can switch it', async (t) => {
+  const page = await openMeet(t, { scenario: 'happy', ...LANG, langpicker: 'combobox' });
+  await joinCall(page);
+  const { combo, list } = await captionBarPicker(page);
+  await page.locator('button[aria-label="More options"]').click();
+  await page.locator('[role="menu"] li[role="menuitem"]', { hasText: 'Settings' }).click();
+  const dialog = page.locator('[role="dialog"][aria-label="Settings"]');
+  await page.locator('button[aria-label="Captions"]').click();
+  await dialog.locator('h2', { hasText: 'Captions' }).waitFor();
+  assert.equal(await dialog.locator('li[data-value], [role="listbox"], [aria-haspopup="listbox"]').count(), 0);
+  await page.locator('button[aria-label="Close dialog"]').click();
+  await dialog.waitFor({ state: 'detached' });
+
+  await combo.click();
+  await list.locator('li[data-value="cmn-Hans-CN"]').click();
+  const st = await mockState(page);
+  assert.equal(st.captionLang, 'cmn-Hans-CN');
+  assert.equal(st.captionLangVia, 'combobox');
+  assert.equal(st.langPicker, 'combobox');
+});
+
+test('langlist=missing / nodatavalue also shape the caption-bar listbox', async (t) => {
+  const missing = await openMeet(t, { scenario: 'happy', ...LANG, langlist: 'missing' });
+  await joinCall(missing);
+  const a = await captionBarPicker(missing);
+  assert.ok(await a.list.locator('li[role="option"]').count() > 3);
+  assert.equal(await a.list.locator('li[data-value="cmn-Hant-TW"]').count(), 0);
+
+  const nodv = await openMeet(t, { scenario: 'happy', ...LANG, langlist: 'nodatavalue' });
+  await joinCall(nodv);
+  const b = await captionBarPicker(nodv);
+  assert.equal(await b.list.locator('li[data-value]').count(), 0);
+  await b.combo.click();
+  await b.list.locator('li[role="option"]', { hasText: 'Chinese (Mandarin, Traditional)' }).click();
+  assert.equal((await mockState(nodv)).captionLang, 'cmn-Hant-TW');
+});
+
+test('langResetAtMs: after the timeline the caption language switches back to English (captions on screen keep their text)', async (t) => {
+  const page = await openMeet(t, { scenario: 'happy', ...LANG, langResetAtMs: 300 });
+  await joinCall(page);
+  const { combo, list } = await captionBarPicker(page);
+  await combo.click();
+  await list.locator('li[data-value="cmn-Hant-TW"]').click();
+  await page.waitForFunction(() => window.__mock.timelineDone === true, null, { timeout: 10_000 });
+  const blocksBefore = await page.$$eval('.nMcdL .ygicle', (els) => els.map((e) => e.textContent));
+  await page.waitForFunction(() => window.__mock.captionLang === 'en-US', null, { timeout: 5000 });
+  const st = await mockState(page);
+  assert.equal(st.captionLangVia, 'reset');
+  const changes = st.events.filter((e) => e.type === 'caption_language').map((e) => `${e.detail.code}/${e.detail.via}`);
+  assert.deepEqual(changes, ['cmn-Hant-TW/combobox', 'en-US/reset']);
+  assert.equal((await combo.innerText()).trim(), 'English');
+  assert.equal(await list.locator('[aria-selected="true"]').getAttribute('data-value'), 'en-US');
+  assert.deepEqual(await page.$$eval('.nMcdL .ygicle', (els) => els.map((e) => e.textContent)), blocksBefore);
+  assert.ok(blocksBefore.length > 0 && blocksBefore.every((s) => !s.includes(GIBBERISH)));
+
+  // switching it back works like before
+  await combo.click();
+  await list.locator('li[data-value="cmn-Hant-TW"]').click();
+  assert.equal((await mockState(page)).captionLang, 'cmn-Hant-TW');
+  assert.equal((await mockState(page)).phase, 'in_call');
+});
+
+test('langResets=3: the reset comes back after each switch away from English, three times in all', async (t) => {
+  const page = await openMeet(t, { scenario: 'happy', ...LANG, langResetAtMs: 200, langResets: 3 });
+  await joinCall(page);
+  const { combo, list } = await captionBarPicker(page);
+  const pick = async () => {
+    await combo.click();
+    await list.locator('li[data-value="cmn-Hant-TW"]').click();
+  };
+  await pick();
+  await page.waitForFunction(() => window.__mock.timelineDone === true, null, { timeout: 10_000 });
+  for (let i = 0; i < 3; i++) {
+    await page.waitForFunction(() => window.__mock.captionLang === 'en-US', null, { timeout: 5000 });
+    await pick();
+  }
+  await page.waitForTimeout(800);
+  const st = await mockState(page);
+  assert.equal(st.captionLang, 'cmn-Hant-TW', 'no fourth reset');
+  const changes = st.events.filter((e) => e.type === 'caption_language').map((e) => `${e.detail.code}/${e.detail.via}`);
+  assert.deepEqual(changes, ['cmn-Hant-TW/combobox', ...Array(3).fill(['en-US/reset', 'cmn-Hant-TW/combobox']).flat()]);
+});
+
+test('noaudio=1: the call has no remote audio element', async (t) => {
+  const page = await openMeet(t, { scenario: 'happy', ...LANG, noaudio: 1 });
+  await joinCall(page);
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('audio').count(), 0);
+  assert.equal((await mockState(page)).audioState, null);
 });

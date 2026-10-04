@@ -17,6 +17,7 @@ import {
 } from './status.js';
 import { TranscriptStore, renderTranscriptMd } from './transcript/store.js';
 import { runTranscribe, setupStt, sttAvailable, sttPython } from './stt.js';
+import { WORKER_ENV_KEY } from './worker.js';
 
 const TERMINAL = ['done', 'failed'];
 const LOGIN_URL = 'https://accounts.google.com/';
@@ -99,7 +100,13 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
  * @property {Record<string, string|undefined>} [env]
  * @property {(line: string) => void} [out]   stdout line writer
  * @property {(line: string) => void} [err]   stderr line writer
- * @property {(o: WorkerSpawn) => number|undefined} [spawnWorker] starts the detached worker, returns its pid
+ * @property {(o: WorkerSpawn) => WorkerLaunch|Promise<WorkerLaunch>} [spawnWorker] starts the
+ *   detached worker (default {@link launchWorker}); returns its pid, or a LaunchResult
+ */
+
+/**
+ * What a worker launcher returns: a bare pid (simple launchers / tests), or a LaunchResult.
+ * @typedef {number|undefined|{ pid: number|undefined, launcher?: 'wmi'|'spawn'|'spawn-fallback', reason?: string }} WorkerLaunch
  */
 
 /**
@@ -275,8 +282,9 @@ function printResult(out, dir, status) {
 }
 
 /**
- * Default worker launcher: `node src/worker.js --dir <dir> ...`, detached, hidden, stdio →
- * `<dir>/worker.out`, unref'd.
+ * Detached-spawn worker launcher (non-Windows, `OPENMEETING_LAUNCHER=spawn`, and the fallback
+ * when the WMI launch fails): `node src/worker.js --dir <dir> ...`, detached, hidden, stdio →
+ * `<dir>/worker.out`, unref'd. The worker inherits `env` directly.
  * @param {WorkerSpawn} o
  * @returns {number|undefined} pid
  */
@@ -292,6 +300,353 @@ export function spawnWorker({ dir, url, code, id, displayName, captionLang, env,
     return child.pid;
   } finally {
     fs.closeSync(fd);
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+// WMI launcher (Windows default)
+//
+// Claude Code runs tool shells inside Windows job objects and kills whole parent-pid trees
+// (`taskkill /T`), so a worker spawned the normal way dies with the Bash task that ran `join`.
+// A process created through WMI (Win32_Process.Create, CREATE_BREAKAWAY_FROM_JOB) has
+// WmiPrvSE.exe as its parent, is in no job, runs in the user's interactive desktop (headful
+// Chrome works) - but gets no stdio and a FRESH user environment: the parent's OPENMEETING_*
+// settings travel in `<dir>/worker-env.json`, and the worker writes its own stdout/stderr to
+// `<dir>/worker.out`.
+
+/** CREATE_BREAKAWAY_FROM_JOB. */
+export const WMI_CREATE_FLAGS = 16777216;
+/** Name of the env file the WMI-launched worker loads (`--env-file`). */
+export const WORKER_ENV_FILE = 'worker-env.json';
+/** The PowerShell + WMI call is killed (→ spawn fallback) after this long. */
+const WMI_TIMEOUT_MS = 30_000;
+/** How long `join` waits for a WMI-launched worker to report in. Env override OPENMEETING_WORKER_START_TIMEOUT_MS (tests). */
+const WORKER_START_TIMEOUT_MS = 15_000;
+const WORKER_START_POLL_MS = 250;
+/** Win32_Process.Create return values. */
+const WMI_RC_TEXT = {
+  2: 'access denied', 3: 'insufficient privilege', 8: 'unknown failure', 9: 'path not found', 21: 'invalid parameter',
+};
+
+/**
+ * PowerShell single-quoted string literal. Inside one only the quote needs escaping (doubled);
+ * PowerShell also treats the typographic quotes U+2018..U+201B as single quotes.
+ * @param {string} s
+ */
+export function psQuote(s) {
+  return `'${String(s).replace(/['\u2018\u2019\u201A\u201B]/g, '$&$&')}'`;
+}
+
+/**
+ * Quote one argument for a Windows command line so the MSVCRT / CommandLineToArgvW parser
+ * (node.exe's) gives it back unchanged: always wrapped in quotes, backslashes that precede a
+ * quote (or the closing quote) doubled, embedded quotes escaped.
+ * @param {string} s
+ */
+export function quoteWinArg(s) {
+  let out = '"';
+  let backslashes = 0;
+  for (const ch of String(s)) {
+    if (ch === '\\') {
+      backslashes += 1;
+      continue;
+    }
+    if (ch === '"') out += `${'\\'.repeat(backslashes * 2 + 1)}"`;
+    else out += '\\'.repeat(backslashes) + ch;
+    backslashes = 0;
+  }
+  return `${out}${'\\'.repeat(backslashes * 2)}"`;
+}
+
+/**
+ * Worker command line for Win32_Process.Create:
+ * `"<node.exe>" "<repo>\src\worker.js" --dir="<dir>" --env-file="<dir>\worker-env.json" --lang="<code>"`.
+ * url / code / id / display name come from status.json; `--lang` is passed because the caption
+ * language from `join --lang` is not stored there.
+ * @param {{ nodePath: string, workerPath: string, dir: string, envFile: string, captionLang?: string }} o
+ * @returns {string}
+ */
+export function buildWorkerCommandLine({ nodePath, workerPath, dir, envFile, captionLang }) {
+  // argv[0] is parsed without escape rules; a path cannot contain '"' anyway
+  const parts = [`"${nodePath}"`, quoteWinArg(workerPath), `--dir=${quoteWinArg(dir)}`, `--env-file=${quoteWinArg(envFile)}`];
+  if (captionLang) parts.push(`--lang=${quoteWinArg(captionLang)}`);
+  return parts.join(' ');
+}
+
+/**
+ * Windows PowerShell 5.1 script that starts `commandLine` via WMI, broken away from any job,
+ * hidden, and prints `RC=<ReturnValue> PID=<ProcessId>`. A PowerShell error is printed as
+ * `ERR=<base64 of the UTF-8 message>` (exit 1): stderr would be CLIXML in the OEM code page,
+ * which turns a localized (e.g. zh-TW) message into mojibake once decoded as UTF-8.
+ * @param {{ commandLine: string, cwd: string }} o
+ * @returns {string}
+ */
+export function buildWmiLaunchScript({ commandLine, cwd }) {
+  return [
+    '$ErrorActionPreference = \'Stop\'',
+    '$ProgressPreference = \'SilentlyContinue\'',
+    'try {',
+    `$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{CreateFlags=[uint32]${WMI_CREATE_FLAGS}; ShowWindow=[uint16]0}`,
+    `$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=${psQuote(commandLine)}; CurrentDirectory=${psQuote(cwd)}; ProcessStartupInformation=$si}`,
+    'Write-Output ("RC=" + $r.ReturnValue + " PID=" + $r.ProcessId)',
+    '} catch {',
+    'Write-Output ("ERR=" + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([string]$_.Exception.Message)))',
+    'exit 1',
+    '}',
+  ].join('\r\n');
+}
+
+/**
+ * The error message printed by the catch block of {@link buildWmiLaunchScript}
+ * (`ERR=<base64 UTF-8>`), or null.
+ * @param {string|undefined|null} stdout
+ * @returns {string|null}
+ */
+export function parseWmiError(stdout) {
+  const m = /ERR=([A-Za-z0-9+/=]+)/.exec(String(stdout ?? ''));
+  if (!m) return null;
+  const text = Buffer.from(m[1], 'base64').toString('utf8').trim();
+  return text || null;
+}
+
+/** `-EncodedCommand` payload: base64 of the UTF-16LE script. @param {string} script */
+export function encodePowerShell(script) {
+  return Buffer.from(String(script), 'utf16le').toString('base64');
+}
+
+/**
+ * The parent environment entries the worker needs (it gets a fresh user environment under WMI):
+ * every OPENMEETING_* variable plus CHROME_PATH and TZ, when set.
+ * @param {Record<string, string|undefined>} env
+ * @returns {Record<string, string>}
+ */
+export function buildWorkerEnv(env) {
+  /** @type {Record<string, string>} */
+  const out = {};
+  for (const [key, value] of Object.entries(env || {})) {
+    if (typeof value === 'string' && WORKER_ENV_KEY.test(key)) out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * Parse the `RC=<n> PID=<n>` line printed by {@link buildWmiLaunchScript}.
+ * @param {string|undefined|null} stdout
+ * @returns {{ rc: number, pid: number|null }|null} null when there is no RC
+ */
+export function parseWmiCreateOutput(stdout) {
+  const m = /RC=(\d+)[ \t]+PID=(\d*)/.exec(String(stdout ?? ''));
+  if (!m) return null;
+  const pid = m[2] ? Number(m[2]) : 0;
+  return { rc: Number(m[1]), pid: pid > 0 ? pid : null };
+}
+
+/**
+ * Which launcher `join` uses: WMI on Windows unless `OPENMEETING_LAUNCHER=spawn`.
+ * @param {string} platform
+ * @param {Record<string, string|undefined>} env
+ * @returns {'wmi'|'spawn'}
+ */
+export function chooseLauncher(platform, env) {
+  if (platform !== 'win32') return 'spawn';
+  return String((env && env.OPENMEETING_LAUNCHER) || '').trim().toLowerCase() === 'spawn' ? 'spawn' : 'wmi';
+}
+
+/** Absolute path of Windows PowerShell 5.1 (falls back to PATH lookup). */
+function powershellExe() {
+  const root = process.env.SystemRoot || process.env.windir || 'C:\\Windows';
+  const exe = path.join(root, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  return fs.existsSync(exe) ? exe : 'powershell.exe';
+}
+
+/**
+ * @typedef {object} PowerShellResult
+ * @property {number|null} code   exit code (null when it did not exit normally)
+ * @property {string} stdout @property {string} stderr
+ * @property {string} [error]     set when PowerShell could not be started or timed out
+ */
+
+/**
+ * Run a script with `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass
+ * -EncodedCommand <base64>` (no cmd.exe, so nothing in the script is re-parsed), killing it
+ * after `timeoutMs`. Never rejects.
+ * @param {string} script
+ * @param {{ timeoutMs?: number }} [opts]
+ * @returns {Promise<PowerShellResult>}
+ */
+export function runPowerShell(script, { timeoutMs = WMI_TIMEOUT_MS } = {}) {
+  return new Promise((resolve) => {
+    let stdout = '';
+    let stderr = '';
+    let done = false;
+    /** @type {ReturnType<typeof setTimeout>|undefined} */
+    let timer;
+    const finish = (/** @type {Partial<PowerShellResult>} */ r) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve({ code: null, stdout, stderr, ...r });
+    };
+    let child;
+    try {
+      child = spawn(powershellExe(), ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', encodePowerShell(script)], {
+        windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (e) {
+      finish({ error: `could not start PowerShell: ${e && /** @type {any} */ (e).message}` });
+      return;
+    }
+    timer = setTimeout(() => {
+      try {
+        child.kill();
+      } catch {
+        /* ignore */
+      }
+      finish({ error: `PowerShell did not finish within ${Math.round(timeoutMs / 1000)} s` });
+    }, timeoutMs);
+    child.stdout.setEncoding('utf8').on('data', (d) => { stdout += d; });
+    child.stderr.setEncoding('utf8').on('data', (d) => { stderr += d; });
+    child.on('error', (e) => finish({ error: `could not start PowerShell: ${e.message}` }));
+    child.on('close', (code) => finish({ code }));
+  });
+}
+
+/**
+ * First meaningful lines of PowerShell stderr, on one line. With redirected stdio PowerShell
+ * may write CLIXML (`#< CLIXML` + XML with progress records and `<S S="Error">` lines): only the
+ * error text is kept.
+ * @param {string} text
+ */
+function briefText(text) {
+  let s = String(text || '');
+  if (s.includes('#< CLIXML')) {
+    s = [...s.matchAll(/<S S="Error">([\s\S]*?)<\/S>/g)].map((m) => m[1]).join('')
+      .replace(/_x000D_/g, '').replace(/_x000A_/g, '\n')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, '\'').replace(/&amp;/g, '&');
+  }
+  return s.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 2).join(' | ').slice(0, 300);
+}
+
+/** Append a diagnostic line to `<dir>/worker.out` (never throws). @param {string} dir @param {string} line */
+function appendWorkerOut(dir, line) {
+  try {
+    fs.appendFileSync(path.join(dir, 'worker.out'), `${new Date().toISOString()} [join] ${line}\n`);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** A status.json the worker itself has written to (its pid / heartbeat, or a later state). @param {Record<string, any>|null} s */
+function workerReportedIn(s) {
+  return !!s && (typeof s.pid === 'number' || !!s.heartbeatAt || (typeof s.state === 'string' && s.state !== 'starting'));
+}
+
+/**
+ * @typedef {object} LaunchResult
+ * @property {number|undefined} pid
+ * @property {'wmi'|'spawn'|'spawn-fallback'} launcher
+ * @property {string} [reason] why the WMI launch failed (spawn-fallback)
+ */
+
+/**
+ * Default `join` launcher. On Windows (unless `OPENMEETING_LAUNCHER=spawn`): writes
+ * `<dir>/worker-env.json`, starts the worker via WMI through PowerShell (30 s timeout) and
+ * returns `{ launcher: 'wmi', pid }` - the caller still has to confirm the worker reports in
+ * ({@link waitForWorkerStart}). If PowerShell / WMI fails (error, timeout, RC ≠ 0, no pid) it
+ * falls back to the detached spawn (`launcher: 'spawn-fallback'`, with the reason). Elsewhere:
+ * detached spawn (`launcher: 'spawn'`). Records `status.launcher` (and `launcherError`) BEFORE
+ * starting the process, so it never races the worker's own status writes.
+ * @param {WorkerSpawn} o
+ * @param {{
+ *   platform?: string, nodePath?: string,
+ *   runPowerShell?: (script: string, opts: { timeoutMs: number }) => Promise<PowerShellResult>,
+ *   spawnDetached?: (o: WorkerSpawn) => number|undefined,
+ * }} [deps] injectable for tests
+ * @returns {Promise<LaunchResult>}
+ */
+export async function launchWorker(o, deps = {}) {
+  const platform = deps.platform || process.platform;
+  const run = deps.runPowerShell || runPowerShell;
+  const spawnDetached = deps.spawnDetached || spawnWorker;
+  const { dir, env, config } = o;
+
+  if (chooseLauncher(platform, env) === 'spawn') {
+    writeStatus(dir, { launcher: 'spawn' });
+    return { pid: spawnDetached(o), launcher: 'spawn' };
+  }
+
+  const envFile = path.join(dir, WORKER_ENV_FILE);
+  fs.writeFileSync(envFile, `${JSON.stringify(buildWorkerEnv(env), null, 2)}\n`, 'utf8');
+  const commandLine = buildWorkerCommandLine({
+    nodePath: deps.nodePath || process.execPath,
+    workerPath: path.join(config.repoRoot, 'src', 'worker.js'),
+    dir,
+    envFile,
+    captionLang: o.captionLang,
+  });
+  writeStatus(dir, { launcher: 'wmi' });
+  appendWorkerOut(dir, `starting the worker via WMI (Win32_Process.Create, breakaway from job): ${commandLine}`);
+
+  let reason;
+  try {
+    const r = await run(buildWmiLaunchScript({ commandLine, cwd: config.repoRoot }), { timeoutMs: WMI_TIMEOUT_MS });
+    const parsed = parseWmiCreateOutput(r.stdout);
+    if (r.error) reason = r.error;
+    else if (!parsed) {
+      const psError = parseWmiError(r.stdout);
+      const detail = briefText(psError || r.stderr);
+      reason = `PowerShell exit ${r.code} without a result${detail ? `: ${detail}` : ''}`;
+    }
+    else if (parsed.rc !== 0) reason = `Win32_Process.Create returned ${parsed.rc} (${WMI_RC_TEXT[parsed.rc] || 'error'})`;
+    else if (!parsed.pid) reason = 'Win32_Process.Create returned no process id';
+    else {
+      appendWorkerOut(dir, `WMI created the worker: pid ${parsed.pid}`);
+      return { pid: parsed.pid, launcher: 'wmi' };
+    }
+  } catch (e) {
+    reason = String((e && /** @type {any} */ (e).message) || e);
+  }
+
+  // A PowerShell that timed out may still have created the worker: never start a second one.
+  const st = readStatus(dir);
+  if (st && typeof st.pid === 'number' && isProcessAlive(st.pid)) {
+    appendWorkerOut(dir, `WMI launch reported a problem (${reason}), but the worker (pid ${st.pid}) is running`);
+    return { pid: st.pid, launcher: 'wmi' };
+  }
+  appendWorkerOut(dir, `WMI launch failed (${reason}); falling back to a detached spawn`);
+  writeStatus(dir, { launcher: 'spawn-fallback', launcherError: reason });
+  return { pid: spawnDetached(o), launcher: 'spawn-fallback', reason };
+}
+
+/**
+ * Poll status.json until the worker launched as `pid` reports in (writes its pid / heartbeat
+ * or moves past 'starting'). Gives up when `pid` has exited without reporting in (checked
+ * once more after it is seen dead) or after `timeoutMs`.
+ * @param {string} dir
+ * @param {number|undefined} pid
+ * @param {{ timeoutMs?: number, pollMs?: number }} [opts]
+ * @returns {Promise<{ ok: true, status: Record<string, any> } | { ok: false, exited: boolean }>}
+ */
+export async function waitForWorkerStart(dir, pid, { timeoutMs = WORKER_START_TIMEOUT_MS, pollMs = WORKER_START_POLL_MS } = {}) {
+  const deadline = Date.now() + timeoutMs;
+  let deadChecks = 0;
+  for (;;) {
+    const s = readStatus(dir);
+    if (s && workerReportedIn(s)) return { ok: true, status: s };
+    const alive = typeof pid === 'number' && isProcessAlive(pid);
+    if (!alive && ++deadChecks >= 2) return { ok: false, exited: true };
+    if (Date.now() >= deadline) return { ok: false, exited: !alive };
+    await sleep(Math.min(pollMs, Math.max(0, deadline - Date.now())));
+  }
+}
+
+/** Last non-empty line of `<dir>/worker.out` (for error messages). @param {string} dir */
+function workerOutTail(dir) {
+  try {
+    const lines = fs.readFileSync(path.join(dir, 'worker.out'), 'utf8').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    return lines.length ? lines[lines.length - 1].slice(0, 300) : '';
+  } catch {
+    return '';
   }
 }
 
@@ -349,7 +704,7 @@ function signedInHint(profileDir) {
  * @property {(line: string) => void} out
  * @property {(line: string) => void} err
  * @property {ReturnType<typeof getConfig>} config
- * @property {(o: WorkerSpawn) => number|undefined} spawnWorker
+ * @property {(o: WorkerSpawn) => WorkerLaunch|Promise<WorkerLaunch>} spawnWorker
  */
 
 /** @param {Ctx} ctx @param {string|undefined} which */
@@ -418,16 +773,43 @@ async function cmdJoin(ctx, pos, flags) {
     return printResult(out, dir, final);
   }
 
-  let pid;
+  /** @type {{ pid: number|undefined, launcher?: string, reason?: string }} */
+  let launch;
   try {
-    pid = ctx.spawnWorker({ dir, url: parsed.url, code: parsed.code, id, displayName, captionLang, env: ctx.env, config });
+    const r = await ctx.spawnWorker({ dir, url: parsed.url, code: parsed.code, id, displayName, captionLang, env: ctx.env, config });
+    launch = r !== null && typeof r === 'object' ? r : { pid: r };
   } catch (e) {
     writeStatus(dir, { state: 'failed', endedAt: new Date().toISOString(), error: { code: 'crashed', message: `could not start the worker: ${e && /** @type {any} */ (e).message}` } });
     err(`無法啟動背景機器人：${e && /** @type {any} */ (e).message}`);
+    out('ERROR=crashed');
     return 1;
   }
-  const now = readStatus(dir);
-  if (typeof pid === 'number' && now && now.state === 'starting' && !now.pid) writeStatus(dir, { pid });
+  const { pid } = launch;
+  if (launch.launcher === 'wmi') {
+    // WMI only says the process was created: wait until the worker itself reports in.
+    const timeoutMs = num(ctx.env.OPENMEETING_WORKER_START_TIMEOUT_MS, WORKER_START_TIMEOUT_MS);
+    const seen = await waitForWorkerStart(dir, pid, { timeoutMs });
+    if (!seen.ok) {
+      const tail = workerOutTail(dir);
+      const why = seen.exited
+        ? `the bot process (pid ${pid}) started via WMI exited without reporting in`
+        : `the bot process (pid ${pid}) started via WMI did not report in within ${timeoutMs >= 1000 ? `${Math.round(timeoutMs / 1000)} s` : `${timeoutMs} ms`}`;
+      const message = `${why}; see worker.out${tail ? ` (last line: ${tail})` : ''}`;
+      const again = readStatus(dir);
+      if (!again || !TERMINAL.includes(again.state)) {
+        writeStatus(dir, { state: 'failed', endedAt: new Date().toISOString(), error: { code: 'crashed', message } });
+      }
+      err(`背景機器人沒有啟動（${message}）。紀錄在 ${path.join(dir, 'worker.out')}；可設定 OPENMEETING_LAUNCHER=spawn 改用一般方式啟動後再試。`);
+      out('LAUNCHER=wmi');
+      out('ERROR=crashed');
+      return 1;
+    }
+  } else {
+    const now = readStatus(dir);
+    if (typeof pid === 'number' && now && now.state === 'starting' && !now.pid) writeStatus(dir, { pid });
+  }
+  if (launch.launcher) out(`LAUNCHER=${launch.launcher}`);
+  if (launch.launcher === 'spawn-fallback') err(`WMI 啟動失敗，已改用一般方式啟動背景機器人（${launch.reason || '原因不明'}）。`);
 
   out(`MEETING_ID=${id}`);
   out(`MEETING_DIR=${dir}`);
@@ -625,6 +1007,10 @@ async function cmdDoctor(ctx) {
     fatal = true;
   }
 
+  rows.push(['背景啟動方式', 'INFO', chooseLauncher(process.platform, env) === 'wmi'
+    ? 'WMI（背景機器人脫離 Claude Code 的程序樹與 job；設定 OPENMEETING_LAUNCHER=spawn 可改用一般方式）'
+    : 'spawn（一般背景程序）']);
+
   const profileExists = fs.existsSync(config.profileDir);
   rows.push(['機器人設定檔', profileExists ? 'OK' : 'INFO', `${config.profileDir}${profileExists ? '' : '（尚未建立，第一次加入會議時會自動建立）'}`]);
   if (profileExists && profileInUse(config.profileDir)) rows.push(['設定檔使用中', 'WARN', '有 Chrome 正在使用機器人設定檔（會議記錄中或 login 視窗開著）']);
@@ -726,7 +1112,7 @@ export async function main(argv, io = {}) {
   }
   if (unknown.length) err(`忽略未知參數：${unknown.join(' ')}`);
   /** @type {Ctx} */
-  const ctx = { env, out, err, config: getConfig(env), spawnWorker: io.spawnWorker || spawnWorker };
+  const ctx = { env, out, err, config: getConfig(env), spawnWorker: io.spawnWorker || ((o) => launchWorker(o)) };
   try {
     switch (command) {
       case 'join': return await cmdJoin(ctx, positionals, flags);

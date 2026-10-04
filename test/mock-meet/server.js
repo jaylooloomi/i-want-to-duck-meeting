@@ -8,7 +8,13 @@
  *   `scenario` (happy|denied|blocked|lobby_timeout|removed|alone|signin|notfound|continue_dialog,
  *   default happy; unknown values → 400), `lobbyMs` (1500), `signedin` (1 → no name input,
  *   CTA "Join now"), `endAfterMs` (2000), `captionStepMs` (timeline time multiplier, 1),
- *   `captionLeadMs` (8000), `maxCallMs` (never), `account` (signed-in display name).
+ *   `captionLeadMs` (8000), `maxCallMs` (never), `account` (signed-in display name),
+ *   `langpicker` (combobox|settings|both, default both: where the caption language can be
+ *   changed — the caption bar's "Meeting language" combobox and/or Settings > Captions),
+ *   `langResetAtMs` (the caption language falls back to en-US this long after the caption
+ *   timeline is done; default never), `langResets` (how often that happens, default 1: each
+ *   further reset comes langResetAtMs after the next switch away from en-US), `langlist` (missing|nodatavalue), `noaudio` (1 → no
+ *   remote audio), plus the toast/endText/nocount/alonehint knobs documented in public/config.js.
  * - `GET /v3/signin/identifier`             → fake Google sign-in page ("Sign in" heading).
  * - `GET /`                                 → fake Meet home page ("Return to home screen").
  * - `GET /static/<file>`                    → public/<file>; `/static/timeline.js` is ../timeline.js.

@@ -20,9 +20,23 @@ export const SCENARIOS = ['happy', 'denied', 'blocked', 'lobby_timeout', 'remove
  * @property {string} endText      endText=<text>: title of the "call ended" screen (an unrecognized end screen)
  * @property {boolean} noCount     nocount=1: the People button shows no participant count
  * @property {boolean} aloneHint   alonehint=1: "You're the only one here" appears once everybody else left
- * @property {string} langList     langlist=missing: no cmn-Hant-TW entry in the caption-language list;
+ * @property {string} langList     langlist=missing: no cmn-Hant-TW entry in the caption-language lists;
  *                                 langlist=nodatavalue: list items carry no data-value (only their labels)
+ *                                 (both apply to the Settings list and to the caption-bar listbox)
+ * @property {'combobox'|'settings'|'both'} langPicker  where the caption language can be changed:
+ *                                 'combobox' = only the caption bar's "Meeting language" combobox (Settings >
+ *                                 Captions has no language list), 'settings' = only Settings > Captions (the
+ *                                 caption bar shows a plain language button), 'both' (default; anything else)
+ * @property {number} langResetAtMs langResetAtMs=<ms>: this long after the caption timeline is done, the caption
+ *                                 language switches back to en-US by itself (as if Meet or a participant changed
+ *                                 it); captions already on screen keep their text (default: never)
+ * @property {number} langResets   langResets=<n>: how many times that happens (default 1); each further reset comes
+ *                                 langResetAtMs after the language was switched away from en-US again (someone who
+ *                                 keeps wanting English)
+ * @property {boolean} noAudio     noaudio=1: no remote participant audio (no <audio> element at all)
  */
+
+export const LANG_PICKERS = ['combobox', 'settings', 'both'];
 
 /**
  * @param {Location | URL} loc
@@ -38,6 +52,7 @@ export function readConfig(loc) {
     return Number.isFinite(n) && n >= 0 ? n : fallback;
   };
   const scenario = q.get('scenario') ?? 'happy';
+  const langPicker = q.get('langpicker') ?? 'both';
   return {
     code: loc.pathname.replace(/^\//, ''),
     scenario: SCENARIOS.includes(scenario) ? scenario : 'happy',
@@ -54,5 +69,9 @@ export function readConfig(loc) {
     noCount: q.get('nocount') === '1',
     aloneHint: q.get('alonehint') === '1',
     langList: q.get('langlist') || '',
+    langPicker: /** @type {MockConfig['langPicker']} */ (LANG_PICKERS.includes(langPicker) ? langPicker : 'both'),
+    langResetAtMs: num('langResetAtMs', Infinity),
+    langResets: Math.floor(num('langResets', 1)),
+    noAudio: q.get('noaudio') === '1',
   };
 }

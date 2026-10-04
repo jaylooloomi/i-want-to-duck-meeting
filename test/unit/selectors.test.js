@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { SEL, TEXT, normalizeText, matchAny, serializableSel } from '../../src/meet/selectors.js';
+import { SEL, TEXT, normalizeText, matchAny, serializableSel, captionLangOptionSelectors, fillLangCode } from '../../src/meet/selectors.js';
 
 // The contract from spec 5.5, copied so any drift is caught here. Deliberate deviations (see
 // src/meet/selectors.js): 'Switch here' is NOT a join CTA (it would kick the account's other
@@ -37,6 +37,9 @@ const SPEC_SEL_SERIALIZABLE = {
   moreOptions: ['button[aria-label="More options"]'],
   settingsMenuItemText: 'Settings',
   captionsSettingsTab: ['button[aria-label="Captions"]'],
+  // addition: the caption bar's language picker (Sep-Oct 2026 Meet DOM) and its options
+  captionLangCombobox: ['[role="combobox"][aria-label="Meeting language"]'],
+  captionLangOption: ['li[role="option"][data-value="{code}"]', '[role="option"][data-value="{code}"]'],
   closeDialog: ['button[aria-label="Close dialog"]', 'button[aria-label="Close dialogue"]'],
   captionRegion: ['[role="region"][aria-label="Captions"]', 'div[role="region"][tabindex="0"]', '.vNKgIf'],
   captionBlock: '.nMcdL',
@@ -82,6 +85,24 @@ describe('SEL', () => {
     assert.equal(SEL.captionLangItem('en-US'), 'li[data-value="en-US"]');
   });
 
+  test('captionLangItem escapes quotes and backslashes in the code', () => {
+    assert.equal(SEL.captionLangItem('a"b\\c'), 'li[data-value="a\\"b\\\\c"]');
+  });
+
+  test('captionLangCombobox matches the caption bar\'s "Meeting language" combobox', () => {
+    assert.deepEqual(SEL.captionLangCombobox, ['[role="combobox"][aria-label="Meeting language"]']);
+  });
+
+  test('captionLangOption is a serializable template list with a {code} placeholder', () => {
+    assert.ok(Array.isArray(SEL.captionLangOption) && SEL.captionLangOption.length > 0);
+    for (const s of SEL.captionLangOption) {
+      assert.equal(typeof s, 'string');
+      assert.ok(s.includes('{code}'), s);
+      assert.match(s, /\[role="option"\]/);
+    }
+    assert.deepEqual(serializableSel().captionLangOption, SEL.captionLangOption);
+  });
+
   test('selector lists are non-empty arrays of non-empty strings', () => {
     for (const [key, value] of Object.entries(SEL)) {
       if (typeof value === 'function') continue;
@@ -89,6 +110,36 @@ describe('SEL', () => {
       assert.ok(list.length > 0, key);
       for (const s of list) assert.ok(typeof s === 'string' && s.length > 0, `${key}: ${s}`);
     }
+  });
+});
+
+describe('captionLangOptionSelectors / fillLangCode', () => {
+  test('fills every template of SEL.captionLangOption with the code, in order', () => {
+    assert.deepEqual(captionLangOptionSelectors('cmn-Hant-TW'), [
+      'li[role="option"][data-value="cmn-Hant-TW"]',
+      '[role="option"][data-value="cmn-Hant-TW"]',
+    ]);
+    assert.deepEqual(captionLangOptionSelectors('en-US'), [
+      'li[role="option"][data-value="en-US"]',
+      '[role="option"][data-value="en-US"]',
+    ]);
+  });
+
+  test('accepts custom templates (e.g. a serializableSel() copy used in the page)', () => {
+    assert.deepEqual(captionLangOptionSelectors('ja-JP', ['x[data-v="{code}"]', 'y-{code}-{code}']), ['x[data-v="ja-JP"]', 'y-ja-JP-ja-JP']);
+    assert.deepEqual(captionLangOptionSelectors('ja-JP', 'z[data-value="{code}"]'), ['z[data-value="ja-JP"]']);
+  });
+
+  test('escapes quotes and backslashes so a strange code cannot break out of the attribute value', () => {
+    assert.equal(fillLangCode('[data-value="{code}"]', 'a"]b\\'), '[data-value="a\\"]b\\\\"]');
+    assert.deepEqual(captionLangOptionSelectors('x"y').map((s) => s.includes('"x\\"y"')), [true, true]);
+  });
+
+  test('non-string codes and missing templates give an empty list', () => {
+    assert.deepEqual(captionLangOptionSelectors(''), []);
+    assert.deepEqual(captionLangOptionSelectors(/** @type {any} */ (null)), []);
+    assert.deepEqual(captionLangOptionSelectors('en-US', []), []);
+    assert.deepEqual(captionLangOptionSelectors('en-US', /** @type {any} */ ([null, 3, 'a{code}'])), ['aen-US']);
   });
 });
 

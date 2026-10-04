@@ -24,6 +24,7 @@ const ENV = {
   OPENMEETING_BLOCKED_BACKOFF_MS: '100',
   OPENMEETING_NAME: 'CLI 測試 Bot',
 };
+delete ENV.OPENMEETING_LAUNCHER; // the default launcher (WMI on Windows; see launcher.test.js)
 /** Speech starts when the bot sets the caption language; the meeting is short. */
 const QUICK = { lobbyMs: 300, captionStepMs: 0.3, endAfterMs: 300 };
 
@@ -102,8 +103,11 @@ test('join (detached worker) → wait exits 0 with RESULT=done', { timeout: 180_
   const dir = join.kv.MEETING_DIR;
   assert.match(id, /^\d{8}-\d{6}-abc-defg-hij$/);
   assert.equal(join.kv.DISPLAY_NAME, 'CLI 測試 Bot');
+  const launcher = process.platform === 'win32' ? 'wmi' : 'spawn';
+  assert.equal(join.kv.LAUNCHER, launcher, join.stderr);
   const st = readStatus(dir);
   assert.equal(typeof st.pid, 'number', 'worker pid recorded');
+  assert.equal(st.launcher, launcher);
 
   const wait = await cli(['wait', id, '--poll-ms', '500'], 150_000);
   assert.equal(wait.code, 0, `${wait.stdout}\n${wait.stderr}`);

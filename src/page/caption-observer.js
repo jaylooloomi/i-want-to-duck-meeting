@@ -22,7 +22,8 @@
  *   200 ms; identical consecutive reports are skipped.
  * - Blocks: elements matching `SEL.captionBlock` inside the region, or (if none match) the
  *   region's children that have text and are not controls (buttons such as the caption
- *   language/settings button and "Jump to bottom"). Per block: `id` = `el.dataset.omId`
+ *   language/settings button and "Jump to bottom", the "Meeting language" combobox with its
+ *   listbox/options). Per block: `id` = `el.dataset.omId`
  *   (assigned on first sight from an incrementing integer seeded with Date.now(), so ids are
  *   unique across page reloads), `speaker` = `SEL.captionSpeaker` text || first child's text
  *   if < 60 chars || avatar `img[alt]` || '', `text` = `SEL.captionText` textContent ||
@@ -46,7 +47,8 @@ export function installCaptionObserver(SEL) {
   const blockSels = list(sel.captionBlock);
   const speakerSels = list(sel.captionSpeaker);
   const textSels = list(sel.captionText);
-  const CONTROL = 'button,[role="button"],[role="toolbar"],[role="menu"],[role="listbox"]';
+  // the caption bar's "Meeting language" combobox, its listbox and options are controls too
+  const CONTROL = 'button,[role="button"],[role="toolbar"],[role="menu"],[role="listbox"],[role="combobox"],[role="option"]';
 
   /** @param {unknown} s */
   const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();

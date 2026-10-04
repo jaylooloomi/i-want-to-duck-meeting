@@ -79,6 +79,7 @@ node bin/openmeeting.js doctor     # 檢查環境
 | `audio.wav` | 會議音訊（16 kHz 單聲道），字幕失敗時的備援 |
 | `transcript-whisper.md` / `.json` | Whisper 離線轉錄結果（有執行時才有） |
 | `bot.log`、`worker.out`、`screens/` | 除錯紀錄與截圖 |
+| `worker-env.json` | Windows：交給背景機器人的 `OPENMEETING_*`、`CHROME_PATH`、`TZ` 設定（WMI 啟動時用） |
 
 ## CLI 指令
 
@@ -86,7 +87,7 @@ node bin/openmeeting.js doctor     # 檢查環境
 
 | 指令 | 說明 | 結束碼 |
 |---|---|---|
-| `join <連結> [--name 名稱] [--lang 代碼] [--foreground]` | 檢查連結、建立會議資料夾、在背景啟動機器人；印出 `MEETING_ID=`、`MEETING_DIR=`。已有會議在記錄時拒絕並印出 `ERROR=already_recording`、`ACTIVE_MEETING_ID=` | 0 成功、1 連結無效、5 已有會議在記錄 |
+| `join <連結> [--name 名稱] [--lang 代碼] [--foreground]` | 檢查連結、建立會議資料夾、在背景啟動機器人；印出 `LAUNCHER=`（`wmi`／`spawn`／`spawn-fallback`）、`MEETING_ID=`、`MEETING_DIR=`。已有會議在記錄時拒絕並印出 `ERROR=already_recording`、`ACTIVE_MEETING_ID=`；背景機器人沒有啟動時印出 `ERROR=crashed`（沒有 `MEETING_ID=`，原因在 stderr 與 `worker.out`） | 0 成功、1 連結無效或機器人沒啟動、5 已有會議在記錄 |
 | `wait <id\|latest> [--timeout-min N]` | 等到會議結束；印出 `STATE=` 進度與 `RESULT=`、`TRANSCRIPT=`、`UTTERANCES=`、`ERROR=` | 0 有逐字稿、2 沒擷取到字幕、3 失敗、4 等待逾時 |
 | `status [id\|latest]` | 印出 status.json | 0／1 找不到 |
 | `list` | 列出所有會議（新到舊）：id、狀態、段數 | 0 |
@@ -100,6 +101,8 @@ node bin/openmeeting.js doctor     # 檢查環境
 失敗時的錯誤代碼：`signin_required`、`not_found`、`blocked`、`denied`、`lobby_timeout`、`chrome_not_found`、`chrome_launch_failed`、`join_failed`、`crashed`。
 
 常用環境變數：`OPENMEETING_HOME`（資料位置）、`OPENMEETING_NAME`（機器人顯示名稱，預設「Arthur 的會議記錄」）、`OPENMEETING_CAPTION_LANG`（字幕語言，預設 `cmn-Hant-TW`）、`CHROME_PATH`、`OPENMEETING_PROFILE`（Chrome 設定檔位置）、`OPENMEETING_MUTE=0`（讓電腦喇叭播放會議聲音）。
+
+Windows 上 `join` 預設透過 WMI（`Win32_Process.Create`）啟動背景機器人，讓它脫離 Claude Code 的程序樹與 job，Claude Code 結束背景工作時不會連帶關掉機器人；WMI 失敗時自動改用一般方式（`LAUNCHER=spawn-fallback`）。其他環境變數：`OPENMEETING_LAUNCHER=spawn`（一律用一般方式啟動）、`OPENMEETING_TRACK_MIRROR=1`（開啟 RTCPeerConnection 音軌鏡像，預設關閉）、`OPENMEETING_LANG_CHECK_MS`（會議中多久檢查一次字幕語言，預設 60 秒；被切走時最多自動切回 2 次）、`OPENMEETING_NO_AUDIO_WARN_MS`（多久沒有遠端音軌就警告一次並記錄 `stats.audioTracks=0`，預設 60 秒）。
 
 ## 限制
 

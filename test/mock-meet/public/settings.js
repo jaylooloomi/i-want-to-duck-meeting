@@ -1,6 +1,6 @@
 // "More options" menu and the Settings dialog (Captions tab → Meeting language).
 import { h, icon } from './dom.js';
-import { CAPTION_LANGUAGES, languageName } from './captions.js';
+import { languageName, offeredLanguages } from './captions.js';
 
 /**
  * The menu opened by "More options". Added to the DOM only while open.
@@ -46,11 +46,13 @@ const TABS = ['Audio', 'Video', 'General', 'Captions', 'Reactions'];
 /**
  * Modal Settings dialog. The Captions tab holds the "Meeting language" dropdown whose
  * `<ul aria-label="Meeting language">` stays display:none until opened; clicking an `li`
- * (even via element.click() while hidden) selects the caption language.
- * @param {{ state: any, onLanguage: (code: string) => void, onClose: () => void }} o
+ * (even via element.click() while hidden) selects the caption language. With
+ * langPicker 'combobox' the tab has no language list (only the caption bar can change it).
+ * @param {{ state: any, onLanguage: (code: string) => void, onClose: () => void, langList?: string,
+ *           langPicker?: 'combobox'|'settings'|'both' }} o
  * @returns {HTMLElement} the scrim element containing the dialog
  */
-export function createSettingsDialog({ state, onLanguage, onClose, langList = '' }) {
+export function createSettingsDialog({ state, onLanguage, onClose, langList = '', langPicker = 'both' }) {
   const content = h('div', { class: 'settings-content' });
   const tabButtons = TABS.map((name) =>
     h('button', { type: 'button', role: 'tab', class: 'settings-tab', 'aria-label': name, 'aria-selected': 'false', onClick: () => select(name) },
@@ -72,9 +74,18 @@ export function createSettingsDialog({ state, onLanguage, onClose, langList = ''
   }
 
   function captionsPanel() {
+    if (langPicker === 'combobox') {
+      return h('section', {},
+        h('h2', {}, 'Captions'),
+        h('div', { class: 'setting-row' },
+          h('div', {}, h('div', {}, 'Meeting language'), h('div', { class: 'hint' }, 'Change the meeting language from the captions bar')),
+          h('div', { class: 'hint' }, languageName(state.captionLang)),
+        ),
+      );
+    }
     const triggerLabel = h('span', {}, languageName(state.captionLang));
     const list = h('ul', { role: 'listbox', 'aria-label': 'Meeting language', class: 'select-list', style: 'display: none' },
-      CAPTION_LANGUAGES.filter(([code]) => !(langList === 'missing' && code === 'cmn-Hant-TW')).map(([code, label]) =>
+      offeredLanguages(langList).map(([code, label]) =>
         h('li', { role: 'option', 'data-value': langList === 'nodatavalue' ? null : code, 'data-code': code, 'aria-selected': String(code === state.captionLang), onClick: () => choose(code) }, label)));
     const trigger = h('button', {
       type: 'button',
