@@ -1,0 +1,8 @@
+node_modules/
+chrome-profile/
+meetings/
+.venv-stt/
+models/
+test/.tmp/
+*.log
+plugin/skills/meet/SKILL.md
