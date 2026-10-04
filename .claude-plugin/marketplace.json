@@ -1,0 +1,16 @@
+{
+  "name": "openmeeting-local",
+  "owner": {
+    "name": "Arthur Wang"
+  },
+  "metadata": {
+    "description": "openmeeting 的本機 marketplace：從這個 repo 安裝 openmeeting 外掛。"
+  },
+  "plugins": [
+    {
+      "name": "openmeeting",
+      "source": "./plugin",
+      "description": "貼上 Google Meet 連結，靜音機器人加入會議並記錄逐字稿，會議結束後由 Claude 整理摘要（/openmeeting:meet <連結>）。"
+    }
+  ]
+}

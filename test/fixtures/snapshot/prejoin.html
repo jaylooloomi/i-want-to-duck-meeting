@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meet - abc-defg-hij</title>
+<style>
+  body { font-family: sans-serif; margin: 0; }
+  .preview { width: 480px; height: 270px; background: #222; color: #fff; position: relative; }
+  /* position:fixed => offsetParent is null, but the button is visible and must count */
+  .cta { position: fixed; right: 24px; bottom: 24px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ready to join?</h1>
+  <!-- self preview tile: has data-participant-id but must NOT count as a participant tile -->
+  <div class="preview" data-participant-id="spaces/abc/devices/self">
+    <video muted></video>
+    <button aria-label="Backgrounds and effects">auto_awesome</button>
+  </div>
+  <button aria-label="Turn off microphone (ctrl + d)">mic</button>
+  <button aria-label="Turn off camera (ctrl + e)">videocam</button>
+  <p>What's your name?</p>
+  <input type="text" aria-label="Your name" jsname="YPqjbf" value="">
+  <button class="cta" jsname="Qx7uuf">
+    <span>Ask to join</span>
+  </button>
+  <button><span>Other ways to join</span></button>
+  <!-- hidden CTA: must not be reported -->
+  <button style="display:none">Join now</button>
+</main>
+</body>
+</html>

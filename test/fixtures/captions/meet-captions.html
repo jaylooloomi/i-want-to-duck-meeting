@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meet - abc-defg-hij</title>
+<!--
+  Static imitation of Google Meet's live-caption DOM (Sep-Oct 2026), modelled on a captured
+  region (chen-ye/meet-cc-transcript fixtures/caption-region-sample.html) and observed Meet markup:
+    div[role=region][aria-label=Captions][tabindex=0].vNKgIf.UDinHf
+      div.nMcdL                       one caption block (speaker turn)
+        div.adE6rb                    img.Z6byG[alt=name] + div.KcIKyf.jxFHg > span.NWpY1d (name)
+        div.ygicle.VbkSUe             caption text (may be split into child spans)
+      ...trailing controls: caption-settings button (shows the language) and "Jump to bottom"
+  Whitespace between caption text spans is intentionally absent (Meet's DOM is minified).
+-->
+<style>
+  body { margin: 0; font-family: "Google Sans", Roboto, Arial, sans-serif; background: #202124; color: #e8eaed; }
+  .crqnQb { position: relative; min-height: 100vh; }
+  .vNKgIf { position: absolute; left: 10%; right: 10%; bottom: 96px; max-height: 200px; overflow-y: auto; background: rgba(32,33,36,.9); border-radius: 8px; padding: 8px 16px; }
+  .nMcdL { display: flex; flex-direction: column; margin: 6px 0; }
+  .adE6rb { display: flex; align-items: center; gap: 8px; }
+  .Z6byG { width: 24px; height: 24px; border-radius: 50%; background: #5f6368; }
+  .NWpY1d { font-weight: 500; font-size: 14px; }
+  .ygicle { font-size: 20px; line-height: 28px; }
+  .controls { position: fixed; bottom: 16px; left: 0; right: 0; text-align: center; }
+</style>
+</head>
+<body>
+<div class="crqnQb">
+  <div class="axUSnc" role="region" aria-label="People in the call">
+    <div data-participant-id="spaces/abc/devices/1" data-self-name="You"><span>You</span></div>
+    <div data-participant-id="spaces/abc/devices/2"><span>王小明</span></div>
+  </div>
+  <div class="a4cQT">
+    <div class="vNKgIf UDinHf" role="region" aria-label="Captions" tabindex="0" jscontroller="KPn5nb"><div class="nMcdL bj4p3b gBdnfe UVSzeb"><div class="adE6rb"><img class="Z6byG r6DyN" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" alt="王小明" data-iml="1"><div class="KcIKyf jxFHg"><span class="NWpY1d">王小明</span></div></div><div class="ygicle VbkSUe">大家好，今天我們來討論新版本的上線時間</div></div><div class="nMcdL bj4p3b gBdnfe UVSzeb"><div class="adE6rb"><img class="Z6byG r6DyN" src="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=" alt="Arthur Wang" data-iml="1"><div class="KcIKyf jxFHg"><span class="NWpY1d">Arthur Wang</span></div></div><div class="ygicle VbkSUe"><span>好的，</span><span>我先</span><span>review一下</span></div></div><div class="IMKgW"><button class="VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-INsAgc ksBjEc" jsname="Y4Bsgf" aria-label="Caption settings"><span class="VfPpkd-vQzf8d">Chinese (Mandarin, Traditional)</span><i class="google-symbols" aria-hidden="true">arrow_drop_down</i></button></div><div class="R3Gmyc"><button class="VfPpkd-Bz112c-LgbsSe yHy1rc" jsname="dSO9oc" aria-label="Jump to bottom"><i class="google-symbols" aria-hidden="true">arrow_downward</i><span>Jump to bottom</span></button></div></div>
+  </div>
+  <div class="controls">
+    <button aria-label="Turn off microphone">mic</button>
+    <button aria-label="Turn off captions">closed_caption</button>
+    <button aria-label="Leave call">call_end</button>
+  </div>
+</div>
+</body>
+</html>

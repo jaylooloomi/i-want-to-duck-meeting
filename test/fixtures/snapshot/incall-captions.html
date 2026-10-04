@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meet - abc-defg-hij</title>
+<style>
+  .tile { width: 200px; height: 120px; background: #333; color: #fff; display: inline-block; }
+  .toolbar { position: fixed; bottom: 0; left: 0; right: 0; }
+</style>
+</head>
+<body>
+<div class="tile" data-participant-id="spaces/abc/devices/1"><div>Arthur 的會議記錄</div></div>
+<div class="tile" data-participant-id="spaces/abc/devices/2"><div>王小明</div></div>
+<!-- spoken words that look like end-of-meeting UI text must not affect the page text -->
+<div role="region" aria-label="Captions" tabindex="0">
+  <div class="nMcdL">
+    <div class="NWpY1d">王小明</div>
+    <div class="ygicle">上次 Meeting ended 之後 Call ended，然後 Reconnecting 很久</div>
+  </div>
+  <div class="nMcdL">
+    <div class="NWpY1d">Bob</div>
+    <div class="ygicle">You left the meeting early last week</div>
+  </div>
+</div>
+<div class="toolbar">
+  <button aria-label="Turn off captions">closed_caption</button>
+  <!-- no [data-avatar-count]: count comes from the People button aria-label -->
+  <button aria-label="People - 4 joined">people</button>
+  <button aria-label="Leave call">call_end</button>
+</div>
+</body>
+</html>

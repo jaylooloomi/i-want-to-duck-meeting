@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meet - abc-defg-hij</title>
+<style>
+  .grid { display: flex; gap: 8px; }
+  .tile { width: 200px; height: 120px; background: #333; color: #fff; }
+  .toolbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="tile" data-participant-id="spaces/abc/devices/1" data-self-name="You">
+    <div>Arthur 的會議記錄</div>
+  </div>
+  <div class="tile" data-participant-id="spaces/abc/devices/2">
+    <!-- nested element carrying the same attribute must not be counted twice -->
+    <div data-participant-id="spaces/abc/devices/2">王小明</div>
+  </div>
+  <div class="tile" data-participant-id="spaces/abc/devices/3"><div>Bob</div></div>
+</div>
+<div class="toolbar">
+  <button aria-label="Turn on microphone">mic_off</button>
+  <button aria-label="Turn on camera">videocam_off</button>
+  <button aria-label="Turn on captions">closed_caption_off</button>
+  <button aria-label="People"><span>people</span><div data-avatar-count="3">3</div></button>
+  <button aria-label="More options">more_vert</button>
+  <button aria-label="Leave call" jsname="CQylAd">call_end</button>
+</div>
+</body>
+</html>

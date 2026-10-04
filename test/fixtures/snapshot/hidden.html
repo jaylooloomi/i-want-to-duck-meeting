@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meet</title>
+</head>
+<body>
+<p>Getting ready…</p>
+<!-- every control below is present in the DOM but NOT visible -->
+<input type="text" aria-label="Your name" style="display:none">
+<div style="display:none"><input type="text" placeholder="Your name"></div>
+<input type="text" placeholder="Your name" hidden>
+<div style="visibility:hidden"><button>Ask to join</button></div>
+<div aria-hidden="true">
+  <button>Join now</button>
+  <button aria-label="Leave call">call_end</button>
+</div>
+<button style="display:none">Join here too</button>
+<button aria-label="Turn off microphone" style="display:none">mic</button>
+<div aria-hidden="true"><button aria-label="Turn off camera">cam</button></div>
+<button aria-label="Turn on captions" hidden>cc</button>
+<div style="display:none"><button aria-label="Turn off captions">cc</button></div>
+<button aria-label="Leave call" style="visibility:hidden">call_end</button>
+<div data-participant-id="p1" style="display:none">Alice</div>
+<div data-participant-id="p2" aria-hidden="true">Bob</div>
+<div data-self-name="Me" style="visibility:hidden">Me</div>
+<div role="region" aria-label="Captions" style="display:none"><div class="nMcdL">hidden caption</div></div>
+</body>
+</html>

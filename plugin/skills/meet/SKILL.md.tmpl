@@ -1,0 +1,142 @@
+---
+name: meet
+description: "讓一個靜音機器人加入 Google Meet 會議並記錄逐字稿（說話者、時間、內容），會議結束後自動整理摘要與待辦。當使用者貼上 meet.google.com 連結，或說「參加會議」「加入會議」「幫我記錄會議」「會議記錄」「逐字稿」「離開會議」「現在講到哪」時使用。Use when the user pastes a Google Meet link (meet.google.com/...) or asks to join, record, take notes on, or transcribe a Google Meet meeting."
+argument-hint: <google-meet-link>
+allowed-tools: Bash(node:*)
+---
+
+# openmeeting：Google Meet 會議記錄機器人
+
+機器人會用獨立的 Chrome 視窗加入會議，**麥克風與鏡頭永遠關閉、不會說話**，靠 Meet 即時字幕記錄「誰在什麼時間說了什麼」，會議結束時自己離開。所有指令都透過下面這個 CLI 執行（一律用 Bash 工具）：
+
+```
+{{CLI}} <指令> ...
+```
+
+規則：
+- 一律回覆繁體中文（台灣用語）。
+- 不要操作機器人的 Chrome 視窗，也不要用瀏覽器自動化工具碰它；CLI 會處理一切。
+- 絕不詢問、輸入或處理任何密碼、驗證碼。Google 登入只能由使用者自己在視窗中完成。
+- 一次只能記錄一場會議。
+
+## 先判斷意圖
+
+- 參數或使用者訊息裡有 Google Meet 連結（`meet.google.com/...`）或會議代碼（如 `abc-defg-hij`）→ 走下面的「加入並記錄」流程。
+- 沒有連結，而是要離開、看目前內容、檢查環境、登入 → 跳到最後的「其他指令」。
+
+## 加入並記錄
+
+### 1. 加入會議
+
+執行：
+
+```
+{{CLI}} join "$ARGUMENTS"
+```
+
+引號內**只放** `https://meet.google.com/<會議代碼>` 或會議代碼本身（如 `abc-defg-hij`）：
+- 把連結中 `?` 之後的所有內容刪掉（例如行事曆連結的 `?authuser=0&hs=122`）。在 Windows 上 `&`、`%` 會讓命令被切斷，連結會被截掉、後面的參數會遺失。
+- 引號內應為 `/openmeeting:meet` 後面的參數；如果參數是空的、混了其他文字或帶有 `?`/`&`，改成整理過的連結或代碼。
+- 使用者若指定機器人名稱，把 `--name "名稱"` 放在連結**前面**，例如：`{{CLI}} join --name "小幫手" "https://meet.google.com/abc-defg-hij"`。
+
+依輸出的行判斷結果（不要只看結束碼）：
+- 有 `MEETING_ID=<id>` 和 `MEETING_DIR=<資料夾路徑>` → 機器人已在背景啟動。記住這兩個值，繼續步驟 2（即使結束碼不是 0 也一樣）。
+- `ERROR=not_a_meet_url` → 不是有效的 Google Meet 連結 → 告訴使用者並請他重貼連結，流程結束。
+- `ERROR=already_recording`（結束碼 5）→ 另一場會議（`ACTIVE_MEETING_ID=`）還在記錄中，一次只能記錄一場。問使用者要不要先結束那場；同意後執行 `{{CLI}} leave <ACTIVE_MEETING_ID>`，再重新執行本步驟。
+
+### 2. 告訴使用者要做什麼
+
+join 成功後，立刻用簡短的話告訴使用者：
+- 機器人（顯示名稱見 join 的輸出；若沒顯示，執行 `{{CLI}} status <MEETING_ID>` 看 `displayName`，預設為「Arthur 的會議記錄」）正在另一個 Chrome 視窗加入會議。
+- 他（或會議主持人）需要在 Meet 裡**允許它加入**。2026 年起 Google 可能把機器人放在「潛在風險」的加入請求裡，預設按鈕是「拒絕 (Deny)」——請不要按，改按該請求旁的 **⋮ 選單 → 允許 (Admit)**。
+- 請告知其他與會者：這場會議正在被記錄成逐字稿。
+
+### 3. 背景等待會議結束
+
+用 Bash 工具執行下面指令，參數 **`run_in_background: true`**、**`timeout: 7200000`**：
+
+```
+{{CLI}} wait <MEETING_ID> --timeout-min 110
+```
+
+- 啟動後就結束這一輪回覆，告訴使用者：會議結束後會自動整理逐字稿與摘要；想提早結束可說「離開會議」，想看目前內容可說「現在講到哪」。
+- **不要輪詢、不要 sleep、不要反覆查狀態**。這個背景工作結束時你會自動被喚醒。
+- wait 會輸出 `STATE=...` 進度行，結束時輸出 `RESULT=`、`TRANSCRIPT=`、`UTTERANCES=`、`ERROR=` 等行。
+
+### 4. 背景工作結束後，依結束碼處理
+
+先讀背景工作的輸出與結束碼。必要時執行 `{{CLI}} status <MEETING_ID>` 取得 `endReason`、`stats`、`error`。
+
+**結束碼 0（有逐字稿）**
+1. 用 Read 讀 `<MEETING_DIR>/transcript.md`（很長就分段讀完）。若輸出有 `TRANSCRIPT_WHISPER=<路徑>`（字幕語言沒能設成中文，系統另外用 Whisper 轉錄了錄音），也讀那個檔；transcript.md 開頭若註明「字幕語言未能設定」，摘要以 Whisper 逐字稿為主，並註明來源。
+2. 寫 `<MEETING_DIR>/summary.md`，繁體中文，只根據逐字稿內容，不要編造；沒提到的負責人或期限寫「未指定」；某段沒有內容寫「（無）」；字幕可能有錯字或人名辨識錯誤，不確定處標「（?）」。格式：
+
+   ```
+   # 會議摘要 — <會議代碼>
+
+   - 時間：<開始–結束>（<N> 分鐘）
+   - 發言者：<名單>
+   - 逐字稿：<MEETING_DIR>/transcript.md
+
+   ## 會議重點
+   - ...
+
+   ## 決議事項
+   - ...
+
+   ## 待辦事項（負責人、期限）
+   | 待辦 | 負責人 | 期限 |
+   |---|---|---|
+
+   ## 待確認問題
+   - ...
+   ```
+3. 回覆使用者：會議長度（transcript.md 標頭的「時間」）、發言者與人數、發言段數（`UTTERANCES=`）、結束原因、完整摘要內容，以及兩個檔案路徑：`<MEETING_DIR>/transcript.md`、`<MEETING_DIR>/summary.md`。
+
+結束原因（`endReason`）對照：`meeting_ended` 會議結束、`removed` 被移出會議、`alone` 其他人都離開了、`no_one_joined` 一直沒有其他人加入、`max_duration` 達到最長記錄時間、`user_stop` 依要求離開、`signal` 程式被中止、`page_closed` 機器人視窗被關閉。
+
+**結束碼 2（會議結束了，但沒擷取到字幕）**
+1. 先看 `<MEETING_DIR>/transcript-whisper.md` 是否已存在（若本機已安裝語音辨識，系統會自動轉錄）。存在 → 用它照「結束碼 0」的方式寫 summary.md 並回報，註明來源是 Whisper 語音辨識。
+2. 否則向使用者說明可能原因：Meet 字幕沒有成功開啟；字幕語言不是中文或與會者說的語言不同；Meet 介面改版導致抓不到字幕；會議中其實沒人發言。
+3. 若 `<MEETING_DIR>/audio.wav` 存在，告訴使用者會議音訊有錄下來，可以在本機免費離線轉錄（用 CPU，可能要數分鐘到數十分鐘）。**徵得同意後**：
+   - 第一次使用先執行 `{{CLI}} setup-stt`（需要 uv，會下載 Python 套件；用 `run_in_background: true`、`timeout: 7200000`；已安裝過再執行也可以，會就地修復）。
+   - 再執行 `{{CLI}} transcribe <MEETING_ID>`（`run_in_background: true`、`timeout: 7200000`）。
+   - 完成後讀 `<MEETING_DIR>/transcript-whisper.md`，照「結束碼 0」寫 summary.md 並回報。
+
+**結束碼 3（失敗）**
+若 `UTTERANCES=` 大於 0（例如 `crashed`：會議進行到一半時背景程式被中止），已記錄的內容還在：先執行 `{{CLI}} transcript <MEETING_ID>`（會寫出 `<MEETING_DIR>/transcript.md`），照「結束碼 0」的步驟寫 summary.md 並回報，明確標示這是**不完整的逐字稿**，然後再說明失敗原因。
+
+讀輸出中的 `ERROR=<代碼>`（`{{CLI}} status <MEETING_ID>` 的 `error.message` 有細節），用下表向使用者說明原因與解法：
+
+| ERROR | 意思 | 建議解法 |
+|---|---|---|
+| `signin_required` | 需要登入 Google 才能加入 | 執行 `{{CLI}} login`，由使用者在跳出的視窗自己登入**機器人專用**的 Google 帳號，關閉視窗後重試 |
+| `not_found` | 會議不存在、代碼錯誤或已過期 | 請使用者確認連結 |
+| `blocked` | Google 不讓機器人加入（未登入的訪客常被擋、組織會議禁止外部人員） | 用 `{{CLI}} login` 登入專用帳號後重試；請主持人允許外部訪客；稍後再試 |
+| `denied` | 加入請求被拒絕 | 請主持人在「潛在風險」請求中用 ⋮ → 允許 (Admit)，然後重試 |
+| `lobby_timeout` | 等太久沒人放行 | 請主持人留意加入請求（⋮ → Admit）後重試 |
+| `chrome_not_found` | 找不到 Google Chrome | 安裝 Google Chrome，或設定環境變數 `CHROME_PATH` 指向 chrome.exe |
+| `chrome_launch_failed` | Chrome 無法啟動 | 關閉其他機器人 Chrome 視窗（同一個設定檔只能開一個）後重試；細節看 `<MEETING_DIR>/bot.log` |
+| `join_failed` | 加入流程失敗（Meet 介面可能改版） | 查看 `<MEETING_DIR>/bot.log` 與 `<MEETING_DIR>/screens/` 截圖 |
+| `crashed` | 背景程式意外結束 | 查看 `<MEETING_DIR>/bot.log`、`<MEETING_DIR>/worker.out` 後重試 |
+
+需要重試時，從步驟 1 重新開始（會產生新的 MEETING_ID）。
+
+**結束碼 4，或背景工作在 2 小時上限被中止（狀態仍是 `in_call` 等進行中狀態）**
+會議還在進行，這不是錯誤。用完全相同的方式（`run_in_background: true`、`timeout: 7200000`）再執行一次 `{{CLI}} wait <MEETING_ID> --timeout-min 110`，然後結束這一輪。
+
+其他結束碼 → 執行 `{{CLI}} status <MEETING_ID>` 了解狀況後向使用者說明。
+
+## 其他指令
+
+下表的 `<MEETING_ID>` 用這個對話中 join 印出的值；不知道時才改用 `latest`（最新的一場）。
+
+| 使用者想要 | 執行 |
+|---|---|
+| 離開會議、停止記錄、stop | `{{CLI}} leave <MEETING_ID>`，或 `{{CLI}} leave latest`（背景的 wait 隨後會結束，再照步驟 4 處理；若這個對話沒有背景 wait，就用步驟 3 的方式執行 `{{CLI}} wait <MEETING_ID> --timeout-min 110`） |
+| 現在講到哪、目前逐字稿 | `{{CLI}} transcript <MEETING_ID>`，或 `{{CLI}} transcript latest`，摘要最近的內容給使用者 |
+| 檢查環境、為什麼不能用 | `{{CLI}} doctor`，解讀表格並給建議 |
+| 看會議清單 / 狀態 | `{{CLI}} list` / `{{CLI}} status <MEETING_ID>` |
+| 第一次幫機器人登入 Google | `{{CLI}} login`（會等到視窗關閉才結束；用 `run_in_background: true`、`timeout: 7200000`，否則 30 分鐘後登入視窗會被關掉） |
+
+登入說明：請使用者在跳出的 Chrome 視窗中**自己**登入（建議另外申請一個免費 Gmail 專門給機器人用，不要用個人主要帳號），完成後關閉該視窗即可。你只負責執行指令與說明，絕不經手帳號密碼。

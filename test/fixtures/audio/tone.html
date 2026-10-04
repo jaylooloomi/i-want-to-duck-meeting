@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>audio-capture fixture: tone</title>
+</head>
+<body>
+<p>440 Hz tone rendered like a remote participant: &lt;audio autoplay&gt; with a MediaStream srcObject.</p>
+<script>
+  // Query params:
+  //   dup=1    a second <audio> element plays the SAME track (capture must de-duplicate)
+  //   defer=N  create the <audio> element(s) only after N ms
+  // Extra noise the capture must ignore: a <video> with a video-only canvas stream and an
+  // <audio> with a plain src (no srcObject).
+  (function () {
+    const params = new URLSearchParams(location.search);
+    const defer = Number(params.get('defer') || 0);
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 440;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.5;
+    const dest = ctx.createMediaStreamDestination();
+    osc.connect(gain);
+    gain.connect(dest);
+    osc.start();
+    ctx.resume().catch(() => {});
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 16;
+    canvas.height = 16;
+    // keep producing frames: a media element without its first frame delays window 'load'
+    const g = canvas.getContext('2d');
+    let tick = 0;
+    setInterval(() => { g.fillStyle = (tick++ % 2) ? '#000' : '#fff'; g.fillRect(0, 0, 16, 16); }, 200);
+    const video = document.createElement('video');
+    video.autoplay = true;
+    video.muted = true;
+    video.srcObject = canvas.captureStream(1);
+    document.body.appendChild(video);
+    const plain = document.createElement('audio');
+    document.body.appendChild(plain);
+
+    function addAudio(stream) {
+      const a = document.createElement('audio');
+      a.autoplay = true;
+      a.srcObject = stream;
+      document.body.appendChild(a);
+      a.play().catch(() => {});
+      return a;
+    }
+
+    window.fixture = { ctx, osc, dest, track: dest.stream.getAudioTracks()[0], elements: [] };
+    window.fixtureReady = new Promise((resolve) => {
+      setTimeout(() => {
+        window.fixture.elements.push(addAudio(dest.stream));
+        if (params.get('dup') === '1') {
+          window.fixture.elements.push(addAudio(new MediaStream(dest.stream.getAudioTracks())));
+        }
+        resolve({ contextState: ctx.state, elements: window.fixture.elements.length });
+      }, defer);
+    });
+  })();
+</script>
+</body>
+</html>

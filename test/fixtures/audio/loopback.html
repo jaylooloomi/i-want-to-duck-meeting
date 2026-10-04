@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>audio-capture fixture: RTCPeerConnection loopback</title>
+</head>
+<body>
+<p>pc1 (440 Hz oscillator track) to pc2 in-page. Like Meet, this page renders NO media element
+for the remote track, so only installTrackMirror() makes it discoverable.</p>
+<script>
+  // window.startLoopback() -> Promise<results>; results describe how the (possibly wrapped)
+  // RTCPeerConnection behaved, so the test can assert the wrapper is transparent.
+  window.startLoopback = async function startLoopback() {
+    const results = {};
+    const RTC = window.RTCPeerConnection;
+    results.mirrorInstalled = !!window.__omTrackMirror;
+    results.name = RTC.name;
+    results.length = RTC.length;
+    results.hasGenerateCertificate = typeof RTC.generateCertificate === 'function';
+    const cert = await RTC.generateCertificate({ name: 'ECDSA', namedCurve: 'P-256' });
+    results.certOk = cert instanceof RTCCertificate;
+
+    let callWithoutNewThrew = false;
+    try { RTC(); } catch (e) { callWithoutNewThrew = e instanceof TypeError; }
+    results.callWithoutNewThrew = callWithoutNewThrew;
+
+    class MyPC extends RTCPeerConnection {
+      hello() { return 'hi'; }
+    }
+    const sub = new MyPC();
+    results.subclassOk = sub instanceof MyPC && sub instanceof RTCPeerConnection && sub.hello() === 'hi';
+    sub.close();
+
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    osc.frequency.value = 440;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.5;
+    const dest = ctx.createMediaStreamDestination();
+    osc.connect(gain);
+    gain.connect(dest);
+    osc.start();
+    ctx.resume().catch(() => {});
+
+    const pc1 = new RTCPeerConnection();
+    const pc2 = new RTCPeerConnection({ iceServers: [] });
+    results.instanceofOk = pc1 instanceof RTCPeerConnection && pc1 instanceof EventTarget;
+    results.protoOk = Object.getPrototypeOf(pc1) === RTCPeerConnection.prototype;
+    results.constructorOk = pc1.constructor === RTCPeerConnection;
+
+    pc1.onicecandidate = (e) => { if (e.candidate) pc2.addIceCandidate(e.candidate).catch(() => {}); };
+    pc2.onicecandidate = (e) => { if (e.candidate) pc1.addIceCandidate(e.candidate).catch(() => {}); };
+
+    let ontrackCalls = 0;
+    let listenerCalls = 0;
+    const gotTrack = new Promise((resolve) => {
+      pc2.ontrack = (e) => { ontrackCalls++; resolve(e.track); };
+    });
+    pc2.addEventListener('track', () => { listenerCalls++; });
+
+    pc1.addTrack(dest.stream.getAudioTracks()[0], dest.stream);
+    const offer = await pc1.createOffer();
+    await pc1.setLocalDescription(offer);
+    await pc2.setRemoteDescription(offer);
+    const answer = await pc2.createAnswer();
+    await pc2.setLocalDescription(answer);
+    await pc1.setRemoteDescription(answer);
+
+    const remoteTrack = await gotTrack;
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('ice timeout: ' + pc2.iceConnectionState)), 20000);
+      const check = () => {
+        if (pc2.iceConnectionState === 'connected' || pc2.iceConnectionState === 'completed') {
+          clearTimeout(timer);
+          resolve();
+        }
+      };
+      pc2.addEventListener('iceconnectionstatechange', check);
+      check();
+    });
+
+    results.ontrackCalls = ontrackCalls;
+    results.listenerCalls = listenerCalls;
+    results.remoteTrackId = remoteTrack.id;
+    results.remoteTrackKind = remoteTrack.kind;
+    results.iceState = pc2.iceConnectionState;
+    window.loopback = { ctx, pc1, pc2, remoteTrack };
+    return results;
+  };
+</script>
+</body>
+</html>
