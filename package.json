@@ -13,9 +13,9 @@
     "openmeeting": "bin/openmeeting.js"
   },
   "scripts": {
-    "test": "node --test --test-concurrency=1 test/unit/",
-    "test:integration": "node --test --test-concurrency=1 test/integration/",
-    "test:all": "node --test --test-concurrency=1 test/unit/ test/integration/",
+    "test": "node --test --test-concurrency=1 \"test/unit/**/*.test.js\"",
+    "test:integration": "node --test --test-concurrency=1 \"test/integration/**/*.test.js\"",
+    "test:all": "node --test --test-concurrency=1 \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\"",
     "install-plugin": "node scripts/install-plugin.js"
   },
   "dependencies": {
