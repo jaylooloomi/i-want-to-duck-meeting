@@ -16,6 +16,8 @@
     "test": "node --test --test-concurrency=1 \"test/unit/**/*.test.js\"",
     "test:integration": "node --test --test-concurrency=1 \"test/integration/**/*.test.js\"",
     "test:all": "node --test --test-concurrency=1 \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\"",
+    "setup": "node scripts/install.js",
+    "install-codex": "node scripts/install.js --target codex",
     "install-plugin": "node scripts/install-plugin.js"
   },
   "dependencies": {

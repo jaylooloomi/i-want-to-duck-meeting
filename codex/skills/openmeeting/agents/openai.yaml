@@ -1,0 +1,4 @@
+interface:
+  display_name: "openmeeting"
+  short_description: "加入 Google Meet，記錄中文字幕與錄音，驗證聲音並整理會議摘要"
+  default_prompt: "使用 $openmeeting 加入這場 Google Meet，記錄字幕與音訊，結束後整理摘要。"

@@ -1,6 +1,6 @@
 # openmeeting
 
-在 Claude Code 貼上 Google Meet 連結，一個**靜音**機器人就會加入會議、記錄對話文字（說話者＋時間＋內容），會議結束時自己離開，Claude 再把逐字稿和摘要呈現在對話裡。
+在 Codex 或 Claude Code 貼上 Google Meet 連結，一個**靜音**機器人就會加入會議、記錄對話文字（說話者＋時間＋內容），會議結束時自己離開，再由對話中的 AI 整理逐字稿和摘要。
 
 - 機器人用你電腦上的 Google Chrome（獨立設定檔、有視窗）加入，**麥克風與鏡頭永遠關閉，不會說話**。
 - 文字來源是 Meet 免費的即時字幕（預設「中文（國語，台灣）」`cmn-Hant-TW`）；同時錄下會議音訊 `audio.wav` 當備援，可用本機 Whisper 離線轉錄。
@@ -13,7 +13,7 @@
 - Windows 10/11（主要測試平台）
 - Node.js 22 以上
 - Google Chrome（已安裝；或用環境變數 `CHROME_PATH` 指定 chrome.exe）
-- Claude Code CLI（`claude`）
+- 本機 Codex 或 Claude Code CLI（只安裝 Codex 技能時不需要 `claude`）
 - （選用）[uv](https://docs.astral.sh/uv/) ＋ Python 3.12：離線語音辨識備援
 - （建議）一個專門給機器人用的免費 Google 帳號
 
@@ -21,16 +21,24 @@
 
 ```sh
 npm install
-npm run install-plugin
+npm run setup
 ```
 
-`npm run install-plugin` 會：
+`npm run setup` 預設安裝兩種整合：
 
-1. 從 `plugin/skills/meet/SKILL.md.tmpl` 產生 `SKILL.md`（寫入這個 repo 的絕對路徑）；
-2. 把這個 repo 註冊成本機 marketplace `openmeeting-local`；
-3. 安裝外掛 `openmeeting@openmeeting-local`（已安裝就更新）。
+1. 將 `codex/skills/openmeeting/` 安裝成使用者層級 Codex 技能，產生指向目前專案及 Node 的本機設定；
+2. 從 Claude 技能範本產生 `SKILL.md`，將專案註冊成本機 marketplace `openmeeting-local`；
+3. 安裝／更新並啟用 Claude 外掛 `openmeeting@openmeeting-local`，處理舊版快取。
 
-可以重複執行。加 `--dry-run` 只印出會執行的指令，加 `--render-only` 只產生 SKILL.md。裝好後重新啟動 Claude Code（或在工作階段中執行 `/reload-plugins`）。**搬移 repo 資料夾後要重新執行一次。**
+可以重複執行，也可單獨選擇目標：
+
+```sh
+npm run setup -- --target codex   # 不需要 Claude CLI
+npm run setup -- --target claude
+npm run setup -- --dry-run       # 只顯示計畫，不寫入或執行 Claude
+```
+
+Codex 安裝後開啟新對話，必要時重啟；Claude Code 執行 `/reload-plugins` 或重啟。**搬移 repo 或 Node 後要重新執行安裝。** 舊的 `npm run install-plugin` 仍可用；自訂技能目錄、既有個人版遷移及移除方式見 [完整安裝指南](docs/installation.md)。
 
 選用但建議：
 
@@ -59,17 +67,23 @@ node bin/openmeeting.js doctor     # 檢查環境
 
 ## 使用
 
-在任何專案的 Claude Code 中：
+Codex 新的本機對話可直接貼上 Meet 連結要求記錄，或輸入：
+
+```text
+$openmeeting https://meet.google.com/abc-defg-hij
+```
+
+Claude Code 使用：
 
 ```
 /openmeeting:meet https://meet.google.com/abc-defg-hij
 ```
 
-或直接貼上連結說「幫我參加這個會議並做記錄」。Claude 會：
+也可以貼上連結說「幫我參加這個會議並做記錄」。對話中的 AI 會：
 
 1. 啟動機器人加入會議，告訴你機器人的名稱；
 2. 提醒你（或主持人）放行機器人；
-3. 在背景等待會議結束（期間你可以繼續用 Claude）；
+3. 在本機背景記錄；依宿主支援等待完成通知，沒有通知時會議結束後回來說「整理這場會議」；
 4. 會議結束後讀逐字稿、寫 `summary.md`（會議重點、決議事項、待辦事項、待確認問題），並回報長度、發言者、段數與檔案路徑。
 
 會議進行中可以說「**現在講到哪**」看目前逐字稿，或「**離開會議**」讓機器人提早離開。
