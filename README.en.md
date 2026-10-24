@@ -17,7 +17,7 @@
   <a href="README.md"><img src="https://img.shields.io/badge/lang-繁體中文-green" alt="繁體中文"></a>
 </p>
 
-<p align="center"><img src="docs/images/meeting-hero-zh.png" alt="Left: a participant struggles to take notes during a meeting. Right: an orange octopus with a headset helps preserve audio, transcripts, and action items. The Chinese labels read: Focus on the meeting; Leave the recording to AI." width="900"></p>
+<p align="center"><img src="docs/images/meeting-hero-en.png" alt="Left: a participant struggles to take notes during a meeting. Right: an orange octopus with a headset helps preserve audio, transcripts, and action items. Labels: Focus on the meeting; Let AI take notes." width="900"></p>
 <p align="center"><sub>Illustrated use case, not a screenshot of the application.</sub></p>
 
 ## Core features
@@ -176,7 +176,7 @@ See [live transcription](docs/live-transcription.md) for operation, segmentation
 
 ## After the meeting
 
-<p align="center"><img src="docs/images/meeting-review-zh.png" alt="A participant and a headset-wearing octopus review transcripts, recordings, summaries, and action items. The Chinese headline reads: The meeting ends; the key points stay." width="900"></p>
+<p align="center"><img src="docs/images/meeting-review-en.png" alt="A participant and a headset-wearing octopus review four panels labeled Transcript, Recording, Summary, and Action items. Headline: Meeting over. Key points kept." width="900"></p>
 <p align="center"><sub>Illustrated outcome, not an application screenshot. The conversational AI produces summaries from the transcript.</sub></p>
 
 Return to your AI conversation and say:
