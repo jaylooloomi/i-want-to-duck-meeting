@@ -13,6 +13,8 @@
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
   <img src="https://img.shields.io/badge/Codex-skill-black" alt="Codex 技能">
+  <a href="README.en.md"><img src="https://img.shields.io/badge/lang-English-green" alt="English"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/lang-繁體中文-brightgreen" alt="繁體中文"></a>
 </p>
 
 <p align="center"><img src="docs/images/meeting-hero-zh.png" alt="左側：參與者一邊開會一邊忙著寫筆記。右側：戴耳機的橘色章魚協助保存兩路音訊、逐字稿與待辦，讓參與者專心討論。" width="900"></p>
