@@ -71,3 +71,9 @@
 - 差異續作7項單元通過。markerResults逐項列字幕與錄音是否包含標記，observedText保留兩邊原文；結果含會議文字，依原規則只存本機忽略目錄。為維持加分隔離，不改bonus03文件。
 
 - README中英同步加入可重跑Google Meet驗證命令與partial結果，清楚限定同帳號合成遠端，不混同歷史真人驗證。
+
+### bonus-03 接收階段取消續作計畫（scores-09：12.3）
+- 主持端自己的共享shouldStop讀取STOP檔案，傳給接收回呼，完成後也檢查。相關單元在回呼建立STOP，驗證不回報completed且owner清理。
+- 否決：只關視窗不寫狀態（無法核對）；忽略STOP直到收音期限到（不符合使用介面）。
+
+- STOP續作：8項主持／接收單元全通過；STOP於回呼內產生時shouldStop立即true，最終cancelled，兩個owner均清理。

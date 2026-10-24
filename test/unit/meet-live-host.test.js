@@ -38,7 +38,7 @@ test('failed navigation closes both browser owners and never reports remote succ
   assert.equal(saved.error,'navigation failed');assert.equal(saved.validationScope,'host-only');
 });
 
-test('full test resets preparation deadline and closes immediately after bounded callback',async t=>{
+for(const cancel of [false,true])test(`full test resets deadlines and honors callback STOP (${cancel})`,async t=>{
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'om-host-phases-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   const timers=[],cleared=[];let closed=0,callback=0;
   const page={goto:async()=>{},url:()=> 'https://meet.google.com/abc-defg-hij',
@@ -49,9 +49,13 @@ test('full test resets preparation deadline and closes immediately after bounded
     launch:async()=>({cdpUrl:'test',close:async()=>closed++}),
     connect:async()=>({browser:{close:async()=>closed++},context:{newPage:async()=>page,grantPermissions:async()=>{}}}),
     setTimeout:(fn,ms)=>{const timer={fn,ms};timers.push(timer);return timer;},clearTimeout:timer=>cleared.push(timer),
-    onHostReady:async()=>{callback++;assert.equal(closed,0);},
+    onHostReady:async({dir,shouldStop})=>{
+      callback++;assert.equal(closed,0);assert.equal(shouldStop(),false);
+      if(cancel)fs.writeFileSync(path.join(dir,'STOP'),'');
+      assert.equal(shouldStop(),cancel);
+    },
   });
-  assert.equal(result.state,'completed_host_only');assert.equal(callback,1);assert.equal(closed,2);
+  assert.equal(result.state,cancel?'cancelled':'completed_host_only');assert.equal(callback,1);assert.equal(closed,2);
   assert.deepEqual(timers.map(x=>x.ms),[90000,420000]);
   assert.ok(timers.every(timer=>cleared.includes(timer)));
 });

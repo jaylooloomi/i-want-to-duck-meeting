@@ -42,6 +42,7 @@ export async function runLiveHost(options, deps={}) {
   let chrome,browser,stopped=false,timer;
   const schedule=deps.setTimeout || setTimeout,unschedule=deps.clearTimeout || clearTimeout;
   const stop=()=>{stopped=true;void browser?.close().catch(()=>{});};
+  const shouldStop=()=>stopped || fs.existsSync(path.join(dir,'STOP'));
   const deadline=ms=>{unschedule(timer);timer=schedule(stop,ms);};
   process.once('SIGINT',stop);process.once('SIGTERM',stop);
   try {
@@ -76,14 +77,14 @@ export async function runLiveHost(options, deps={}) {
     if(deps.onHostReady) {
       // Join/preparation, capture, bounded offline decode and cleanup each need time.
       deadline((options.seconds+300)*1000);
-      await deps.onHostReady({context,page,dir,url:report.meetingUrl,shouldStop:()=>stopped});
+      await deps.onHostReady({context,page,dir,url:report.meetingUrl,shouldStop});
     } else {
       deadline(options.seconds*1000);
       const end=Date.now()+options.seconds*1000;
-      while(!stopped && Date.now()<end && !fs.existsSync(path.join(dir,'STOP')))await page.waitForTimeout(500);
+      while(!shouldStop() && Date.now()<end)await page.waitForTimeout(500);
     }
-    report.state=stopped?'cancelled':'completed_host_only';
-  } catch(error) {report.state=stopped?'cancelled':'failed';report.error=error.message;}
+    report.state=shouldStop()?'cancelled':'completed_host_only';
+  } catch(error) {report.state=shouldStop()?'cancelled':'failed';report.error=error.message;}
   finally {
     unschedule(timer);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);
     await browser?.close().catch(()=>{});await chrome?.close().catch(()=>{});save();
