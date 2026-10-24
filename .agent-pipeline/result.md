@@ -15,6 +15,8 @@
 |---|---|---|---|---|---|---|---|
 | 01 | blocked 條件式下一步 | scores-01.md：12.0 | Google Meet官方加入說明 | 已完成 src/meet/failure-guidance.js、src/cli.js、test/unit/failure-guidance.test.js | node --test test/unit/failure-guidance.test.js test/unit/cli.test.js | 69項通過；node --check通過 | 不把blocked猜成訪客／不增加自動重試 |
 
+| 02 | 驗證層級與真實檔案報告 | scores-02.md：7.0 | Google Meet字幕官方說明 | 已新增 src/verification.js、scripts/verify-meeting-evidence.js、test/unit/verification.test.js；分開驗證本機注入與遠端來源 | node --test test/unit/verification.test.js；讀本夜實際音檔與字幕 | 5項單元通過；本夜檔案報告 local-content-matched，remote=false | 不用peak當語句證據／不對來源不明資料宣稱遠端成功 |
+
 ## 判斷不值得做
 - 中文介面語言選擇器：Score 0.3；正式路徑使用hl=en，缺真實DOM，不猜測實作。
 
