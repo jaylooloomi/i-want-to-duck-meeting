@@ -15,9 +15,10 @@
 關閉／重新整理網頁也會停止；連線中斷超過 15 秒時伺服器會自動收尾。CLI `leave <id>` 同樣可以停止。
 請使用 Chrome／Edge 等支援 AudioWorklet 的瀏覽器開啟本機網址，電腦保持喚醒。
 
-處理流程：瀏覽器麥克風 → PCM16 / 16 kHz → 本機 Silero VAD → 3D-Speaker CAM++ 聲音特徵分群 → faster-whisper small（CPU int8）→ 本機逐字稿。
-文字辨識使用整段語音，講者依詞級時間戳對應；「未確認 → 已確認」的切換不會切碎語音送去辨識。
-在停頓或約 6 秒長度後送出辨識工作；文字不是逐字立即顯示，延遲取決於 CPU 和發言長度。
+處理流程：瀏覽器麥克風 → PCM16 / 16 kHz → 本機 Silero VAD → 3D-Speaker CAM++ 聲音特徵分群 → sherpa-onnx Paraformer 中文（CPU int8）→ 本機逐字稿。
+文字辨識使用整段語音，不因暫定講者切換而切碎句子。Paraformer 目前保留解碼器整句文字、不推測詞級對齊；同一段包含多個講者身分時，文字標為「講者未確認」。
+每路保存最多 30 秒音訊歷史，VAD 區段前後各保留最多 0.3 秒，降低弱音被截掉的風險；強制長度切段不借用不完整尾段，避免重複辨識。這不保證能恢復已經不清楚的語音。
+容忍約 1.2 秒停頓，在語音結束或約 15 秒長度後送出辨識工作；文字不是逐字立即顯示，延遲取決於 CPU 和發言長度。
 同一段內以約 2 秒視窗估計講者變化；代號每場重新由「講者 A」開始，不跨場識別身分。
 少於 1.5 秒、與多個講者相近、或相似度處於模糊區間時標成「講者未確認」，不因此建立新代號或更新已確認的聲音特徵。
 新講者至少需要兩個互不重疊、各至少 1.5 秒且聲音特徵一致的片段；兩次證據間隔超過 10 秒就重新累積。
@@ -38,7 +39,7 @@ node bin/openmeeting.js live
 
 #### 可重跑的雙人瀏覽器驗證
 
-測試使用公開四人中文樣本中的兩段已知不同人的語音，透過 Chrome 的虛擬麥克風跑實際收音、AudioWorklet、HTTP、VAD、講者分群、Whisper 與網頁更新，沒有替換辨識結果。
+先前 Whisper 版本的歷史測試使用公開四人中文樣本中的兩段已知不同人的語音，透過 Chrome 的虛擬麥克風跑實際收音、AudioWorklet、HTTP、VAD、講者分群、Whisper 與網頁更新，沒有替換辨識結果。
 包含六輪發言、45% 音量、輕微背景雜音、0.7 秒短句與同一人再次發言。
 驗證器以實際錄到的波形對齊參考時間表，檢查每一輪的講者，不只計算代號數量。
 這是可控制的錄音輸入測試，不能代表所有實體麥克風、房間混響與重疊發言的效果。
@@ -105,3 +106,30 @@ node --test test/integration/teams-browser.test.js
 $env:OPENMEETING_TEAMS_AUTO_TEST = '1'
 node --test test/integration/teams-auto.test.js
 ```
+
+
+### Paraformer 錄音重播驗證
+
+即時流程與標準安裝改用 Paraformer 中文 int8；下載網址固定模型修訂版，模型與詞表均驗證 SHA-256。參考 [SpeakSlow 標準辨識器](https://github.com/Jeffrey0117/SpeakSlow/blob/main/sherpa_server.py)，實作沒有使用預期測試句、數字熱詞或逐句替換。即時繁體轉換使用 OpenCC s2t，只轉換字形、不把「代碼」改寫成「程式碼」；只有連續三位以上的中文數字逐字轉換成阿拉伯數字。
+
+可將本機保存的兩路 16 kHz、單聲道 PCM16 WAV 送入與實際收音相同的 `live.py` JSON 協定（包含各路 VAD、佇列、分群與辨識）：
+
+```powershell
+.venv-stt/Scripts/python.exe stt/replay_live.py --model-dir models --microphone meetings/<id>/audio-microphone.wav --system meetings/<id>/audio-system.wav --output meetings/<id>/replay-paraformer.jsonl
+```
+
+輸出包含軌道、時間及實際辨識文字；只重播其中一路時可省略另一個音軌參數。這是加速回放，長錄音超過待處理佇列容量會明確失敗，不應據此宣稱實時效能不足；較長效能測試應分段或用實際收音速度測試。
+
+新版以真人雙路錄音重播實際即時流程，完整測試句、`Microsoft Teams`（忽略大小寫）與 `1357` 均通過。先前 0.6 秒停頓門檻將中英混合句切成三段，造成「這次」錯字；提高到 1.2 秒並保留前後緩衝後，句子在同一語音區段正確辨識。較早受干擾的錄音仍有錯字，不納入整句通過的宣稱。模型更換不會自動排除系統播放端的音樂，也不能保證任意中文句子都正確。錄音與重播輸出留在本機、不要提交到 Git。
+
+
+私人錄音回歸測試（測試句只用於輸出比對，絕不傳給辨識器）：
+
+```powershell
+$env:OPENMEETING_REPLAY_SYSTEM_WAV = 'meetings/<id>/audio-system.wav'
+$env:OPENMEETING_REPLAY_MIC_WAV = 'meetings/<id>/audio-microphone.wav'
+$env:OPENMEETING_REPLAY_EXPECTED_SYSTEM = '<實際說出的完整句子>'
+.venv-stt/Scripts/python.exe -m unittest discover -s stt -p test_replay.py
+```
+
+比對只忽略標點、空白和英文大小寫，不能略過漏字、改詞或缺少數字。未指定本機測試錄音時會略過這項測試。真人錄音驗證時曾以本機臨時程序監看並暫停特定音樂；這不是安裝後通用的音樂隔離功能，WASAPI 仍會錄到同裝置的其他應用程式聲音。

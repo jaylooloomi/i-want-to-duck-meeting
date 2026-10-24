@@ -35,7 +35,7 @@ export class MicrophoneService {
     const session = { id, dir, token:randomUUID(), sequence:0, startedAt, audioStart:null, pending:[], stopping:false, ready:false, lastAudio:Date.now(), lastClient:Date.now(), mode, managed, laneFrames:{ mic:0, system:0 }, laneOffsets:{} };
     this.current = session;
     const code = mode === 'teams' ? 'Teams 雙路收音' : '本機麥克風';
-    const store = new TranscriptStore(dir, { code, startedAt, sourceLabel:'本機音訊辨識（Whisper small／聲音特徵分群）' });
+    const store = new TranscriptStore(dir, { code, startedAt, sourceLabel:'本機音訊辨識（Paraformer／聲音特徵分群）' });
     const wav = mode === 'teams' ? new MultiTrackWriter(dir) : new WavWriter(path.join(dir, 'audio.wav'));
     session.store = store; session.wav = wav;
     const stats = () => ({ utterances:store.count, speakers:store.speakers, audioSeconds:wav.seconds, audioPeak:wav.peak, captionLang:'zh', captionsOn:false,

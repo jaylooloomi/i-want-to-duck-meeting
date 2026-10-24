@@ -2,6 +2,8 @@
 
 日期：2026-10-24（Asia/Taipei）
 
+此頁保存先前 Whisper 即時辨識版本的雙人瀏覽器測試結果，不代表新版 Paraformer 已重跑同一組講者驗證。新版的實際錄音重播結果、測試方式及整句說話者限制見 [即時辨識說明](live-transcription.md#paraformer-錄音重播驗證)。
+
 ## 結果
 
 使用兩段已知不同人的公開真人錄音，經 Chrome 虛擬麥克風輸入，跑過實際 AudioWorklet 收音、重採樣、HTTP 傳輸、Silero VAD、聲音特徵分群、Whisper 與即時逐字稿介面。辨識 API 與講者結果沒有使用假資料替換。

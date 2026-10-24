@@ -3,7 +3,7 @@
 ## 使用流程
 
 1. `npm install` 後執行 `npm run setup`；只有單一 AI 工具時加 `--target codex` 或 `--target claude`。
-2. 安裝器準備 uv、Python 3.12、音訊套件、Whisper small、VAD 與講者模型。uv 缺少時使用 [官方安裝器](https://docs.astral.sh/uv/getting-started/installation/)，只安裝在資料根目錄 `tools/`，不修改全域 PATH。
+2. 安裝器準備 uv、Python 3.12、音訊套件、Paraformer 中文 int8、VAD 與講者模型。uv 缺少時使用 [官方安裝器](https://docs.astral.sh/uv/getting-started/installation/)，只安裝在資料根目錄 `tools/`，不修改全域 PATH。
 3. 在新 Codex 對話或已重新載入外掛的 Claude Code 貼上 Meet／Teams 連結要求記錄。
 4. Meet 沿用靜音機器人流程；Teams 開啟連結並以獨立背景工作擷取本機麥克風及播放聲音。使用者在 Teams 完成必要登入、加入及裝置授權；已加入則使用 `--no-open`。
 5. 結束時要求停止記錄；CLI `leave <ID>` 保存最後音訊與文字。Teams 背景錄音不依賴對話、網頁或臨時 HTTP 心跳。預設最長四小時，關閉 Teams 本身不會停止錄音。

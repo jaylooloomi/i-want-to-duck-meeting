@@ -1,4 +1,4 @@
-"""Local PCM16/16k -> VAD -> speaker embeddings + Whisper. JSON lines in/out.
+"""Local PCM16/16k -> VAD -> speaker embeddings + Paraformer. JSON lines in/out.
 
 Models must already be cached. No downloads or remote calls at runtime.
 """
@@ -14,6 +14,35 @@ import time
 import numpy as np
 
 RATE = 16000
+
+
+class SpeechContext:
+    """Bounded per-lane history: retain weak consonants around VAD boundaries."""
+    def __init__(self, padding=0.3, capacity=30):
+        self.padding = int(padding * RATE)
+        self.capacity = int(capacity * RATE)
+        self.audio = np.empty(0, dtype=np.float32)
+        self.base = 0
+        self.consumed = 0
+
+    def append(self, audio):
+        self.audio = np.concatenate((self.audio, audio))
+        excess = max(0, len(self.audio) - self.capacity)
+        if excess:
+            self.audio = self.audio[excess:]
+            self.base += excess
+
+    def region(self, start, samples):
+        end = start + len(samples)
+        if start < self.base or end > self.base + len(self.audio):
+            raise RuntimeError('語音緩衝區不足，已保留錄音；不能靜默截斷語音')
+        begin = max(self.base, self.consumed, start - self.padding)
+        # Forced maximum-length VAD cuts can end mid-word. Do not borrow a
+        # partial tail that the next speech region will decode again.
+        finish = end + self.padding if end + self.padding <= self.base + len(self.audio) else end
+        begin = min(begin, start)  # never discard original VAD speech
+        self.consumed = finish
+        return self.audio[begin - self.base:finish - self.base].copy(), begin
 
 
 def send(**data):
@@ -96,11 +125,11 @@ class Speakers:
 class Engine:
     def __init__(self, model_dir, mode='microphone'):
         import sherpa_onnx
-        from faster_whisper import WhisperModel
+        from paraformer import Paraformer
         from transcribe import make_converter
-        self.whisper = WhisperModel('small', device='cpu', compute_type='int8',
-                                    cpu_threads=8, download_root=model_dir, local_files_only=True)
-        self.converter = make_converter()
+        self.asr = Paraformer(model_dir)
+        # Preserve spoken vocabulary: s2twp rewrites 代碼 to 程式碼, for example.
+        self.converter = make_converter('s2t')
         config = sherpa_onnx.SpeakerEmbeddingExtractorConfig(
             model=os.path.join(model_dir, 'speaker-embedding.onnx'), num_threads=2, provider='cpu')
         if not config.validate():
@@ -115,9 +144,11 @@ class Engine:
         import sherpa_onnx
         config = sherpa_onnx.VadModelConfig()
         config.silero_vad.model = os.path.join(self.model_dir, 'silero_vad.onnx')
-        config.silero_vad.min_silence_duration = 0.6
+        # Keep brief thinking pauses and Chinese/English code-switches together.
+        # Cutting just before an English product name loses useful ASR context.
+        config.silero_vad.min_silence_duration = 1.2
         config.silero_vad.min_speech_duration = 0.35
-        config.silero_vad.max_speech_duration = 6
+        config.silero_vad.max_speech_duration = 15
         config.sample_rate = RATE
         return sherpa_onnx.VoiceActivityDetector(config, buffer_size_in_seconds=30)
 
@@ -148,7 +179,8 @@ class Engine:
         return turns
 
     def recognize(self, audio, offset, lane='mic'):
-        from transcribe import INITIAL_PROMPT, normalize_punct
+        from transcribe import normalize_punct
+        from paraformer import normalize_digits
         turns = ([[0, len(audio), '講者 A', 1.0]] if getattr(self, 'mode', '') == 'teams' and lane == 'mic'
                  else self.turns(audio, offset))
         for start, end, speaker, confidence in turns:
@@ -158,11 +190,7 @@ class Engine:
         send(type='pending', speaker=next(iter(names)) if len(names) == 1 else '講者未確認', start=offset / RATE, lane=lane)
         # Decode the full speech region once. A tentative speaker boundary must never
         # cut a sentence into tiny ASR inputs and lose words on either side.
-        segments, _ = self.whisper.transcribe(
-            audio, language='zh', beam_size=1, vad_filter=True, word_timestamps=True,
-            condition_on_previous_text=False, initial_prompt=INITIAL_PROMPT,
-            temperature=0.0, best_of=1, max_new_tokens=96,
-            repetition_penalty=1.1, no_repeat_ngram_size=3)
+        segments, _ = self.asr.transcribe(audio)
         groups = []
         duration = len(audio) / RATE
         for segment in segments:
@@ -190,7 +218,7 @@ class Engine:
                 else:
                     groups.append(dict(speaker=speaker, confidence=confidence, text=text, start=begin, end=max(begin, end)))
         for group in groups:
-            text = normalize_punct(self.converter.convert(group['text']).strip())
+            text = normalize_digits(normalize_punct(self.converter.convert(group['text']).strip()))
             if text:
                 send(type='record', speaker=group['speaker'], confidence=round(group['confidence'], 3), text=text,
                      start=offset / RATE + group['start'], end=offset / RATE + group['end'], lane=lane)
@@ -218,15 +246,17 @@ def run(model_dir, mode='microphone'):
     thread = threading.Thread(target=recognize, daemon=True)
     thread.start()
     send(type='ready')
-    lanes = {lane:dict(vad=engine.vad if lane == 'mic' else engine.new_vad(), buffer=np.empty(0, dtype=np.float32), offset=None)
+    lanes = {lane:dict(vad=engine.vad if lane == 'mic' else engine.new_vad(), buffer=np.empty(0, dtype=np.float32), offset=None,
+                      context=SpeechContext())
              for lane in (['mic', 'system'] if mode == 'teams' else ['mic'])}
 
     def drain(lane):
         state = lanes[lane]
         while not state['vad'].empty():
             segment = state['vad'].front
+            samples, start = state['context'].region(segment.start, segment.samples)
             try:
-                jobs.put_nowait((np.array(segment.samples, dtype=np.float32), segment.start + (state['offset'] or 0), lane))
+                jobs.put_nowait((samples, start + (state['offset'] or 0), lane))
             except queue.Full:
                 raise RuntimeError('辨識速度不足，已停止收音以免持續累積延遲；錄音已保留')
             state['vad'].pop()
@@ -244,12 +274,16 @@ def run(model_dir, mode='microphone'):
         audio = np.frombuffer(base64.b64decode(packet['pcm'], validate=True), dtype='<i2').astype(np.float32) / 32768
         state['buffer'] = np.concatenate((state['buffer'], audio))
         while len(state['buffer']) >= 512:
-            state['vad'].accept_waveform(state['buffer'][:512])
+            chunk = state['buffer'][:512]
+            state['context'].append(chunk)
+            state['vad'].accept_waveform(chunk)
             state['buffer'] = state['buffer'][512:]
             drain(lane)
     for lane, state in lanes.items():
         if len(state['buffer']):
-            state['vad'].accept_waveform(np.pad(state['buffer'], (0, 512 - len(state['buffer']))))
+            chunk = np.pad(state['buffer'], (0, 512 - len(state['buffer'])))
+            state['context'].append(chunk)
+            state['vad'].accept_waveform(chunk)
         state['vad'].flush()
         drain(lane)
     while thread.is_alive():

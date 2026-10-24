@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenMeeting · 即時逐字稿</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script><script src="/microphone.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>i-want-to-meeting · 即時逐字稿</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script><script src="/microphone.js" defer></script></head>
 <body>
-<header><div class="brand">◉ OpenMeeting <span>本機會議記錄</span></div><div id="connection" role="status">連線中…</div></header>
+<header><div class="brand">◉ i-want-to-meeting <span>本機會議記錄</span></div><div id="connection" role="status">連線中…</div></header>
 <main>
 <div class="heading"><div><p class="eyebrow">LIVE TRANSCRIPT</p><h1>每個人的話，都跟得上。</h1><p class="intro">本機語音轉文字、講者區分與 Meet 字幕，內容自動更新。</p></div><a id="meet" hidden target="_blank" rel="noopener">進入 Meet ↗</a></div>
 <section class="mic-panel" aria-label="本機麥克風">
 <label>會議來源 <select id="audio-mode"><option value="microphone">現場會議 · 麥克風</option><option value="teams">Teams · 會議聲音＋自己的麥克風</option></select></label>
-<div><strong>現場會議 · 本機麥克風</strong><p>聲音留在這台電腦，以講者 A、B 區分。新聲音先標成「講者未確認」，累積一致片段後才分配代號。每段約 2–6 秒，辨識結果稍後顯示。</p></div>
+<div><strong>現場會議 · 本機麥克風</strong><p>聲音留在這台電腦，以講者 A、B 區分。新聲音先標成「講者未確認」，累積一致片段後才分配代號。停頓約 1.2 秒或連續發言約 15 秒後送出辨識，結果稍後顯示。</p></div>
 <div id="teams-devices" hidden>
 <p>選擇 Teams 使用的播放裝置與麥克風。自己的麥克風固定為講者 A，遠端由 B 開始；使用耳機可避免喇叭聲重複進入麥克風。此模式擷取所選播放裝置的所有應用程式聲音，不依賴 Teams 字幕。</p>
 <div class="mic-controls"><label>會議播放裝置 <select id="teams-output"></select></label><label>自己的麥克風 <select id="teams-input"></select></label></div>

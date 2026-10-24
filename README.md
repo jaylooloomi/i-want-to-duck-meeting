@@ -1,4 +1,4 @@
-<h1 align="center">openmeeting 🎙️</h1>
+<h1 align="center">i-want-to-meeting 🎙️</h1>
 
 <p align="center"><b>貼上 Meet 連結，讓 AI 幫你留下會議重點。</b><br>貼上 Google Meet／Teams 連結，自動準備環境、選擇收音裝置並保存逐字稿與錄音。</p>
 
@@ -17,7 +17,7 @@
 |---|---|---|
 | Google Meet 專案會議 | 在 Codex 或 Claude Code 貼上連結要求記錄 | 靜音機器人加入、中文字幕、發言者、時間與 WAV 錄音 |
 | 會議中查看內容 | `node bin/openmeeting.js live` | 本機網頁即時顯示已定稿及更新中的字幕，可切換歷史會議 |
-| 現場多人討論 | 網頁選擇麥克風並開始收音 | 本機 Whisper 轉為繁體中文，以 A、B 等代號估計不同講者 |
+| 現場多人討論 | 網頁選擇麥克風並開始收音 | 本機 Paraformer 轉為繁體中文，以 A、B 等代號估計不同講者 |
 | Teams 聲音記錄（實驗性） | 網頁選 Teams，再選播放裝置與自己的麥克風 | Windows 雙路錄音、對齊混音與分來源逐字稿 |
 | 會後整理 | 對 AI 說「離開會議並整理摘要」 | 重點、決議、待辦與待確認問題 |
 | 確認有錄到發言 | 檢查峰值，再轉錄或播放錄音 | 核對實際聲音內容，避免只有空白 WAV |
@@ -137,7 +137,11 @@ node bin/openmeeting.js live
 
 在網頁選擇麥克風，按「開始收音」，允許瀏覽器使用麥克風。模型載入完成後再發言，結束按「結束記錄」，等待狀態變成「已結束」。
 
-辨識使用 CPU、Whisper small、Silero VAD 與聲音特徵分群。講者 A／B 是該場估計代號，並非人名或持久化身分；短句、模糊或證據不足時顯示「講者未確認」。電腦速度會影響辨識延遲。
+即時辨識使用 CPU、Paraformer 中文 int8、Silero VAD 與聲音特徵分群。講者 A／B 是該場估計代號，並非人名或持久化身分；短句、模糊或證據不足時顯示「講者未確認」。電腦速度會影響辨識延遲。
+
+即時模型採用與 [SpeakSlow](https://github.com/Jeffrey0117/SpeakSlow/blob/main/sherpa_server.py) 標準模式相同的 [Paraformer 中文模型](https://huggingface.co/csukuangfj/sherpa-onnx-paraformer-zh-2023-09-14)，由安裝流程下載並核對 SHA-256；舊版安裝在下次 Teams 自動準備時補齊。辨識過程不連網；即時簡轉繁只轉換字形，保留「代碼」等原詞，不套用台灣詞彙替換。連續三位以上逐字唸出的中文數字會轉成阿拉伯數字，不補猜缺字。`transcribe` 的整場離線備援仍使用 Whisper。
+
+此更新已用新的真人雙路錄音跑過完整即時流程，手機端完整測試句、`Microsoft Teams` 與 `1357` 均通過比對。修正重點是保留短暫停頓前後的語句脈絡；較早含音樂或不清楚的錄音仍有錯字，不代表所有錄音都能正確還原。系統播放音軌會混入同裝置的音樂，非零音量不代表語音清楚。重播方式與限制見 [即時辨識說明](docs/live-transcription.md)。
 
 ### Teams：播放聲音＋自己的麥克風
 
@@ -183,7 +187,7 @@ Meet 專用 Chrome       本機逐字稿網頁
    │                    │
 字幕 DOM + WebAudio    麥克風 / WASAPI 雙路
    │                    │
-   │               VAD → 講者分群 → Whisper
+   │               VAD → 講者分群 → Paraformer
    └─────────┬──────────┘
              ▼
      本機 meetings/<ID>/
@@ -288,7 +292,7 @@ Node 整合測試會啟動真的 Chrome 操作本機模擬頁面，不代表連�
 | `src/session.js`、`src/meet/`、`src/captions/` | Meet 加入、擷取及字幕組合 |
 | `src/live/`、`src/live-server.js` | 即時網頁與本機 HTTP API |
 | `src/microphone.js`、`src/audio/` | 收音生命週期、原始音軌及混音 |
-| `stt/` | Whisper、VAD、分群、WASAPI 與音訊驗證工具 |
+| `stt/` | Paraformer 即時辨識、Whisper 備援、VAD、分群、WASAPI 與音訊驗證工具 |
 | `test/unit/`、`test/integration/` | 單元與 Chrome／語音流程測試 |
 
 修改後請補上可重現的測試，說明輸入、預期結果與實際驗證範圍。架構背景見[設計規格](docs/superpowers/specs/2026-10-04-openmeeting-design.md)。

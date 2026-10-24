@@ -5,7 +5,47 @@ import os
 from types import SimpleNamespace
 from unittest.mock import patch
 import numpy as np
-from live import Speakers, Engine, label
+from live import Speakers, Engine, SpeechContext, label
+
+
+class ContextTests(unittest.TestCase):
+    def test_padding_preserves_samples_offsets_and_does_not_share_mutable_storage(self):
+        history = SpeechContext(padding=0.1)
+        source = np.arange(16000, dtype=np.float32)
+        history.append(source)
+        samples, start = history.region(4000, source[4000:8000])
+        self.assertEqual(start, 2400)
+        np.testing.assert_array_equal(samples, source[2400:9600])
+        samples[:] = 0
+        self.assertEqual(history.audio[4000], 4000)
+
+    def test_adjacent_regions_do_not_repeat_silent_padding(self):
+        history = SpeechContext(padding=0.1)
+        history.append(np.arange(32000, dtype=np.float32))
+        first, start = history.region(4000, np.zeros(4000))
+        second, next_start = history.region(12000, np.zeros(4000))
+        self.assertGreaterEqual(next_start, start + len(first))
+        self.assertEqual(next_start, 10400)
+
+    def test_history_is_bounded_and_missing_speech_fails_explicitly(self):
+        history = SpeechContext(capacity=1)
+        history.append(np.zeros(32000))
+        self.assertEqual(len(history.audio), 16000)
+        with self.assertRaises(RuntimeError):
+            history.region(0, np.zeros(100))
+        samples, start = history.region(16000, np.zeros(1000))
+        self.assertEqual(start, 16000)
+        self.assertGreaterEqual(len(samples), 1000)
+
+    def test_forced_cut_does_not_duplicate_the_next_regions_audio(self):
+        history = SpeechContext(padding=0.1)
+        history.append(np.arange(8200, dtype=np.float32))
+        first, begin = history.region(4000, np.zeros(4000))
+        self.assertEqual(begin + len(first), 8000)
+        history.append(np.arange(8200, 16000, dtype=np.float32))
+        second, begin = history.region(8000, np.zeros(4000))
+        self.assertEqual(begin, 8000)
+        np.testing.assert_array_equal(second[:4000], np.arange(8000, 12000))
 
 
 class SpeakerTests(unittest.TestCase):
@@ -113,7 +153,7 @@ class RecognitionTests(unittest.TestCase):
         def transcribe(audio, **options):
             calls.append((len(audio), options))
             return iter([segment]), None
-        engine.whisper = SimpleNamespace(transcribe=transcribe)
+        engine.asr = SimpleNamespace(transcribe=transcribe)
         return engine, calls
 
     def test_uncertain_speaker_boundary_does_not_cut_or_drop_asr_words(self):
@@ -125,7 +165,6 @@ class RecognitionTests(unittest.TestCase):
             engine.recognize(np.zeros(64000, dtype=np.float32), 16000)
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0][0], 64000, 'full 4-second audio sent to ASR, not speaker fragments')
-        self.assertTrue(calls[0][1]['word_timestamps'])
         records = [e for e in events if e['type'] == 'record']
         self.assertEqual(''.join(r['text'] for r in records), '這是測試第二句子')
         self.assertEqual([r['speaker'] for r in records], ['講者未確認', '講者 A'])

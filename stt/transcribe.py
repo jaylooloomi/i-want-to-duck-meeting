@@ -49,19 +49,19 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-def make_converter():
+def make_converter(config='s2twp'):
     """OpenCC s2twp converter; accepts both config spellings used by different bindings."""
     from opencc import OpenCC
 
     last_err = None
-    for name in ('s2twp', 's2twp.json'):
+    for name in (config, config + '.json'):
         try:
             cc = OpenCC(name)
             cc.convert('测试')
             return cc
         except Exception as err:  # noqa: BLE001 - try the next spelling
             last_err = err
-    raise RuntimeError(f'OpenCC s2twp config not available: {last_err}')
+    raise RuntimeError(f'OpenCC {config} config not available: {last_err}')
 
 
 _FULLWIDTH = {',': '，', '?': '？', '!': '！', ';': '；', ':': '：'}
