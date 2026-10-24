@@ -71,6 +71,7 @@ export async function runLiveHost(options, deps={}) {
     if(await mic.isVisible())await mic.click({timeout:3000}); // synthetic sender only
     report.state='host_ready';report.meetingUrl=page.url();save();
     console.log(`HOST_READY=${report.meetingUrl}`);
+    await deps.onHostReady?.({context,page,dir,url:report.meetingUrl,shouldStop:()=>stopped});
     const end=Date.now()+options.seconds*1000;
     while(!stopped && Date.now()<end && !fs.existsSync(path.join(dir,'STOP')))await page.waitForTimeout(500);
     report.state=stopped?'cancelled':'completed_host_only';

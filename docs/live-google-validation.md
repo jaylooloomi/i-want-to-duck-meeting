@@ -11,3 +11,13 @@ node scripts/verify-meet-live-host.js --live --seconds 30
 成功輸出 HOST_READY 與私有測試連結，預設保留30秒，限制10到120秒，正常／錯誤／訊號時收尾瀏覽器。也可在該輸出目錄建立 STOP 檔案提早結束。
 
 **本入口目前僅是主持端第一片。** completed_host_only 不代表另一個端點加入、收到遠端聲音或逐字稿成功；remoteContentMatched 固定為false。完整雙頁測試原始證據與界線見 [本夜驗證紀錄](2026-10-25-google-meet-autonomous-validation.md)。
+
+## 合成雙頁完整驗證
+
+```powershell
+node scripts/verify-meet-live.js --live --seconds 30
+```
+
+此入口在同一專用登入context建立第二個靜音頁面，使用正式入會／字幕／音訊模組，接收指定秒數，離線Paraformer解碼並核對完整合成測試句與1357。主持端會在接收驗證後另保留指定秒數再關閉。
+
+輸出 verification.json、remote.wav、receiver-captions.json、recording-asr.json 與雜湊綁定的 evidence-result.json。缺字、英文名稱錯誤或字幕不符時回報partial／exit2，不修飾平台原文；發生入會或辨識環境錯誤則failed／exit1。全通過仍只代表同帳號兩頁的合成遠端測試，humanSpeakerVerified永遠false，不代表真人或跨組織會議已驗證。
