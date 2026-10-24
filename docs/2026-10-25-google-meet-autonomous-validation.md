@@ -7,6 +7,7 @@
 | 驗證 | 結果 | 證據與限制 |
 |---|---|---|
 | 已登入 Chrome 建立真實 Meet | 通過 | 專用測試會議成功建立，測試完成後關閉 |
+| 正式已登入記錄端經 CLI／WMI 入會 | 通過入會／設定 | 20261025-012733-qjs-fary-vsa：自動入會、中文CC、最長時間正常收尾；無其他發言者，61.3秒peak0／0段文字，不算有聲錄音成功 |
 | 全新未登入記錄端經正式 CLI 入會 | 未通過 | 正式 WMI worker 的 blocked 終態、截圖；不是錄音成功 |
 | 調整自有測試會議存取設定後重試 | 未通過 | 當前環境仍拒絕匿名端；不繼續撞限制 |
 | 正式 ensureCaptions／setCaptionLanguage | 通過（英文介面） | 真實 Meet 開啟 CC，設定 cmn-Hant-TW 回傳 true |
@@ -38,3 +39,15 @@ meet 确认代码是1357这是自动化会议测试我正在使用 google meet �
 下一步驗證需要一個能被會議接受的獨立登入記錄端；不自動註冊帳號、不複製登入憑證、不繞過限制。這不是要求使用者手動設定字幕或音訊裝置。當前可自主完成的平台字幕／本機音訊檢查已完成，完整遠端入會錄音仍列未完成。
 
 官方參考：[加入會議與訪客條件](https://support.google.com/meet/answer/9303069?hl=en)、[即時字幕](https://support.google.com/meet/answer/15077804?hl=en-GB)。官方說明訪客可在符合條件與放行後加入，不代表本機這次 blocked 的確切原因已查明。
+
+## 離線內容與證據層級檢查
+
+```powershell
+node scripts/verify-meeting-evidence.js --manifest test/.tmp/night-meet-live/evidence-manifest.json
+```
+
+這個命令只讀本機資料。manifest 指定 captionFile（JSON array）、audioTranscriptFile（含 decodedText、audioSha256）、wavFile、markers，以及 environment／captureRoute／joined／inputType 等來源宣告。程式會讀實際 WAV 計算時長、峰值及SHA-256，比對解碼檔是否綁定同一音檔，再核對文字標記。來源宣告仍須另外查證，雜湊相符本身不能證明 ASR 沒有被改寫。
+
+本夜實際輸出：local-content-matched、captionsMatch=true、recordingMatch=true、remoteContentMatched=false、humanSpeakerVerified=false。這是刻意保留的界線，不會把自身音訊注入誤報成遠端／真人驗證。
+
+本夜測試 Chrome 與錄音 worker 已正常收尾；沒有保留正在錄音的測試程序。

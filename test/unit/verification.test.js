@@ -1,6 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {evaluateMeetingEvidence as check} from '../../src/verification.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+import {createWavHeader} from '../../src/audio/wav-writer.js';
 const evidence={markers:['Google Meet','1357'],captionText:'Google Meet 確認代碼 1357',recordingText:'google meet，1357',audioSeconds:25,audioPeak:2000,environment:'google-live',joined:true,inputType:'synthetic',captureRoute:'local-injected'};
 
 test('real platform captions plus local injection cannot count as remote recording',()=>{
@@ -22,4 +28,20 @@ test('remote requires explicit live source and membership; human labels are not 
   assert.equal(check({...evidence,captureRoute:'remote-received'}).remoteContentMatched,true);
   assert.equal(check({...evidence,captureRoute:'remote-received',joined:false}).remoteContentMatched,false);
   assert.equal(check({...evidence,captureRoute:'remote-received',inputType:'human'}).humanSpeakerVerified,false);
+});
+
+test('offline CLI reads artifacts but rejects ASR from a different WAV',t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'om-evidence-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const wav=Buffer.concat([createWavHeader({dataBytes:4}),Buffer.from([0,4,0,4])]);
+  const audioSha256=createHash('sha256').update(wav).digest('hex');
+  fs.writeFileSync(path.join(dir,'audio.wav'),wav);
+  fs.writeFileSync(path.join(dir,'captions.json'),JSON.stringify([{text:'Google Meet 1357'}]));
+  const spec={...evidence,wavFile:'audio.wav',captionFile:'captions.json',audioTranscriptFile:'asr.json'};
+  fs.writeFileSync(path.join(dir,'manifest.json'),JSON.stringify(spec));
+  const run=()=>spawnSync(process.execPath,['scripts/verify-meeting-evidence.js','--manifest',path.join(dir,'manifest.json')],{encoding:'utf8',windowsHide:true});
+  fs.writeFileSync(path.join(dir,'asr.json'),JSON.stringify({decodedText:'Google Meet 1357',audioSha256}));
+  const good=run();assert.equal(good.status,0,good.stderr);assert.equal(JSON.parse(good.stdout).remoteContentMatched,false);
+  fs.writeFileSync(path.join(dir,'asr.json'),JSON.stringify({decodedText:'Google Meet 1357',audioSha256:'different-audio'}));
+  assert.equal(run().status,1);
 });

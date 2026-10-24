@@ -2,6 +2,7 @@
 // Offline read-only evidence check; never injects markers into ASR or captions.
 import fs from 'node:fs';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {evaluateMeetingEvidence} from '../src/verification.js';
 
 const args=process.argv.slice(2);
@@ -16,6 +17,8 @@ try {
   if(!Array.isArray(captions))throw new Error('captionFile must contain a JSON array');
   const decoded=JSON.parse(read(spec.audioTranscriptFile));
   const wav=fs.readFileSync(path.resolve(path.dirname(manifestPath),spec.wavFile));
+  const audioSha256=createHash('sha256').update(wav).digest('hex');
+  if(decoded.audioSha256!==audioSha256)throw new Error('Audio transcript is not bound to this WAV SHA-256');
   if(wav.toString('ascii',0,4)!=='RIFF' || wav.toString('ascii',8,12)!=='WAVE')throw new Error('Not a WAV');
   let rate,channels,data,bits,format;
   for(let i=12;i+8<=wav.length;) {
@@ -31,6 +34,6 @@ try {
   const result=evaluateMeetingEvidence({...spec,
     captionText:captions.map(x=>x.text || '').join(' '),recordingText:decoded.decodedText,
     audioSeconds:data.length/(2*channels*rate),audioPeak:peak});
-  console.log(JSON.stringify(result,null,2));
+  console.log(JSON.stringify({...result,audioSha256},null,2));
   if(!result.captionsMatch || !result.recordingMatch || !result.signal)process.exitCode=2;
 } catch(error){console.error(error.message);process.exitCode=1;}
