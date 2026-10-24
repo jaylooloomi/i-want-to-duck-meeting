@@ -80,3 +80,7 @@
 
 ### 120秒實測（非真人）
 - 120.064秒遠端音訊、SHA337b6f28d882e1cbab9485b7b7c5a043fc9ee3e077418f3212eb4312d39ede54，完整句在Google原生字幕與Paraformer解碼均至少出現一次，completed_synthetic_remote。仍有其他重複段錯字，不宣稱100%準確。較短25秒partial場次保留。
+
+### 第八輪低價值候選
+- scores-08為TOP none：PCM飽和僅2/403456樣本，不改音訊；中文UI缺實際失敗DOM，不猜；跨帳號缺授權條件，不叫醒使用者。後續稽核找到STOP缺口，已依scores-09完成，連續none計數歸零。
+- 現在補跑正式session的真Chrome本機模擬回歸，以及Teams新字幕受控Chrome案例；用以確認入會snapshot修正未傷害整段生命週期。不是外部Teams真人測試。

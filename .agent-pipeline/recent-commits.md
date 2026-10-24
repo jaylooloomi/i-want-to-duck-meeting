@@ -1,3 +1,9 @@
+d44b4cf docs(night-shift): preserve successful long synthetic Meet content check
+bc3667b fix(night-shift/bonus-03): honor STOP during receiver callback
+3d12141 docs(night-shift): document repeatable Meet test and partial caption result
+d3e42be feat(night-shift/bonus-02): explain caption and recording evidence differences
+74af5cf fix(night-shift/bonus-03): separate host preparation and verification deadlines
+e05dc92 docs(night-shift): record partial live evidence and next candidates
 f78e7ac feat(night-shift/bonus-03): preserve remote Meet capture and full content verification
 d044e39 feat(night-shift/bonus-03): add explicit bounded synthetic Google Meet test host
 4d1ef68 feat(night-shift/bonus-02): generate offline Paraformer evidence from immutable audio snapshots
