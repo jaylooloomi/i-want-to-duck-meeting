@@ -10,8 +10,8 @@ openmeeting 的 CLI 負責加入 Google Meet、記錄字幕與錄音；兩種 AI
 - GitHub 儲存庫目前是私有的，下載者需要該儲存庫的讀取權限。
 
 ```powershell
-git clone https://github.com/jaylooloomi/openmeeting.git
-cd openmeeting
+git clone https://github.com/jaylooloomi/open-meeting.git
+cd open-meeting
 npm install
 npm run setup
 ```
