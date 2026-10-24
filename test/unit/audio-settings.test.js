@@ -50,14 +50,15 @@ test('Teams CLI routes to background worker, preserves URL and confirms only usa
   fs.writeFileSync(path.join(meeting.dir,'transcript.jsonl'),JSON.stringify({source:'teams-mic',text:'本機測試',speaker:'講者 A',t0:new Date().toISOString(),t1:new Date().toISOString()})+'\n');
   logs.length=0;
   assert.equal(await main(['transcript',meeting.id],io),0);
-  assert.ok(logs.some(line=>line.includes('本機音訊辨識')));
+  assert.ok(logs.some(line=>line.includes('Teams 原生字幕與 Paraformer 備援')));
+  assert.equal(readStatus(meeting.dir).teamsBrowserEnabled,false);
   assert.ok(!logs.some(line=>line.includes('Google Meet 即時字幕')));
   assert.equal(await main(['join',url,'--no-open'],io),5,'duplicate recording rejected');
   assert.equal(await main(['audio-confirm',meeting.id],io),1);
   writeStatus(meeting.dir,{state:'done',captureDevices:{mic,system:out},stats:{tracks:{mic:{audioPeak:10},system:{audioPeak:20}}}});
   fs.writeFileSync(path.join(meeting.dir,'transcript.jsonl'),JSON.stringify({source:'teams-mic',text:'local'})+'\n');
   assert.equal(await main(['audio-confirm',meeting.id],io),1,'one-sided text must not become remembered success');
-  fs.appendFileSync(path.join(meeting.dir,'transcript.jsonl'),JSON.stringify({source:'teams-system',text:'remote'})+'\n');
+  fs.writeFileSync(path.join(meeting.dir,'transcript-paraformer.jsonl'),JSON.stringify({source:'teams-system',text:'remote'})+'\n');
   assert.equal(await main(['audio-confirm',meeting.id],io),0);
   assert.equal(readAudioSettings(dir).input.name,mic.name);
 });

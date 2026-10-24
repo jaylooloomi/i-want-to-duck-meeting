@@ -10,6 +10,7 @@ import { MultiTrackWriter } from './audio/multi-track-writer.js';
 import { TranscriptStore } from './transcript/store.js';
 import { sttPython } from './stt.js';
 import { audioHealth } from './audio-settings.js';
+import { TeamsCaptionRouter } from './teams-captions.js';
 
 export function captureLeaseExpired(session, now = Date.now()) {
   return !session.managed && session.ready && (session.mode !== 'teams' || session.clientReady) && !session.stopping
@@ -23,7 +24,7 @@ export class MicrophoneService {
     this.current = null;
   }
 
-  async start({ mode = 'microphone', input, output, meetingId, meetingDir, managed = false } = {}) {
+  async start({ mode = 'microphone', input, output, meetingId, meetingDir, managed = false, nativeCaptions = false } = {}) {
     if (!['microphone', 'teams'].includes(mode)) throw new Error('不支援的收音模式');
     if (mode === 'teams' && (!Number.isInteger(input) || !Number.isInteger(output))) throw new Error('請選擇 Teams 播放裝置與自己的麥克風');
     if (mode === 'teams' && input === output) throw new Error('自己的輸入與會議播放裝置不能是同一路 loopback');
@@ -38,9 +39,14 @@ export class MicrophoneService {
     const store = new TranscriptStore(dir, { code, startedAt, sourceLabel:'本機音訊辨識（Paraformer／聲音特徵分群）' });
     const wav = mode === 'teams' ? new MultiTrackWriter(dir) : new WavWriter(path.join(dir, 'audio.wav'));
     session.store = store; session.wav = wav;
-    const stats = () => ({ utterances:store.count, speakers:store.speakers, audioSeconds:wav.seconds, audioPeak:wav.peak, captionLang:'zh', captionsOn:false,
+    const stats = () => ({ utterances:store.count, speakers:store.speakers, audioSeconds:wav.seconds, audioPeak:wav.peak, captionLang:'zh', captionsOn:!!session.captionRouter?.native.size,
       ...(mode === 'teams' ? { levels:wav.levels, tracks:Object.fromEntries(Object.entries(wav.tracks).map(([name, track]) => [name, { audioSeconds:track.seconds, audioPeak:track.peak }])) } : {}) });
     const status = (patch) => writeStatus(dir, { stats:stats(), ...patch });
+    if (mode === 'teams' && nativeCaptions) {
+      store.sourceLabel='Teams 原生字幕與 Paraformer 備援';
+      session.captionRouter=new TeamsCaptionRouter({dir,store,changed:status});
+      session.platformCaption=event=>{if(!session.stopping)session.captionRouter.platform(event);};
+    }
     status({ id, code, source:mode, state:'starting', startedAt, pid:process.pid });
     const live = () => {
       const file = path.join(dir, 'live.json');
@@ -72,7 +78,8 @@ export class MicrophoneService {
         } else if (event.type === 'pending') {
           session.pending = [{ speaker:event.speaker, text:'正在辨識語音…', source:mode === 'teams' ? `teams-${event.lane}` : 'local-audio', t0:iso(event.start), t1:new Date().toISOString() }]; live();
         } else if (event.type === 'record') {
-          store.append({ speaker:event.speaker, text:event.text, t0:iso(event.start), t1:iso(event.end), source:mode === 'teams' ? `teams-${event.lane}` : 'local-audio' });
+          const record={ speaker:event.speaker, text:event.text, t0:iso(event.start), t1:iso(event.end), source:mode === 'teams' ? `teams-${event.lane}` : 'local-audio' };
+          if(session.captionRouter) session.captionRouter.asr(record); else store.append(record);
           status({});
         } else if (event.type === 'clear') { session.pending = []; live(); }
         else if (event.type === 'progress') { status({ queuedSegments:event.queued, processingSeconds:event.processingSeconds }); }
@@ -87,7 +94,7 @@ export class MicrophoneService {
         wav.close(); session.pending = []; live();
         const endedAt = new Date().toISOString();
         store.renderMarkdown({ endedAt, captionLang:'zh', extraNote:mode === 'teams'
-          ? '來源：Windows 麥克風與播放端雙路收音；A 為本機輸入，遠端講者標籤為估計結果。'
+          ? '來源：Teams 原生字幕（有收到時）與 Windows 雙路 Paraformer 備援；原生字幕時間為接收時間，本機辨識的講者標籤為估計結果。'
           : '來源：本機麥克風、Whisper 與聲音特徵分群；講者標籤為估計結果。' });
         status({ state:code === 0 && !failure ? 'done' : 'failed', endedAt, endReason:session.endReason || 'recognizer_exit', error:failure ? { code:'local_stt_failed', message:failure } : code !== 0 ? { code:'local_stt_failed', message:signal ? `辨識程序被 ${signal} 終止` : `辨識程序結束碼 ${code}` } : null });
         if (this.current === session) this.current = null;

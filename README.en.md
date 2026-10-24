@@ -35,6 +35,16 @@
 
 Recording and local ASR do not require an additional cloud speech API key. **Summaries are processed by your chosen AI service**; the entire workflow is not necessarily offline.
 
+## Teams native captions first (live acceptance pending)
+
+A Teams link starts a dedicated Chrome profile. The worker attempts to join, mute its microphone/camera, enable captions, and select Traditional Chinese. Sign-in, permissions or host admission may still require your action. Audio devices use saved settings or Windows defaults.
+
+Native captions replace equivalent, nearby Paraformer results. Unmatched ASR remains so captions from only one participant cannot erase the other participant. Raw events remain in `transcript-native.jsonl` and `transcript-paraformer.jsonl`; differently worded results may both appear. Native times are reception times, and unknown speaker identities remain unknown.
+
+Check `teamsBrowser.state`, `nativeCaptions` and `audioHealth` independently. `--no-open` skips the native browser and keeps audio/ASR only; omit it for normal use. Stop with `leave <ID>` to finalize audio and close the dedicated browser.
+
+Controlled Chrome tests pass; real Teams acceptance is pending. Private platform event formats may change. Audio capture starting does not prove membership, successful captions, or recorded speech. See [implementation and acceptance notes](docs/teams-native-captions.md).
+
 ## Use cases
 
 | Situation | Ask your AI | What you keep |
@@ -148,15 +158,15 @@ See the [installation guide](docs/installation.md) for custom paths, migration, 
 
 The recording account keeps its microphone and camera off. Receiving audio does not require enabling its microphone. A signed-in account normally displays its Google account name; `--name` does not guarantee an override. Let participants know the meeting is being recorded.
 
-### Teams: two audio lanes from your meeting computer
+### Teams: native captions and two audio lanes
 
 1. Paste the **full invitation link for the current meeting**, preserving parameters such as `?p=`.
-2. Sign in and join Teams on the computer where this tool is installed. Grant necessary device permissions. An existing meeting window can be reused.
+2. The program opens a dedicated Teams Chrome and attempts joining and caption setup. Complete sign-in, permissions or host admission only when needed.
 3. The program prepares the environment and starts background recording with previously confirmed devices or Windows defaults.
 4. On first use or after changing devices, have both sides speak and verify the content of each lane. Confirmed device settings can be saved for subsequent use.
 5. Say “stop recording and summarize this meeting” when finished.
 
-**Teams mode does not invite a bot account, and does not guarantee automatic sign-in or meeting admission.** The link starts and identifies the recording job; audio comes from this computer's microphone and playback device. A phone being in the meeting is not enough: the computer must join the same meeting and receive the phone's audio.
+**The dedicated Teams page is an additional participant; sign-in and host admission cannot be guaranteed automatically.** Native text comes from that page; audio still comes from this computer's microphone and playback device. With `--no-open`, an existing computer-side client must receive meeting audio.
 
 The playback lane includes other applications using that output device, so music can enter the recording. The program does not read private Teams device settings, and Windows defaults may differ from Teams selections. See [automatic audio setup](docs/automatic-audio.md).
 

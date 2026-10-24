@@ -21,11 +21,11 @@ Google Meet 模式的機器人會用獨立的 Chrome 視窗加入會議，**麥�
 
 ## Teams 自動收音
 
-若收到 Teams 的 `https://teams.live.com/meet/...` 或 Teams `https://teams.microsoft.com/l/meetup-join/...` 連結，執行 `{{CLI}} join "<完整連結>"`，保留加入參數；已加入時加 `--no-open`。這條路徑與下文 Meet 機器人流程分開。
+若收到 Teams 的 `https://teams.live.com/meet/...` 或 Teams `https://teams.microsoft.com/l/meetup-join/...` 連結，執行 `{{CLI}} join "<完整連結>"`，保留加入參數；一般不加 `--no-open`，否則跳過原生字幕瀏覽器。這條路徑與下文 Meet 機器人流程分開。
 
-程式會自動準備依賴與模型、開啟連結、選擇已確認裝置或 Windows 預設裝置、啟動獨立背景收音，不要臨時寫 Python 或 HTTP 心跳。使用者只需在自己的 Teams 加入／登入及完成必要授權。程式沒有可靠取得 Teams 私有裝置設定時會標 `teamsDeviceDetected=false`；不宣稱已偵測到，不更改系統裝置。
+程式自動準備環境、啟動獨立背景雙路錄音，並開啟專用 Chrome 嘗試加入、關閉麥克風／鏡頭、啟用字幕與中文。使用者只在必要時登入／授權／請主持人放行；不要要求手動字幕設定，不要臨時寫 Python 或 HTTP 心跳。程式沒有可靠取得 Teams 私有裝置設定時會標 `teamsDeviceDetected=false`；不宣稱已偵測到，不更改系統裝置。
 
-用輸出的 ID 查 `status`，確認 `in_call`、`captureDevices` 與 `audioHealth`。`signal_only` 不是內容驗證；`no_signal` 在實際發言後仍持續時，再查 `audio-devices`，必要時詢問使用者裝置並以 `--input`／`--output` 重試。電腦端是 `teams-mic`／A，手機／遠端是 `teams-system`／B 起。不要猜設備角色。
+用輸出的 ID 查 `status`，分開確認 `teamsBrowser.state`（實際入會／登入）、`nativeCaptions`（收到原生文字）、`captureDevices` 與 `audioHealth`。頂層 `in_call` 僅表示音訊程序啟動。平台字幕優先，無等值原生文字的 Paraformer 段落保留；原始 ASR 另存 transcript-paraformer.jsonl，供音訊核對。`signal_only` 不是內容驗證；`no_signal` 在實際發言後仍持續時，再查 `audio-devices`，必要時詢問使用者裝置並以 `--input`／`--output` 重試。電腦端是 `teams-mic`／A，手機／遠端是 `teams-system`／B 起。不要猜設備角色。
 
 用 `leave` 收尾、`transcript` 看文字，兩份原始 WAV 分別核對。只有使用者確認兩路內容成功後，執行 `audio-confirm <ID>` 保存裝置。背景錄音不需網頁或對話心跳，預設最長四小時；離開 Teams 不代表停止，使用者要求結束時執行 `leave`。
 

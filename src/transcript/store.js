@@ -91,6 +91,14 @@ export class TranscriptStore {
   }
 
   /** Number of stored utterances. */
+  replaceAll(records) {
+    this._records = []; this._speakers = [];
+    for (const rec of records) this._remember({...rec});
+    const tmp = this.jsonlPath + '.tmp';
+    writeFileSync(tmp, this._records.map(r=>JSON.stringify(r)+'\n').join(''), 'utf8');
+    renameSync(tmp, this.jsonlPath);
+  }
+
   get count() {
     return this._records.length;
   }

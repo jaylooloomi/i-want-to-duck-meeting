@@ -26,9 +26,11 @@ description: "記錄 Google Meet 或 Teams 的逐字稿、發言者及錄音，�
 
 使用者直接貼上 Teams 會議連結要求記錄時，執行 `CLI join '<完整Teams連結>'`，保留 `?p=` 等加入參數，不套用 Meet 的連結清理規則。不要自行拼接心跳、HTTP 或 Python 指令。
 
-CLI 首次需要時自動準備音訊環境，開啟會議連結，再啟動獨立背景錄音工作。使用者在自己的 Teams 登入／加入並允許必要裝置授權；這不是邀請一個 Teams 機器人。若使用者已加入，加 `--no-open` 避免再開視窗。
+CLI 自動準備環境、啟動背景錄音並開啟專用 Teams Chrome，嘗試加入、關閉麥克風／鏡頭、啟用字幕及設定中文。使用者僅在必要時登入／授權／請主持人放行。不要求手動字幕設定。一般不要加 `--no-open`，它會跳過原生字幕瀏覽器，只保留音訊／Paraformer。
 
-保存 MEETING_ID，查 `status` 確認 `in_call` 和 `captureDevices`。裝置採上次確認設定或 Windows 預設；`teamsDeviceDetected=false` 表示未取得 Teams 私有設定，不能宣稱已讀到。不要自行假設 USB 麥克風較正確，也不要更改系統預設裝置。
+保存 MEETING_ID，讀 `status` 的 `teamsBrowser.state` 判斷登入／入會，讀 `nativeCaptions` 確認實際字幕；頂層 `in_call` 僅代表音訊程序啟動。平台字幕優先，未對應的 Paraformer 結果保留，措辭不同時可能重複；原始事件另存 transcript-native.jsonl、transcript-paraformer.jsonl。字幕時間為接收時間；未知發言者不猜姓名。
+
+`captureDevices` 採已確認或 Windows 預設裝置，`teamsDeviceDetected=false` 表示未讀取 Teams 私有裝置設定。不得宣稱已取得，也不更改系統預設。音訊和字幕分開核對。
 
 `audioHealth` 的 `checking` 是還在觀察，`no_signal` 是持續未收到非零訊號，`signal_only` 只證明有訊號。沉默時不必立刻打斷；使用者發言後仍無訊號或內容錯路時，才讀 `audio-devices` 並請其確認實際裝置，結束舊場後用 `--input <id> --output <id>` 重試。不要自動切換並錄取其他裝置。
 

@@ -53,6 +53,10 @@ node --test test/integration/microphone-browser.test.js
 
 結果與逐輪核對保存在 `test/.tmp/microphone-browser/verification.json`，畫面為同資料夾的 `result.png`。
 
+### Teams 連結：原生字幕優先
+
+CLI `join '<Teams連結>'` 自動開專用 Chrome 並嘗試設定字幕，依 [原生字幕流程](teams-native-captions.md) 驗證。這與下方逐字稿網頁的純音訊收音模式不同；網頁按鈕本身不會啟動原生字幕瀏覽器。
+
 ### Teams：會議聲音＋自己的麥克風
 
 在同一個逐字稿頁面把「會議來源」改成「Teams」，選擇與 Teams 相同的播放裝置和自己的麥克風，再按「開始收音」。

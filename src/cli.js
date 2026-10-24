@@ -777,7 +777,7 @@ async function cmdJoin(ctx, pos, flags) {
       const { setupAudio } = await import('./setup-audio.js');
       await setupAudio(config,{log:out});
     }
-    out('Teams 以你的會議端收音：請在開啟的頁面登入／加入，沿用成功裝置或 Windows 預設裝置；不會自動更改 Teams 設定。');
+    out('Teams 將開啟專用瀏覽器，自動嘗試入會及啟用字幕；必要時才需登入、裝置授權或主持人放行。平台字幕優先，Paraformer 保留備援。');
   }
 
   // One bot profile = one meeting at a time: a second worker could only fail (profile locked)
@@ -797,10 +797,6 @@ async function cmdJoin(ctx, pos, flags) {
     return EXIT_ALREADY_RECORDING;
   }
 
-  if (teamsUrl && !flags['no-open'] && process.platform === 'win32') {
-    const open=spawn(path.join(process.env.SystemRoot || 'C:\\Windows','System32','rundll32.exe'),['url.dll,FileProtocolHandler',teamsUrl],{windowsHide:true,stdio:'ignore'});
-    open.on('error',()=>err(`請開啟 Teams 會議：${teamsUrl}`));open.unref();
-  }
   const base = newMeetingId(parsed.code);
   let id = base;
   for (let i = 2; fs.existsSync(path.join(config.meetingsDir, id)); i++) id = `${base}-${i}`;
@@ -808,7 +804,7 @@ async function cmdJoin(ctx, pos, flags) {
   writeStatus(dir, {
     id, code: parsed.code, url: parsed.url, displayName, pid: null, state: 'starting',
     startedAt: new Date().toISOString(), joinedAt: null, endedAt: null, endReason: null, error: null, stats: emptyStats(),
-      ...(teamsUrl ? {source:'teams',audioOverrides} : {}),
+      ...(teamsUrl ? {source:'teams',audioOverrides,teamsBrowserEnabled:!flags['no-open']} : {}),
   });
 
   if (flags.foreground) {
@@ -998,7 +994,7 @@ async function cmdTranscript(ctx, pos) {
     return 0;
   }
   try {
-    const sourceLabel = ['teams','microphone'].includes(st.source) ? '本機音訊辨識（Whisper／聲音特徵分群）' : 'Google Meet 即時字幕';
+    const sourceLabel = st.source==='teams' ? 'Teams 原生字幕與 Paraformer 備援' : st.source==='microphone' ? '本機音訊辨識（Paraformer／聲音特徵分群）' : 'Google Meet 即時字幕';
     const store = new TranscriptStore(m.dir, { code: st.code || '', startedAt: st.startedAt || undefined, sourceLabel });
     const captionLang = (st.stats && st.stats.captionLang) || undefined;
     const text = terminal
@@ -1212,7 +1208,10 @@ export async function main(argv, io = {}) {
           || !['mic','system'].every(lane=>s.stats?.tracks?.[lane]?.audioPeak > 0)) {
           out('ERROR=audio_not_verified');return 1;
         }
-        const records=fs.readFileSync(path.join(meeting.dir,'transcript.jsonl'),'utf8').split(/\r?\n/).flatMap(line=>{try{return [JSON.parse(line)];}catch{return [];}});
+        const records=['transcript.jsonl','transcript-paraformer.jsonl'].flatMap(file=>{
+          const name=path.join(meeting.dir,file);
+          return fs.existsSync(name)?fs.readFileSync(name,'utf8').split(/\r?\n/).flatMap(line=>{try{return [JSON.parse(line)];}catch{return [];}}):[];
+        });
         if (!['teams-mic','teams-system'].every(source=>records.some(r=>r.source===source && r.text?.trim()))) {
           out('ERROR=audio_not_verified');return 1;
         }

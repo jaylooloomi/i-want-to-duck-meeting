@@ -13,8 +13,22 @@ test('managed worker selects devices, owns duration, preserves session identity 
   const before=process.listenerCount('SIGTERM');let finish,options,reason;
   const service={current:null,async start(input){options=input;this.current={stopping:false,finished:new Promise(r=>finish=r)};return {token:'local-test'};},stop(token,value){assert.equal(token,'local-test');reason=value;this.current.stopping=true;writeStatus(dir,{state:'done'});finish();}};
   const device={id:1,name:'mic',channels:1,sampleRate:16000};
-  const final=await runTeamsRecording({config,dir,id,url:'https://teams.live.com/meet/123',status:{}},{service,list:async()=>({inputs:[device],outputs:[{...device,id:2,name:'speaker'}],defaultInput:1,defaultOutput:2})});
+  let browserClosed=false;
+  const final=await runTeamsRecording({config,dir,id,url:'https://teams.live.com/meet/123',status:{}},{service,startBrowser:async()=>({close:async()=>{browserClosed=true;}}),list:async()=>({inputs:[device],outputs:[{...device,id:2,name:'speaker'}],defaultInput:1,defaultOutput:2})});
   assert.equal(options.managed,true);assert.equal(options.meetingId,id);assert.equal(options.meetingDir,dir);
   assert.equal(reason,'max_duration');assert.equal(final.state,'done');assert.equal(readStatus(dir).deviceSelection.teamsDeviceDetected,false);
   assert.equal(process.listenerCount('SIGTERM'),before);
+  assert.equal(browserClosed,true);
+});
+
+for(const enabled of [true,false]) test(`browser ${enabled?'failure retains audio fallback':'disabled never launches Chrome'}`,async t=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'om-teams-fallback-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const config={home:dir,repoRoot:dir,meetingsDir:dir,maxDurationMs:20};let resolve,launches=0;
+  const service={current:null,async start(){this.current={finished:new Promise(r=>resolve=r)};return {token:'test'};},stop(){this.current.stopping=true;writeStatus(dir,{state:'done'});resolve();}};
+  const device={id:1,name:'mic',channels:1,sampleRate:16000};
+  const result=await runTeamsRecording({config,dir,id:'test',url:'https://teams.live.com/meet/123',status:{teamsBrowserEnabled:enabled}},
+    {service,list:async()=>({inputs:[device],outputs:[{...device,id:2}],defaultInput:1,defaultOutput:2}),startBrowser:async()=>{launches++;throw new Error('profile locked');}});
+  assert.equal(result.state,'done');assert.equal(launches,enabled?1:0);
+  assert.equal(result.teamsBrowser.state,enabled?'unavailable':'disabled');
 });
