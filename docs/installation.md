@@ -6,7 +6,7 @@ openmeeting 的 CLI 負責加入 Google Meet、記錄字幕與錄音；兩種 AI
 
 - Windows 10/11、Node.js 22 以上、Google Chrome。
 - 使用 Codex 時，需要可操作這台電腦的本機 Codex；使用 Claude Code 時，需要 `claude` CLI 已安裝並在 PATH 中。
-- 語音轉錄備援另需 uv 與 Python 3.12，可於稍後安裝。
+- 統一安裝自動準備 uv、Python 3.12、音訊套件及本機模型；首次需下載。uv 缺少時使用官方 astral.sh 安裝器，安裝於資料根目錄 tools/，不改全域 PATH。
 - GitHub 儲存庫目前是私有的，下載者需要該儲存庫的讀取權限。
 
 ```powershell
@@ -16,7 +16,7 @@ npm install
 npm run setup
 ```
 
-`npm install` 只安裝依賴，不會自行修改 AI 工具設定。`npm run setup` 才會同時安裝兩邊，並啟用 Claude 外掛；安裝前會檢查 `claude` 是否存在。只有 Codex 的使用者請選擇 Codex 目標：
+`npm install` 只安裝依賴，不會自行修改 AI 工具設定。`npm run setup` 才會準備音訊環境並同時安裝兩邊，並啟用 Claude 外掛；安裝前會檢查 `claude` 是否存在。只有 Codex 的使用者請選擇 Codex 目標：
 
 ```powershell
 npm run setup -- --target codex
@@ -88,3 +88,9 @@ claude plugin marketplace remove openmeeting-local
 ```
 
 移除 Codex 整合：先確認實際安裝位置，再刪除該根目錄下的 `openmeeting` 技能資料夾。刪除技能不會刪除專案、Google 登入資料或會議記錄。
+
+## 自動收音與僅安裝整合
+
+預設 setup 先準備完整音訊環境，失敗會回報並保留可修復的檔案，重跑同一指令即可。使用 `--skip-audio` 可略過下載；Teams 首次 join 會檢查並補裝，或手動執行 `node bin/openmeeting.js setup-audio`。`--dry-run` 不下載、不啟動安裝器。
+
+Teams 連結可直接交給 AI；CLI join 會開啟連結並啟動背景雙路收音，使用者在自己的 Teams 登入、加入並完成必要授權。已加入時使用 `--no-open`。不修改 Teams 或 Windows 裝置設定。成功內容由使用者確認後，AI 執行 `audio-confirm <ID>` 保存裝置。背景錄音以 leave 收尾，不依賴網頁心跳。

@@ -6,4 +6,7 @@ models/
 test/.tmp/
 *.log
 __pycache__/
+audio-settings.json
+audio-settings.json.*.tmp
+tools/
 plugin/skills/meet/SKILL.md

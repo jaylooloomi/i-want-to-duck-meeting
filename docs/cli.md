@@ -25,3 +25,15 @@
 常用環境變數：`OPENMEETING_HOME`（資料位置）、`OPENMEETING_NAME`（機器人顯示名稱，預設「Arthur 的會議記錄」）、`OPENMEETING_CAPTION_LANG`（字幕語言，預設 `cmn-Hant-TW`）、`CHROME_PATH`、`OPENMEETING_PROFILE`（Chrome 設定檔位置）、`OPENMEETING_MUTE=0`（讓電腦喇叭播放會議聲音）。
 
 Windows 上 `join` 預設透過 WMI（`Win32_Process.Create`）啟動背景機器人，讓它脫離 Claude Code 的程序樹與 job，Claude Code 結束背景工作時不會連帶關掉機器人；WMI 失敗時自動改用一般方式（`LAUNCHER=spawn-fallback`）。其他環境變數：`OPENMEETING_LAUNCHER=spawn`（一律用一般方式啟動）、`OPENMEETING_TRACK_MIRROR=1`（開啟 RTCPeerConnection 音軌鏡像，預設關閉）、`OPENMEETING_LANG_CHECK_MS`（會議中多久檢查一次字幕語言，預設 60 秒；被切走時最多自動切回 2 次）、`OPENMEETING_NO_AUDIO_WARN_MS`（多久沒有遠端音軌就警告一次並記錄 `stats.audioTracks=0`，預設 60 秒）。
+
+## Teams 自動入口
+
+`join "<Teams連結>" [--no-open] [--input <裝置ID>] [--output <裝置ID>]` 保留完整加入參數，自動補齊本機環境並在獨立背景工作收音。開啟會議連結不代表已登入／加入；in_call 代表音訊擷取已啟動，不能當成 Teams 的加入證明。
+
+- `setup-audio`：自動準備 uv、Python、套件與模型。
+- `audio-devices`：列出裝置及 Windows 預設 ID。
+- `audio-confirm <ID>`：僅在使用者確認兩路內容後呼叫；檢查 done、兩路非零及兩路文字後保存裝置。這不是自動聲音身分驗證。
+- `status <ID>`：查看 captureDevices、deviceSelection 與 audioHealth。Teams 私有設定未被讀取，teamsDeviceDetected 固定為 false。
+- `leave <ID>`：停止雙路收音並保存。關閉 Teams 不會等同 leave。
+
+裝置 ID 只用於當次明確覆寫，保存設定以名稱、聲道及取樣率比對，不依賴會變動的 ID。符合多個裝置時不猜測，回到 Windows 預設。持續無訊號會標示 no_signal；signal_only 仍需播放或轉錄核對。

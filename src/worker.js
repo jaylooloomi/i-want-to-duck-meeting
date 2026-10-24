@@ -214,6 +214,11 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
     return 1;
   }
   try {
+    if (status.source === 'teams') {
+      const { runTeamsRecording } = await import('./teams-recording.js');
+      const final = await runTeamsRecording({config,dir,id,url,status});
+      return final?.state === 'done' ? 0 : 1;
+    }
     const { runSession } = await import('./session.js');
     const final = await runSession({
       url,

@@ -155,7 +155,7 @@ test('install-plugin.js --render-only renders a valid SKILL.md', () => {
 
   const { fm, body } = parseFrontmatter(md);
   assert.equal(fm.name, 'meet');
-  assert.equal(fm['argument-hint'], '<google-meet-link>');
+  assert.equal(fm['argument-hint'], '<meeting-link>');
   assert.match(fm['allowed-tools'], /(^|[\s,])Bash\(node:\*\)($|[\s,])/);
   assert.ok(fm.description && fm.description.length >= 50, 'description must be meaningful');
   assert.ok(fm.description.length <= 1024, `description too long: ${fm.description.length}`);

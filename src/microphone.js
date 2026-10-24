@@ -9,9 +9,10 @@ import { WavWriter } from './audio/wav-writer.js';
 import { MultiTrackWriter } from './audio/multi-track-writer.js';
 import { TranscriptStore } from './transcript/store.js';
 import { sttPython } from './stt.js';
+import { audioHealth } from './audio-settings.js';
 
 export function captureLeaseExpired(session, now = Date.now()) {
-  return session.ready && (session.mode !== 'teams' || session.clientReady) && !session.stopping
+  return !session.managed && session.ready && (session.mode !== 'teams' || session.clientReady) && !session.stopping
     && now - (session.mode === 'teams' ? session.lastClient : session.lastAudio) > (session.mode === 'teams' ? 180000 : 15000);
 }
 
@@ -22,16 +23,16 @@ export class MicrophoneService {
     this.current = null;
   }
 
-  async start({ mode = 'microphone', input, output } = {}) {
+  async start({ mode = 'microphone', input, output, meetingId, meetingDir, managed = false } = {}) {
     if (!['microphone', 'teams'].includes(mode)) throw new Error('不支援的收音模式');
     if (mode === 'teams' && (!Number.isInteger(input) || !Number.isInteger(output))) throw new Error('請選擇 Teams 播放裝置與自己的麥克風');
     if (mode === 'teams' && input === output) throw new Error('自己的輸入與會議播放裝置不能是同一路 loopback');
     if (this.current) throw new Error('已有本機收音工作，請先結束');
     const { meetingsDir, home, repoRoot } = this.config;
-    const id = newMeetingId(mode === 'teams' ? 'teams-audio' : 'local-microphone') + '-' + randomUUID().slice(0, 6);
-    const dir = createMeetingDir(meetingsDir, id);
+    const id = meetingId || newMeetingId(mode === 'teams' ? 'teams-audio' : 'local-microphone') + '-' + randomUUID().slice(0, 6);
+    const dir = meetingDir || createMeetingDir(meetingsDir, id);
     const startedAt = new Date().toISOString();
-    const session = { id, dir, token:randomUUID(), sequence:0, startedAt, audioStart:null, pending:[], stopping:false, ready:false, lastAudio:Date.now(), lastClient:Date.now(), mode, laneFrames:{ mic:0, system:0 }, laneOffsets:{} };
+    const session = { id, dir, token:randomUUID(), sequence:0, startedAt, audioStart:null, pending:[], stopping:false, ready:false, lastAudio:Date.now(), lastClient:Date.now(), mode, managed, laneFrames:{ mic:0, system:0 }, laneOffsets:{} };
     this.current = session;
     const code = mode === 'teams' ? 'Teams 雙路收音' : '本機麥克風';
     const store = new TranscriptStore(dir, { code, startedAt, sourceLabel:'本機音訊辨識（Whisper small／聲音特徵分群）' });
@@ -98,8 +99,15 @@ export class MicrophoneService {
       // Background browser tabs may throttle timers to once a minute. Native capture
       // must keep running while the user is speaking in the Teams window.
       if (captureLeaseExpired(session)) this.stop(session.token, 'capture_disconnected');
+      if (managed) status({heartbeatAt:new Date().toISOString(), audioHealth:audioHealth(stats())});
     }, 2000);
     await ready;
+    // leave can arrive while models are still loading. Never open the devices
+    // after that recording has already been stopped or finalized.
+    if (session.stopping || this.current !== session) {
+      await session.finished;
+      return { id, token:session.token };
+    }
     if (mode === 'teams') {
       session.audioStart = Date.now();
       session.failCapture = (message) => { failure = message; if (!session.stopping) this.stop(session.token, 'capture_error'); };

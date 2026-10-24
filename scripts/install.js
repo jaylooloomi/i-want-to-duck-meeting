@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { installPlugin, renderSkillFile, runClaude as defaultRunClaude } from './install-plugin.js';
+import { getConfig } from '../src/config.js';
+import { setupAudio } from '../src/setup-audio.js';
 
 export const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const MANAGED_BY = 'openmeeting-installer-v1';
@@ -14,6 +16,7 @@ const HELP = `Usage: npm run setup -- [--target both|codex|claude] [--dry-run] [
   --skills-dir  Codex skill parent directory; defaults to CODEX_HOME/skills or ~/.codex/skills.
   --dry-run     Show installation destinations without writing files or running Claude.
   --force       Replace known skill files in an existing unmanaged openmeeting directory.
+  --skip-audio  Install integrations only; Teams will prepare audio on first use.
 
 After installation, start a new Codex chat and reload or restart Claude Code.`;
 
@@ -22,6 +25,7 @@ export function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--dry-run') options.dryRun = true;
+    else if (arg === '--skip-audio') options.skipAudio = true;
     else if (arg === '--force') options.force = true;
     else if (arg === '--help' || arg === '-h') options.help = true;
     else if (arg === '--target' || arg === '--skills-dir') {
@@ -84,12 +88,19 @@ export async function main(argv, deps = {}) {
     if (codex) checkDestination(targetDir, options.force);
     const rendered = claude ? renderSkillFile({ repoRoot, write: false }) : null;
     if (options.dryRun) {
+      if (!options.skipAudio) io.log('[dry-run] Prepare uv, Python 3.12, audio packages and local models.');
       if (plan) io.log(`[dry-run] Codex: ${targetDir}\n${[...plan.files.keys()].join('\n')}`);
       if (rendered) io.log(`[dry-run] Claude Code: ${rendered.skillPath}; register local marketplace and install/update openmeeting`);
       return 0;
     }
     // Check Claude before any writes so a missing optional host does not cause a partial install.
     if (claude && runClaude(['--version']).status !== 0) throw new Error('Claude Code CLI not found. Install it, or use --target codex.');
+    if (!options.skipAudio) {
+      const config={...getConfig(env),repoRoot,home:path.resolve(env.OPENMEETING_HOME || repoRoot)};
+      config.sttVenv=path.join(config.home,'.venv-stt');
+      io.log('正在準備本機音訊套件與模型；首次安裝需要連網下載。');
+      await (deps.setupAudio || setupAudio)(config,{log:(line)=>io.log(line)});
+    }
     if (plan) {
       for (const [relative, content] of plan.files) {
         const file = path.join(targetDir, relative);

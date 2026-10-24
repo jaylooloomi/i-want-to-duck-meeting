@@ -61,7 +61,10 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         if (req.headers.origin !== origin) { res.writeHead(403).end(); return; }
         if (url.pathname === '/api/microphone/start' && req.headers['content-type'] === 'application/json') {
           const options = JSON.parse((await body(req)).toString() || '{}');
-          json(await microphone.start(options)); return;
+          // Worker-owned identity and lifetime are internal; HTTP callers may only
+          // choose the capture mode and device IDs, never filesystem paths or leases.
+          const { mode, input, output } = options;
+          json(await microphone.start({ mode, input, output })); return;
         }
         if (url.pathname === '/api/microphone/audio' && req.headers['content-type'] === 'application/octet-stream') {
           const audio = await body(req);

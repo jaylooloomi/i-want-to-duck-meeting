@@ -46,6 +46,10 @@ async function poll() {
     $('state').textContent = states[data.status?.state] || '未知狀態';
     $('speaking').textContent = data.status?.error?.message || (data.activeSpeakers.length ? (['microphone','teams'].includes(data.status?.source) ? '語音辨識 · ' : '字幕活動 · ') + data.activeSpeakers.join('、') : (['done','failed'].includes(data.status?.state) ? '記錄已停止' : '等待新的發言…'));
     $('count').textContent = data.records.length + ' 段發言';
+    if (data.status?.source === 'teams' && data.status?.state === 'in_call') {
+      const missing = Object.entries(data.status.audioHealth || {}).filter(([,value]) => value === 'no_signal').map(([lane]) => lane === 'mic' ? '本機麥克風' : '會議播放端');
+      if (missing.length) $('speaking').textContent = missing.join('、') + ' 尚無訊號；發言後仍無訊號時請檢查裝置。';
+    }
     if (data.status?.source === 'microphone' && data.status?.queuedSegments > 1 && data.status?.state === 'in_call') {
       $('count').textContent += ' · 待辨識 ' + data.status.queuedSegments + ' 段';
     }

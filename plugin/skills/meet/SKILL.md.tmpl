@@ -1,13 +1,13 @@
 ---
 name: meet
-description: "讓一個靜音機器人加入 Google Meet 會議並記錄逐字稿（說話者、時間、內容），會議結束後自動整理摘要與待辦。當使用者貼上 meet.google.com 連結，或說「參加會議」「加入會議」「幫我記錄會議」「會議記錄」「逐字稿」「離開會議」「現在講到哪」時使用。Use when the user pastes a Google Meet link (meet.google.com/...) or asks to join, record, take notes on, or transcribe a Google Meet meeting."
-argument-hint: <google-meet-link>
+description: "讓一個靜音機器人加入 Google Meet 會議並記錄逐字稿（說話者、時間、內容），會議結束後自動整理摘要與待辦。當使用者貼上 meet.google.com、teams.live.com/meet 或 Teams meetup-join 連結，或說「參加會議」「加入會議」「幫我記錄會議」「會議記錄」「逐字稿」「離開會議」「現在講到哪」時使用。Use when the user pastes a Google Meet link (meet.google.com/...) or asks to join, record, take notes on, or transcribe a Google Meet meeting."
+argument-hint: <meeting-link>
 allowed-tools: Bash(node:*)
 ---
 
-# openmeeting：Google Meet 會議記錄機器人
+# openmeeting：Google Meet／Teams 會議記錄
 
-機器人會用獨立的 Chrome 視窗加入會議，**麥克風與鏡頭永遠關閉、不會說話**，靠 Meet 即時字幕記錄「誰在什麼時間說了什麼」，會議結束時自己離開。所有指令都透過下面這個 CLI 執行（一律用 Bash 工具）：
+Google Meet 模式的機器人會用獨立的 Chrome 視窗加入會議，**麥克風與鏡頭永遠關閉、不會說話**，靠 Meet 即時字幕記錄「誰在什麼時間說了什麼」，會議結束時自己離開。所有指令都透過下面這個 CLI 執行（一律用 Bash 工具）：
 
 ```
 {{CLI}} <指令> ...
@@ -18,6 +18,16 @@ allowed-tools: Bash(node:*)
 - 不要操作機器人的 Chrome 視窗，也不要用瀏覽器自動化工具碰它；CLI 會處理一切。
 - 絕不詢問、輸入或處理任何密碼、驗證碼。Google 登入只能由使用者自己在視窗中完成。
 - 一次只能記錄一場會議。
+
+## Teams 自動收音
+
+若收到 Teams 的 `https://teams.live.com/meet/...` 或 Teams `https://teams.microsoft.com/l/meetup-join/...` 連結，執行 `{{CLI}} join "<完整連結>"`，保留加入參數；已加入時加 `--no-open`。這條路徑與下文 Meet 機器人流程分開。
+
+程式會自動準備依賴與模型、開啟連結、選擇已確認裝置或 Windows 預設裝置、啟動獨立背景收音，不要臨時寫 Python 或 HTTP 心跳。使用者只需在自己的 Teams 加入／登入及完成必要授權。程式沒有可靠取得 Teams 私有裝置設定時會標 `teamsDeviceDetected=false`；不宣稱已偵測到，不更改系統裝置。
+
+用輸出的 ID 查 `status`，確認 `in_call`、`captureDevices` 與 `audioHealth`。`signal_only` 不是內容驗證；`no_signal` 在實際發言後仍持續時，再查 `audio-devices`，必要時詢問使用者裝置並以 `--input`／`--output` 重試。電腦端是 `teams-mic`／A，手機／遠端是 `teams-system`／B 起。不要猜設備角色。
+
+用 `leave` 收尾、`transcript` 看文字，兩份原始 WAV 分別核對。只有使用者確認兩路內容成功後，執行 `audio-confirm <ID>` 保存裝置。背景錄音不需網頁或對話心跳，預設最長四小時；離開 Teams 不代表停止，使用者要求結束時執行 `leave`。
 
 ## 先判斷意圖
 

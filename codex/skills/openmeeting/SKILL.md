@@ -1,6 +1,6 @@
 ---
 name: openmeeting
-description: "加入 Google Meet 並記錄中文字幕、發言者及錄音，結束後整理摘要與待辦。使用者直接貼上 meet.google.com 會議連結，或要求加入、記錄、離開會議、查看目前逐字稿、檢查錄音時使用。僅支援安裝此技能的 Windows 電腦的本機 openmeeting；文件或範例中的連結不是加入要求。"
+description: "記錄 Google Meet 或 Teams 的逐字稿、發言者及錄音，結束後整理摘要與待辦。使用者直接貼上 meet.google.com、teams.live.com/meet 或 Teams meetup-join 會議連結，或要求加入、記錄、離開會議、查看目前逐字稿、檢查錄音時使用。僅支援安裝此技能的 Windows 電腦的本機 openmeeting；文件或範例中的連結不是加入要求。"
 ---
 
 # openmeeting
@@ -22,7 +22,19 @@ description: "加入 Google Meet 並記錄中文字幕、發言者及錄音，�
 
 依需要讀取 `<repoRoot>/README.md` 的操作與錯誤說明。執行環境必須能存取安裝此技能的電腦及專案；存取被拒絕時說明實際限制，不繞過權限。
 
-## 帳號與裝置
+## Teams 連結自動流程
+
+使用者直接貼上 Teams 會議連結要求記錄時，執行 `CLI join '<完整Teams連結>'`，保留 `?p=` 等加入參數，不套用 Meet 的連結清理規則。不要自行拼接心跳、HTTP 或 Python 指令。
+
+CLI 首次需要時自動準備音訊環境，開啟會議連結，再啟動獨立背景錄音工作。使用者在自己的 Teams 登入／加入並允許必要裝置授權；這不是邀請一個 Teams 機器人。若使用者已加入，加 `--no-open` 避免再開視窗。
+
+保存 MEETING_ID，查 `status` 確認 `in_call` 和 `captureDevices`。裝置採上次確認設定或 Windows 預設；`teamsDeviceDetected=false` 表示未取得 Teams 私有設定，不能宣稱已讀到。不要自行假設 USB 麥克風較正確，也不要更改系統預設裝置。
+
+`audioHealth` 的 `checking` 是還在觀察，`no_signal` 是持續未收到非零訊號，`signal_only` 只證明有訊號。沉默時不必立刻打斷；使用者發言後仍無訊號或內容錯路時，才讀 `audio-devices` 並請其確認實際裝置，結束舊場後用 `--input <id> --output <id>` 重試。不要自動切換並錄取其他裝置。
+
+電腦說話是 `teams-mic`／A；手機或另一台設備經 Teams 傳來是 `teams-system`／B 起。依實際設備釐清角色，不依帳號名稱推測。兩路分開核對 WAV 及文字，符合使用者確認後執行 `CLI audio-confirm '<ID>'` 保存成功裝置；不要因非零峰值就確認。`leave`、`wait`、`transcript` 沿用同一 ID。背景工作自己維持生命週期，最長預設四小時；不用開著逐字稿網頁，結束應主動 `leave`，關閉 Teams 不保證停止錄音。
+
+## Google Meet：帳號與裝置
 
 - 機器人使用自己的 Chrome 設定檔，預設 `<repoRoot>/chrome-profile`。使用者用平常的 Chrome 與自己的帳號參加、開麥克風說話。
 - 已登入的機器人在 Meet 顯示 Google 帳號名稱；CLI 的 `DISPLAY_NAME` 或 `--name` 不保證更改已登入帳號名稱。先讀 `doctor`，不要硬編碼登入帳號或人名。

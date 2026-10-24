@@ -14,9 +14,10 @@ import { chromium } from 'playwright-core';
 const CHROME_REL = path.join('Google', 'Chrome', 'Application', 'chrome.exe');
 const POLL_INTERVAL_MS = 250;
 const LAUNCH_TIMEOUT_MS = 20_000;
-// close() budget: graceful Browser.close ≤ 2 s, then taskkill ≤ 1.5 s + exit wait ≤ 1.5 s (≤ 5 s total).
+// Enumerating a Windows process tree can exceed 1.5 s on a busy workstation.
+// Allow taskkill to finish rather than terminating it while Chrome is still alive.
 const GRACEFUL_CLOSE_MS = 2_000;
-const KILL_WAIT_MS = 1_500;
+const KILL_WAIT_MS = 5_000;
 
 /**
  * Error with a machine-readable `code` (one of the status.json error codes).

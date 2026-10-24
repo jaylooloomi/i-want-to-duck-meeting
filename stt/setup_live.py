@@ -38,4 +38,16 @@ def setup(directory):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-dir', default=str(Path(__file__).resolve().parent.parent / 'models'))
-    setup(parser.parse_args().model_dir)
+    parser.add_argument('--check', action='store_true')
+    args = parser.parse_args()
+    if args.check:
+        import av
+        import pyaudiowpatch
+        from live import Engine
+        for name, _, checksum in ASSETS:
+            if hashlib.sha256((Path(args.model_dir) / name).read_bytes()).hexdigest() != checksum:
+                raise RuntimeError(f'Invalid model asset: {name}')
+        Engine(args.model_dir, 'teams')
+        print('AUDIO_READY=1')
+    else:
+        setup(args.model_dir)

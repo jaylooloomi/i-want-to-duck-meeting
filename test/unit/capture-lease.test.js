@@ -2,6 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { captureLeaseExpired } from '../../src/microphone.js';
 
+test('detached managed Teams does not depend on a browser or assistant heartbeat',()=>{
+  assert.equal(captureLeaseExpired({mode:'teams',managed:true,ready:true,clientReady:true,lastClient:0},999999),false);
+});
+
 test('Teams startup is not treated as a disconnected client before both devices are ready', () => {
   assert.equal(captureLeaseExpired({ ready:true, mode:'teams', clientReady:false, lastClient:0 }, 200000), false);
 });

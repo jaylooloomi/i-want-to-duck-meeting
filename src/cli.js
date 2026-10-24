@@ -18,6 +18,7 @@ import {
 import { TranscriptStore, renderTranscriptMd } from './transcript/store.js';
 import { runTranscribe, setupStt, sttAvailable, sttPython } from './stt.js';
 import { WORKER_ENV_KEY } from './worker.js';
+import { parseTeamsUrl, audioDevices, saveAudioSettings } from './audio-settings.js';
 
 const TERMINAL = ['done', 'failed'];
 const LOGIN_URL = 'https://accounts.google.com/';
@@ -41,9 +42,9 @@ const HEARTBEAT_CONFIRM_MS = 60_000;
 const EXIT_ALREADY_RECORDING = 5;
 
 /** Flags that take a value (`--name X` or `--name=X`). */
-const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port']);
+const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port', 'input', 'output']);
 /** Boolean flags. */
-const BOOL_FLAGS = new Set(['foreground', 'help']);
+const BOOL_FLAGS = new Set(['foreground', 'help', 'no-open']);
 
 const STATE_TEXT = {
   starting: '準備啟動機器人…',
@@ -94,6 +95,9 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   login                                                   開啟機器人的 Chrome 讓你自己登入 Google
   doctor                                                  檢查環境
   setup-stt                                               安裝離線語音辨識（uv + Python 3.12 + faster-whisper）
+  setup-audio                                             自動準備 Teams／本機收音套件與模型
+  audio-devices                                           列出本機收音裝置
+  audio-confirm <id>                                      確認雙方內容後保存該場成功裝置
   transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
 
 /**
@@ -748,8 +752,9 @@ async function cmdJoin(ctx, pos, flags) {
     return 1;
   }
   let parsed;
+  const teamsUrl = parseTeamsUrl(input);
   try {
-    parsed = parseMeetUrl(input, { allowAnyHost: config.allowAnyHost });
+    parsed = teamsUrl ? {url:teamsUrl,code:'teams-audio'} : parseMeetUrl(input, { allowAnyHost: config.allowAnyHost });
   } catch {
     err(`這不是有效的 Google Meet 連結：${input}`);
     err('請貼上像 https://meet.google.com/abc-defg-hij 這樣的連結或會議代碼。');
@@ -758,6 +763,22 @@ async function cmdJoin(ctx, pos, flags) {
   }
   const displayName = typeof flags.name === 'string' && flags.name.trim() ? flags.name.trim() : config.displayName;
   const captionLang = typeof flags.lang === 'string' && flags.lang.trim() ? flags.lang.trim() : config.captionLang;
+  const audioOverrides = {};
+  if (teamsUrl) {
+    for (const key of ['input','output']) if (flags[key] !== undefined) {
+      const value=Number(flags[key]);
+      if (!Number.isInteger(value) || value < 0) {out('ERROR=invalid_arguments');return 1;}
+      audioOverrides[key]=value;
+    }
+    // Repair only when needed; the installer prepares this environment by default.
+    const { audioReady } = await import('./setup-audio.js');
+    if (!await (ctx.audioReady || audioReady)(config)) {
+      out('正在自動準備 Teams 收音環境（首次需要下載）…');
+      const { setupAudio } = await import('./setup-audio.js');
+      await setupAudio(config,{log:out});
+    }
+    out('Teams 以你的會議端收音：請在開啟的頁面登入／加入，沿用成功裝置或 Windows 預設裝置；不會自動更改 Teams 設定。');
+  }
 
   // One bot profile = one meeting at a time: a second worker could only fail (profile locked)
   // and would become `latest`, hiding the real recording from `leave latest` / `transcript latest`.
@@ -776,6 +797,10 @@ async function cmdJoin(ctx, pos, flags) {
     return EXIT_ALREADY_RECORDING;
   }
 
+  if (teamsUrl && !flags['no-open'] && process.platform === 'win32') {
+    const open=spawn(path.join(process.env.SystemRoot || 'C:\\Windows','System32','rundll32.exe'),['url.dll,FileProtocolHandler',teamsUrl],{windowsHide:true,stdio:'ignore'});
+    open.on('error',()=>err(`請開啟 Teams 會議：${teamsUrl}`));open.unref();
+  }
   const base = newMeetingId(parsed.code);
   let id = base;
   for (let i = 2; fs.existsSync(path.join(config.meetingsDir, id)); i++) id = `${base}-${i}`;
@@ -783,14 +808,20 @@ async function cmdJoin(ctx, pos, flags) {
   writeStatus(dir, {
     id, code: parsed.code, url: parsed.url, displayName, pid: null, state: 'starting',
     startedAt: new Date().toISOString(), joinedAt: null, endedAt: null, endReason: null, error: null, stats: emptyStats(),
+      ...(teamsUrl ? {source:'teams',audioOverrides} : {}),
   });
 
   if (flags.foreground) {
     out(`MEETING_ID=${id}`);
     out(`MEETING_DIR=${dir}`);
     out(`DISPLAY_NAME=${displayName}`);
-    out('前景模式：機器人在這個視窗執行，按 Ctrl+C 讓它離開會議。');
-    const { runSession } = await import('./session.js');
+    out(teamsUrl ? '前景模式：雙路收音在此執行，Ctrl+C 收尾錄音。' : '前景模式：機器人在這個視窗執行，按 Ctrl+C 讓它離開會議。');
+      if (teamsUrl) {
+        const { runTeamsRecording }=await import('./teams-recording.js');
+        const final=await runTeamsRecording({config,dir,id,url:teamsUrl,status:readStatus(dir)});
+        return printResult(out,dir,final);
+      }
+      const { runSession } = await import('./session.js');
     const final = await runSession({
       url: parsed.url, code: parsed.code, id, dir, displayName, captionLang, config, foreground: true,
     });
@@ -840,9 +871,14 @@ async function cmdJoin(ctx, pos, flags) {
 
   out(`MEETING_ID=${id}`);
   out(`MEETING_DIR=${dir}`);
-  out(`DISPLAY_NAME=${displayName}`);
-  out(`機器人「${displayName}」正在另一個 Chrome 視窗加入會議 ${parsed.code}。`);
-  out('請在 Meet 裡允許它加入（若出現「潛在風險」的加入請求，請按 ⋮ → 允許 (Admit)，不要按「拒絕」），並告知與會者會議正在被記錄。');
+  if (teamsUrl) {
+    out('SOURCE=teams');
+    out('背景雙路收音正在啟動；用 status 確認 in_call、captureDevices 與 audioHealth。告知與會者正在記錄；結束時執行 leave。');
+  } else {
+    out(`DISPLAY_NAME=${displayName}`);
+    out(`機器人「${displayName}」正在另一個 Chrome 視窗加入會議 ${parsed.code}。`);
+    out('請在 Meet 裡允許它加入（若出現「潛在風險」的加入請求，請按 ⋮ → 允許 (Admit)，不要按「拒絕」），並告知與會者會議正在被記錄。');
+  }
   out(`等待會議結束：openmeeting wait ${id}`);
   return 0;
 }
@@ -868,7 +904,7 @@ async function cmdWait(ctx, pos, flags) {
     if (st && st.state !== last) {
       last = st.state;
       out(`STATE=${st.state}`);
-      out(STATE_TEXT[st.state] || st.state);
+      out(st.source === 'teams' && st.state === 'in_call' ? '雙路音訊擷取已啟動；請依 audioHealth 與實際內容確認收音。' : STATE_TEXT[st.state] || st.state);
     }
     if (st && TERMINAL.includes(st.state)) return printResult(out, m.dir, st);
     const left = start + timeoutMs - Date.now();
@@ -962,12 +998,13 @@ async function cmdTranscript(ctx, pos) {
     return 0;
   }
   try {
-    const store = new TranscriptStore(m.dir, { code: st.code || '', startedAt: st.startedAt || undefined });
+    const sourceLabel = ['teams','microphone'].includes(st.source) ? '本機音訊辨識（Whisper／聲音特徵分群）' : 'Google Meet 即時字幕';
+    const store = new TranscriptStore(m.dir, { code: st.code || '', startedAt: st.startedAt || undefined, sourceLabel });
     const captionLang = (st.stats && st.stats.captionLang) || undefined;
     const text = terminal
       ? store.renderMarkdown({ endedAt: st.endedAt || null, captionLang })
       : renderTranscriptMd({
-        code: st.code || '', startedAt: st.startedAt || null, endedAt: null, utterances: store.utterances, captionLang,
+          code: st.code || '', startedAt: st.startedAt || null, endedAt: null, utterances: store.utterances, captionLang, sourceLabel,
         extraNote: `會議記錄進行中（${st.state || '未知狀態'}），以下是目前為止的內容`,
       });
     ctx.out(text.replace(/\s+$/, ''));
@@ -1145,7 +1182,7 @@ export async function main(argv, io = {}) {
   }
   if (unknown.length) err(`忽略未知參數：${unknown.join(' ')}`);
   /** @type {Ctx} */
-  const ctx = { env, out, err, config: getConfig(env), spawnWorker: io.spawnWorker || ((o) => launchWorker(o)) };
+  const ctx = { env, out, err, config: getConfig(env), audioReady:io.audioReady, spawnWorker: io.spawnWorker || ((o) => launchWorker(o)) };
   try {
     switch (command) {
       case 'live': {
@@ -1163,6 +1200,25 @@ export async function main(argv, io = {}) {
         return 0;
       }
       case 'join': return await cmdJoin(ctx, positionals, flags);
+      case 'setup-audio': {
+        const { setupAudio }=await import('./setup-audio.js');
+        await setupAudio(ctx.config,{log:out});return 0;
+      }
+      case 'audio-devices': out(JSON.stringify(await audioDevices(ctx.config),null,2));return 0;
+      case 'audio-confirm': {
+        const meeting=resolveMeeting(ctx.config.meetingsDir,positionals[0] || 'latest');
+        const s=meeting && readStatus(meeting.dir);
+        if(s?.source !== 'teams' || s.state !== 'done' || !s.captureDevices
+          || !['mic','system'].every(lane=>s.stats?.tracks?.[lane]?.audioPeak > 0)) {
+          out('ERROR=audio_not_verified');return 1;
+        }
+        const records=fs.readFileSync(path.join(meeting.dir,'transcript.jsonl'),'utf8').split(/\r?\n/).flatMap(line=>{try{return [JSON.parse(line)];}catch{return [];}});
+        if (!['teams-mic','teams-system'].every(source=>records.some(r=>r.source===source && r.text?.trim()))) {
+          out('ERROR=audio_not_verified');return 1;
+        }
+        saveAudioSettings(ctx.config.home,s.captureDevices.mic,s.captureDevices.system);
+        out('AUDIO_SETTINGS=saved');return 0;
+      }
       case 'wait': return await cmdWait(ctx, positionals, flags);
       case 'status': return await cmdStatus(ctx, positionals);
       case 'list': return await cmdList(ctx);

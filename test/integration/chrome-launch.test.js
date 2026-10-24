@@ -158,7 +158,7 @@ describe('launchChrome + connectChrome (real Chrome, headless)', { timeout: 120_
     } finally {
       globalThis.WebSocket = savedWs;
     }
-    assert.ok(Date.now() - t0 < 5_500, 'forced close stays within budget');
+    assert.ok(Date.now() - t0 < 12_500, 'forced close stays within its graceful + process-tree termination budget');
     assert.equal(pidAlive(pid), false);
     assert.equal(await endpointAnswers(chrome.port), false);
     if (process.platform === 'win32') {

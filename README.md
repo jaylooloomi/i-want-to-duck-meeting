@@ -1,6 +1,6 @@
 <h1 align="center">openmeeting 🎙️</h1>
 
-<p align="center"><b>貼上 Meet 連結，讓 AI 幫你留下會議重點。</b><br>Google Meet 字幕與錄音、即時逐字稿、本機麥克風辨識，共用一份 Windows 本機程式。</p>
+<p align="center"><b>貼上 Meet 連結，讓 AI 幫你留下會議重點。</b><br>貼上 Google Meet／Teams 連結，自動準備環境、選擇收音裝置並保存逐字稿與錄音。</p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"></a>
@@ -22,7 +22,7 @@
 | 會後整理 | 對 AI 說「離開會議並整理摘要」 | 重點、決議、待辦與待確認問題 |
 | 確認有錄到發言 | 檢查峰值，再轉錄或播放錄音 | 核對實際聲音內容，避免只有空白 WAV |
 
-**目前支援 Windows 10/11 的本機使用。** Codex 以技能整合，Claude Code 以外掛整合，兩者呼叫同一份 CLI。Teams 模式的 Windows 雙路擷取已做自動測試，**真人 Teams 會議尚未驗收通過**，詳見[驗證狀態](docs/teams-audio-validation.md)。
+**目前支援 Windows 10/11 的本機使用。** Codex 以技能整合，Claude Code 以外掛整合，兩者呼叫同一份 CLI。Teams 雙路錄音已核對真人電腦端與手機端發言；逐字稿仍可能錯字、漏字及產生多餘片段，詳見[驗證範圍](docs/teams-audio-validation.md)。
 
 ## 安裝
 
@@ -39,7 +39,7 @@ npm install
 npm run setup
 ```
 
-`npm run setup` 安裝 Codex 技能，並安裝／更新及啟用 Claude 外掛。只有其中一個工具時，改用：
+`npm run setup` 自動準備 uv、Python 3.12、音訊套件與本機模型，再安裝 Codex 技能，並安裝／更新及啟用 Claude 外掛。首次需要連網下載，時間取決於網路速度。uv 缺少時從官方安裝器裝到資料目錄的 `tools/`，不修改全域 PATH。只有其中一個工具時，改用：
 
 ```powershell
 npm run setup -- --target codex
@@ -48,7 +48,15 @@ npm run setup -- --target claude
 
 Codex 安裝後開啟新對話，必要時重啟；Claude Code 執行 `/reload-plugins` 或重啟。`npm install` 本身只安裝依賴，不會修改 AI 工具設定。
 
-### 2. 準備機器人帳號（Google Meet）
+### 2. 貼上連結開始（Teams）
+
+在 Codex 或 Claude Code 貼上 Teams 連結並說「幫我記錄」。程式會開啟會議連結、採用已確認裝置或 Windows 預設裝置，啟動獨立背景雙路錄音。環境缺少時也會自動補裝。只在 Teams 要求時手動登入、加入或授權麥克風；若已在會議中，AI 可加 `--no-open` 避免另開視窗。
+
+Teams 是從你這台電腦收音，不是邀請機器人加入。請在這台電腦加入會議，確認能與對方互相聽見。Windows 預設值不一定與 Teams 自訂設定相同；初次使用若發言後某路仍無聲，才需確認裝置。成功後對 AI 說「確認這兩路內容正確，記住裝置」，下次依裝置名稱、聲道與取樣率重新比對，裝置拔除則回到預設值。
+
+錄音不需保持網頁或對話開著。結束對 AI 說「停止記錄」，程式會保存最後音訊與文字；關閉 Teams 本身不會自動停止錄音，最長預設四小時。
+
+### 3. 準備機器人帳號（Google Meet）
 
 ```powershell
 node bin/openmeeting.js doctor
@@ -57,7 +65,7 @@ node bin/openmeeting.js login
 
 在專用 Chrome 視窗手動登入機器人的 Google 帳號；完成後關閉整個專用視窗，讓程式取得設定檔。使用者以自己的帳號、平常的 Chrome 參加同一場會議。機器人保持麥克風與攝影機關閉，接收會議聲音不需要啟用它的麥克風。
 
-### 3. 在 AI 對話開始使用
+### 4. 在 AI 對話開始使用
 
 **Codex**：在新的本機對話貼上會議連結並說「幫我加入並記錄」，或明確指定：
 
@@ -78,6 +86,7 @@ $openmeeting https://meet.google.com/abc-defg-hij
 
 ```powershell
 npm run setup -- --dry-run
+npm run setup -- --skip-audio  # 只裝整合；Teams 首次使用再自動準備
 npm run setup -- --target codex --skills-dir "$HOME/.agents/skills"
 # 更新後／搬移專案或 Node 後
 npm run setup
@@ -90,6 +99,8 @@ Codex 預設位於 `$CODEX_HOME/skills/openmeeting`，未設定時為 `~/.codex/
 
 舊的手動技能需要先備份，再用 `--force` 遷移；安裝器只更新已知檔案，不刪除額外自訂檔案。技能指向本機專案，請保留專案資料夾。完整步驟見[安裝指南](docs/installation.md)。
 </details>
+
+更多原理、裝置選擇與驗證範圍見[自動音訊設定說明](docs/automatic-audio.md)。
 
 ## 日常使用
 
@@ -117,12 +128,10 @@ Ctrl+C 會停止網頁服務並收尾該服務啟動的本機麥克風／Teams �
 
 ### 現場會議：本機麥克風
 
-先準備 uv 與選用辨識套件及模型（uv 須在 PATH；安裝需連網下載，之後辨識使用本機模型）：
+統一安裝已準備套件及模型。若先前使用 `--skip-audio` 或需修復，執行一個指令即可：
 
 ```powershell
-node bin/openmeeting.js setup-stt
-uv pip install --python .venv-stt/Scripts/python.exe -r stt/requirements-live.txt
-.venv-stt/Scripts/python.exe stt/setup_live.py
+node bin/openmeeting.js setup-audio
 node bin/openmeeting.js live
 ```
 
@@ -130,9 +139,9 @@ node bin/openmeeting.js live
 
 辨識使用 CPU、Whisper small、Silero VAD 與聲音特徵分群。講者 A／B 是該場估計代號，並非人名或持久化身分；短句、模糊或證據不足時顯示「講者未確認」。電腦速度會影響辨識延遲。
 
-### Teams：播放聲音＋自己的麥克風（實驗性）
+### Teams：播放聲音＋自己的麥克風
 
-完成上述模型安裝後，在網頁把來源改成 **Teams**：
+建議直接貼連結交給 AI，或執行 `node bin/openmeeting.js join "<Teams連結>"`。想手動指定裝置時也可在網頁把來源改成 **Teams**：
 
 1. 選擇與 Teams 相同的 Windows 播放裝置。
 2. 選擇自己的實體麥克風，建議戴耳機。
@@ -141,7 +150,7 @@ node bin/openmeeting.js live
 
 不需要邀請 Meet 機器人，也不依賴 Teams 字幕。WASAPI loopback 會擷取所選裝置上**所有應用程式**的播放聲音，並非只擷取 Teams。正常使用不需要虛擬音效驅動程式。
 
-本機輸入固定為講者 A，遠端從 B 開始分群。多人共用本機麥克風都視為 A。兩路可同時辨識，但沒有房間回音消除；擴音可能重複收錄遠端聲音。背景分頁原生收音持續，失去心跳超過 3 分鐘才自動收尾。
+本機輸入固定為講者 A，遠端從 B 開始分群。多人共用本機麥克風都視為 A。兩路可同時辨識，但沒有房間回音消除；擴音可能重複收錄遠端聲音。背景分頁原生收音持續。網頁手動模式失去心跳超過 3 分鐘才自動收尾；CLI 背景模式由獨立工作管理，不依賴瀏覽器心跳。
 
 更多操作與可重跑命令見[即時逐字稿與本機收音](docs/live-transcription.md)。
 
@@ -215,8 +224,11 @@ node bin/openmeeting.js leave <會議ID>
 | `CHROME_PATH` | 指定 Chrome 執行檔 |
 | `OPENMEETING_PROFILE` | 指定機器人 Chrome 設定檔 |
 | `OPENMEETING_CAPTION_LANG` | 字幕語言，預設 `cmn-Hant-TW` |
+| `audio-settings.json`（資料根目錄） | 由 `audio-confirm <ID>` 保存已由使用者確認的成功裝置；不含會議連結或憑證 |
 | `OPENMEETING_NAME` | 訪客顯示名稱設定，不保證覆蓋登入帳號名稱 |
 | `OPENMEETING_MUTE=0` | 讓電腦喇叭播放 Meet 聲音 |
+
+`status` 的 `audioHealth` 分別標示 `checking`、`no_signal` 或 `signal_only`；後者只證明訊號，不證明有發言。程式不讀取 Teams 私有設定、不自動切換到其他麥克風；若需調整，用 `audio-devices` 查裝置，結束舊場後以 `join "<Teams連結>" --input <ID> --output <ID> --no-open` 啟動。
 
 完整參數、結束碼及進階設定見 [CLI 參考](docs/cli.md)。使用自訂資料根目錄時，本機模型與 Python 環境也須安裝至該根目錄；詳見 [STT 程式設定](src/stt.js)。
 
@@ -228,7 +240,7 @@ node bin/openmeeting.js leave <會議ID>
 | Google Meet | 已做真人發言、字幕及錄音轉錄核對；網頁改版仍可能影響擷取 |
 | 單元與模擬 Meet 整合 | 自動測試涵蓋狀態、字幕、Chrome、錄音及錯誤處理 |
 | 本機麥克風 | 已知雙人錄音經 Chrome 音訊流程、真實模型與逐輪核對；[證據範圍](docs/local-microphone-validation.md) |
-| Teams 雙路 | 已知語音經真實 Windows 播放／擷取路徑與網頁測試；[真人會議尚未驗收](docs/teams-audio-validation.md) |
+| Teams 雙路 | 已知語音自動驗證，以及真人電腦／手機雙路發言核對；[文字誤差與驗證範圍](docs/teams-audio-validation.md) |
 | macOS、Linux、雲端純聊天 | 目前不支援完整錄音流程 |
 
 自動測試中的已知錄音不等於所有實體房間或真人通話都通過。多人重疊、短句、背景噪音、麥克風距離與專有名詞都可能影響結果。

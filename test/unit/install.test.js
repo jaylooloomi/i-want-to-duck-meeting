@@ -37,7 +37,7 @@ function fixture(t) {
   const home = path.join(root, 'home');
   const logs = [];
   const calls = [];
-  const deps = { repoRoot: repo, home, env: {}, platform: 'win32', io: { log: (s) => logs.push(s), error: (s) => logs.push(s) }, runClaude: (args) => {
+  const deps = { repoRoot: repo, home, env: {}, platform: 'win32', setupAudio:async()=>{}, io: { log: (s) => logs.push(s), error: (s) => logs.push(s) }, runClaude: (args) => {
     calls.push(args);
     if (args.join(' ') === 'plugin list --json') return { status: 0, stdout: JSON.stringify([{ id: 'openmeeting@openmeeting-local', enabled: true }]), stderr: '' };
     return { status: 0, stdout: args[0] === '--version' ? 'test version' : '', stderr: '' };
@@ -69,6 +69,18 @@ test('dry-run has no filesystem or Claude side effects', async (t) => {
   assert.equal(fs.existsSync(f.home), false);
   assert.equal(fs.existsSync(path.join(f.repo, 'plugin', 'skills', 'meet', 'SKILL.md')), false);
   assert.equal(f.calls.length, 0);
+});
+
+test('default setup prepares audio; skip and dry-run do not; failed preparation leaves integrations untouched',async(t)=>{
+  for(const args of [[],['--skip-audio'],['--dry-run']]) {
+    const f=fixture(t);let prepared=0;
+    assert.equal(await main(args,{...f.deps,setupAudio:async(config)=>{prepared++;assert.equal(config.home,f.repo);}}),0);
+    assert.equal(prepared,args.length?0:1);
+  }
+  const f=fixture(t);
+  assert.equal(await main([],{...f.deps,setupAudio:async()=>{throw Error('download unavailable');}}),1);
+  assert.equal(fs.existsSync(f.home),false);
+  assert.equal(fs.existsSync(path.join(f.repo,'plugin/skills/meet/SKILL.md')),false);
 });
 
 test('managed reinstallation repairs known files and supports moving the checkout', async (t) => {

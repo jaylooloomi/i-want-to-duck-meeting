@@ -7,6 +7,16 @@ import http from 'node:http';
 import { startLiveServer } from '../../src/live-server.js';
 import { CaptionAssembler } from '../../src/captions/assembler.js';
 
+test('HTTP start cannot override the worker identity, filesystem destination or capture lease',async(t)=>{
+  let received;
+  const running=await startLiveServer({meetingsDir:os.tmpdir(),port:0,microphone:{start:async(options)=>{received=options;return {id:'test'};}}});
+  t.after(()=>running.shutdown());
+  const response=await fetch(running.url+'/api/microphone/start',{method:'POST',headers:{Origin:running.url,'Content-Type':'application/json'},
+    body:JSON.stringify({mode:'teams',input:20,output:23,meetingId:'arbitrary',meetingDir:'C:/outside',managed:true})});
+  assert.equal(response.status,200);
+  assert.deepEqual(received,{mode:'teams',input:20,output:23});
+});
+
 test('live captions revise, retain separate speakers, and disappear after finalization', () => {
   const a = new CaptionAssembler();
   a.update([{ id:'a', speaker:'甲', text:'測試' }, { id:'b', speaker:'乙', text:'你好' }], 1000);

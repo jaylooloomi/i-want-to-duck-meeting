@@ -25,11 +25,10 @@
 代號依確認順序分配。相似度是模型的估計值，不是正確率；重疊發言尚不支援，仍可能漏字、錯分或把同一人拆成多個講者。
 目前沒有自動對應 Meet 姓名；Teams 雙路音訊擷取見下節。
 
-新環境先安裝／下載一次（只有套件和模型下載需要網路）：
+統一安裝已準備環境；需修復或曾略過下載時執行（只有套件和模型下載需要網路）：
 
 ```powershell
-uv pip install --python .venv-stt/Scripts/python.exe -r stt/requirements-live.txt
-.venv-stt/Scripts/python.exe stt/setup_live.py
+node bin/openmeeting.js setup-audio
 node bin/openmeeting.js live
 ```
 
@@ -91,3 +90,18 @@ node --test test/integration/teams-browser.test.js
 
 - [本機雙人驗證](local-microphone-validation.md)
 - [Teams 雙路驗證與真人驗收狀態](teams-audio-validation.md)
+
+## Teams 連結自動模式
+
+直接交給 Codex／Claude 會議連結，或執行 `node bin/openmeeting.js join "<完整Teams連結>"`。已加入會議時加 `--no-open`。程式自動準備環境、採用已確認設定或 Windows 預設，啟動獨立背景收音，不依賴此網頁的心跳。
+
+兩路內容經使用者確認後執行 `node bin/openmeeting.js audio-confirm <ID>`，會以裝置名稱、聲道及取樣率保存於資料根目錄。拔除或重編號會重新比對；無有效裝置才要求處理。`audio-devices` 列出當前 ID，必要時可用 `--input`／`--output` 指定重試。
+
+`status` 的 audioHealth／網頁提醒會標示持續零訊號；非零不能取代內容確認。背景模式的 in_call 只代表開始擷取，並非已登入 Teams 的證明。離開 Teams 不會自動停止錄音；說「停止記錄」或執行 leave，最長預設四小時。
+
+驗證背景生命週期（使用本機實體預設裝置、沒有加入真人會議，不播放樣本）：
+
+```powershell
+$env:OPENMEETING_TEAMS_AUTO_TEST = '1'
+node --test test/integration/teams-auto.test.js
+```
