@@ -19,6 +19,7 @@ import { TranscriptStore, renderTranscriptMd } from './transcript/store.js';
 import { runTranscribe, setupStt, sttAvailable, sttPython } from './stt.js';
 import { WORKER_ENV_KEY } from './worker.js';
 import { parseTeamsUrl, audioDevices, saveAudioSettings } from './audio-settings.js';
+import { meetingFailureGuidance } from './meet/failure-guidance.js';
 
 const TERMINAL = ['done', 'failed'];
 const LOGIN_URL = 'https://accounts.google.com/';
@@ -61,7 +62,7 @@ const STATE_TEXT = {
 const ERROR_TEXT = {
   signin_required: '需要登入 Google：請執行 login，由你自己在視窗中登入機器人專用帳號',
   not_found: '找不到這場會議（連結錯誤或已過期）',
-  blocked: 'Google 不讓機器人加入（訪客常被擋；可先 login 再試）',
+  blocked: 'Google 拒絕加入（原因未確認）',
   denied: '加入請求被拒絕（請主持人用 ⋮ → 允許）',
   lobby_timeout: '等待太久，沒有人允許機器人加入',
   chrome_not_found: '找不到 Google Chrome（安裝 Chrome 或設定 CHROME_PATH）',
@@ -279,6 +280,12 @@ function printResult(out, dir, status) {
   if (fs.existsSync(whisper)) out(`TRANSCRIPT_WHISPER=${whisper}`);
   out(`MEETING_DIR=${dir}`);
   if (status.state === 'failed') {
+    const guidance=meetingFailureGuidance(errCode);
+    if(guidance) {
+      out(`RETRY=${guidance.retry}`);
+      out(`REASON_CONFIRMED=${guidance.reasonConfirmed}`);
+      out(guidance.message);
+    }
     const msg = status.error && status.error.message ? `（${String(status.error.message).split('\n')[0]}）` : '';
     out(`失敗：${ERROR_TEXT[errCode] || errCode || '未知錯誤'}${msg}`);
     return 3;

@@ -13,9 +13,10 @@
 ## 加分項（每行一個，可獨立 revert）
 | # | 名稱 | Score | 參考來源（競品 / 專案 / 文章） | 做了什麼 | 驗證指令 | 測試狀態 | 否決的替代作法 |
 |---|---|---|---|---|---|---|---|
+| 01 | blocked 條件式下一步 | scores-01.md：12.0 | Google Meet官方加入說明 | 已完成 src/meet/failure-guidance.js、src/cli.js、test/unit/failure-guidance.test.js | node --test test/unit/failure-guidance.test.js test/unit/cli.test.js | 69項通過；node --check通過 | 不把blocked猜成訪客／不增加自動重試 |
 
 ## 判斷不值得做
-- 尚未評分。
+- 中文介面語言選擇器：Score 0.3；正式路徑使用hl=en，缺真實DOM，不猜測實作。
 
 ## 需要你決定的事
 - `stash@{0}`：night-shift pre-stash 2026-10-25 已套回新分支，保留備份，沒有遺失修改；收工時不自動刪除。
