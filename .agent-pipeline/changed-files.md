@@ -1,10 +1,11 @@
-.agent-pipeline/ACTIVE
 .agent-pipeline/BASE
 .agent-pipeline/DEADLINE
+.agent-pipeline/DONE
 .agent-pipeline/END
 .agent-pipeline/START
 .agent-pipeline/TIMING
 .agent-pipeline/candidates.md
+.agent-pipeline/changed-files.md
 .agent-pipeline/hook-diagnostics.md
 .agent-pipeline/progress.md
 .agent-pipeline/recent-commits.md
