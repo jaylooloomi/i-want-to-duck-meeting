@@ -70,3 +70,14 @@ node scripts/verify-meeting-evidence.js --manifest test/.tmp/night-meet-live/evi
 本夜實際輸出：local-content-matched、captionsMatch=true、recordingMatch=true、remoteContentMatched=false、humanSpeakerVerified=false。這是刻意保留的界線，不會把自身音訊注入誤報成遠端／真人驗證。
 
 本夜測試 Chrome 與錄音 worker 已正常收尾；沒有保留正在錄音的測試程序。
+
+## 用正式離線入口重建辨識證據
+
+```powershell
+.venv-stt/Scripts/python.exe stt/verify_audio.py --audio test/.tmp/night-meet-dual/remote-received.wav --model-dir models --out test/.tmp/night-meet-dual/paraformer-evidence-new.json
+node scripts/verify-meeting-evidence.js --manifest test/.tmp/night-meet-dual/evidence-manifest.json
+```
+
+`--out` 需選新檔名，避免蓋掉既有證據；manifest的audioTranscriptFile需對應實際產出的JSON。既有本夜manifest使用已生成的paraformer-evidence-v2.json。入口沿用既有Paraformer與OpenCC，只讀本機PCM16／16kHz單聲道WAV、不下載、不提供expected prompt。它對實際讀入的同一份bytes計算SHA，因此輸入檔在辨識中被改動也不會錯綁另一份音訊。3項單元測試與本夜實際音檔皆通過。
+
+產生合成輸入原本已有 `scripts/make-tts-wav.ps1`，可用TextBase64安全傳入Unicode，無需新增套件或重造工具；本夜首次臨時腳本沒有沿用它而出現BOM問題，後續重跑應使用既有入口。
