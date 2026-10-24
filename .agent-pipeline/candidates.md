@@ -96,3 +96,31 @@
 
 ## 10：PCM飽和比例（沒有實際持續削波）
 因為原始需求是 **可靠錄音驗證**，所以頂尖做法會順便做 **量化削波**；目前成果 **peak已存，實測僅2/403456滿幅，尚無需功能**。來源：https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/getChannelData 。不改音訊。
+
+
+# 第十一輪（剩餘候選）
+
+## 03 中文介面字幕控制
+因為原始需求是 **自動中文字幕**，所以頂尖做法會順便做 **非英文控制項相容**；目前成果 **正式hl=en已測而缺失敗DOM**。來源：https://support.google.com/meet/answer/15077804?hl=en-GB 。不猜。
+
+## 10 PCM持續削波量測
+因為原始需求是 **驗證錄音可用**，所以頂尖做法會順便做 **削波比例診斷**；目前成果 **峰值已有，實際僅2/403456滿幅，未見問題**。來源：https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/getChannelData 。
+
+## 12 完整句數字邊界
+因為原始需求是 **確認1357而非較長數字**，所以頂尖做法會順便做 **全句數字段邊界**；目前成果 **a92a8bd已完成**。來源：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Lookbehind_assertion 。標明已做，請scorer剔除。
+
+
+# 第十二輪重新調研（反覆句與評估範圍）
+
+## 13：完整句匹配次數（bonus02續作）
+因為原始需求是 **無人驗證完整句與1357**，所以頂尖做法會順便做 **顯示重複場次中完整句至少出現幾次，而不是只true**；目前成果 **只有各marker布林值與原文，120秒重複句有對有錯，文件已明示不是100%準確**。
+- 來源：https://huggingface.co/learn/audio-course/en/chapter5/evaluation ，語音系統應用實際輸出與參考比較、不能以單一成功當整體正確率。
+- 切片：沿用嚴格normalized marker比對，額外計數，不改通過門檻、不稱WER、不從文字猜預期總次數。最多2檔／80行；也可判斷現有原文及文件已足夠，本夜無需擴充。
+
+## 14：量化每句WER／CER
+因為原始需求是 **確認逐字稿品質**，所以頂尖做法會順便做 **用已對齊參考句算錯誤率**；目前成果 **只有連續循環語音與截斷邊界，缺每句時間對齊真值**。
+- 來源：https://huggingface.co/learn/audio-course/en/chapter5/evaluation 。要先建立逐段真值及對齊，不能以輸出自行推估句數；目前若直接算百分比會誤導。工作量與依賴不確定，請評估本夜價值，不新增套件。
+
+## 15：跨音色與環境測試矩陣
+因為原始需求是 **錄音與中文辨識可靠**，所以頂尖做法會順便做 **多音色、噪音、重疊語音矩陣**；目前成果 **只有單一Windows合成音色，真人歷史驗證另列**。
+- 來源：https://huggingface.co/learn/audio-course/en/chapter5/evaluation 。目前沒有其他授權真人新錄音；多合成音色不代表真人，請評估是否會變成無謂重複外部測試。本夜不下載新模型、不使用私人舊錄音。

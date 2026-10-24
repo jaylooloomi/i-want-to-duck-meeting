@@ -1,3 +1,4 @@
+a92a8bd fix(night-shift/bonus-02): enforce digit boundaries within full sentences
 5617aff docs(night-shift): refresh continuation evidence checkpoint
 a4f6024 docs(night-shift): retain scoring and ongoing regression checkpoint
 d44b4cf docs(night-shift): preserve successful long synthetic Meet content check
