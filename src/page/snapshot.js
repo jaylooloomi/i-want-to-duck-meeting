@@ -84,6 +84,21 @@ export function collectSnapshot(SEL_SERIALIZABLE, TEXT) {
     const t = /** @type {HTMLElement} */ (el).innerText;
     return typeof t === 'string' ? t : el.textContent || '';
   };
+  // Match join.js's button text semantics. Material icon ligatures are visible
+  // to innerText even when aria-hidden, so they must not become part of a CTA.
+  const buttonText = (el) => {
+    let out='';
+    const walk=node=>{
+      for(const child of node.childNodes) {
+        if(child.nodeType===3) out+=child.data;
+        else if(child.nodeType===1 && child.getAttribute('aria-hidden')!=='true'
+          && !['SCRIPT','STYLE'].includes(child.tagName)) {
+          out+=' ';walk(child);out+=' ';
+        }
+      }
+    };
+    walk(el);return norm(out);
+  };
 
   // --- text (caption region excluded: spoken words must not look like Meet UI text) ---
   const body = document.body;
@@ -107,7 +122,8 @@ export function collectSnapshot(SEL_SERIALIZABLE, TEXT) {
       const rough = norm(b.textContent);
       if (!rough || !ctaNorm.some((c) => rough.includes(c))) continue; // cheap pre-filter
       if (!isVisible(b)) continue;
-      const idx = ctaNorm.indexOf(norm(innerTextOf(b)));
+      const readable=buttonText(b);
+      const idx = ctaNorm.findIndex(c=>c===readable || c===norm(innerTextOf(b)));
       if (idx >= 0 && !ctaTexts.includes(ctaEntries[idx])) ctaTexts.push(ctaEntries[idx]);
     }
   }

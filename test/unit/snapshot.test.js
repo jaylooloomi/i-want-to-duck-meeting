@@ -10,6 +10,7 @@ import { chromium } from 'playwright-core';
 import { collectSnapshot } from '../../src/page/snapshot.js';
 import { SEL, TEXT, serializableSel } from '../../src/meet/selectors.js';
 import { classify } from '../../src/meet/state.js';
+import {clickElement} from '../../src/meet/join.js';
 
 const FIXTURES = fileURLToPath(new URL('../fixtures/snapshot/', import.meta.url));
 const ORIGIN = 'http://meet-fixtures.test';
@@ -58,6 +59,13 @@ const SNAPSHOT_KEYS = [
 ].sort();
 
 describe('collectSnapshot in headless Chrome', () => {
+  test('icon-bearing same-account CTA is PREJOIN and joins alongside rather than switching',async()=>{
+    const snap=await snapshotOf('prejoin-icons');
+    assert.deepEqual(snap.ctaTexts,['Join here too']);
+    assert.equal(classify(snap,opts).state,'PREJOIN');
+    assert.equal(await clickElement(page,{texts:TEXT.joinCtas}),true);
+    assert.equal(await page.evaluate(()=>window.clicked),'join-too');
+  });
   test('prejoin: name input + "Ask to join" button => PREJOIN', async () => {
     const s = await snapshotOf('prejoin');
     assert.deepEqual(Object.keys(s).sort(), SNAPSHOT_KEYS);
