@@ -240,6 +240,18 @@ export async function runSession(opts) {
   };
 
   // --- page → node callbacks ----------------------------------------------------------------
+  let lastLive = '';
+  const publishLive = () => {
+    const pending = assembler ? assembler.pending() : [];
+    const signature = JSON.stringify(pending);
+    if (signature === lastLive) return;
+    try {
+      const file = path.join(dir, 'live.json');
+      fs.writeFileSync(`${file}.tmp`, JSON.stringify({ updatedAt: new Date().toISOString(), pending }));
+      fs.renameSync(`${file}.tmp`, file);
+      lastLive = signature;
+    } catch (err) { L.warn(`live transcript write failed: ${err.message}`); }
+  };
   const onCaptions = (/** @type {any} */ p) => {
     if (!captionsOpen || !assembler) return;
     try {
@@ -249,6 +261,7 @@ export async function runSession(opts) {
         sawCaptions = true;
       }
       emit(assembler.update(blocks, mono(Number(p && p.ts))));
+      publishLive();
     } catch (err) {
       L.warn(`caption payload failed: ${err && err.message}`);
     }
@@ -413,6 +426,7 @@ export async function runSession(opts) {
         continue;
       }
       if (assembler) emit(assembler.tick(mono(Date.now())));
+      publishLive();
 
       // classifyInCall: end-screen texts next to the call toolbar (chat toasts) are ignored
       const verdict = classifyInCall(snap, { meetingOrigin });
@@ -707,6 +721,7 @@ export async function runSession(opts) {
       await withTimeout(Promise.resolve(hooks.beforeClose(page)), 10_000, 'beforeClose').catch((e) => L.warn(`beforeClose hook failed: ${e && e.message}`));
     }
     if (assembler) emit(assembler.flush(mono(Date.now())));
+    publishLive();
     captionsOpen = false;
     if (pageAlive() && page) await withTimeout(leaveCall(page), 6000, 'leaveCall').catch(() => {});
   } catch (err) {

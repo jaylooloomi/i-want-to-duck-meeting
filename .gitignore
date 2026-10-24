@@ -5,4 +5,5 @@ meetings/
 models/
 test/.tmp/
 *.log
+__pycache__/
 plugin/skills/meet/SKILL.md

@@ -375,6 +375,16 @@ export class CaptionAssembler {
     return sortUtterances(out);
   }
 
+  /** Unfinalized text for the live viewer, without re-emitting stored prefixes. */
+  pending() {
+    return this._sortedActive().map((e) => ({
+      speaker: e.speaker,
+      text: clean(e.emittedPrefix !== null ? stripEmitted(e.acc, e.emittedPrefix) : e.acc),
+      t0: new Date(e.startMs).toISOString(),
+      t1: new Date(e.lastChangeMs).toISOString(),
+    })).filter((e) => e.text);
+  }
+
   /** @returns {Entry[]} */
   _sortedActive() {
     return [...this._active.values()].sort((a, b) => a.seq - b.seq);

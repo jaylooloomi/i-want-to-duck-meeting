@@ -52,9 +52,10 @@ export class TranscriptStore {
    * @param {string} dir meeting directory (created if missing)
    * @param {{ code?: string, startedAt?: string|number|Date }} [meta]
    */
-  constructor(dir, { code = '', startedAt = new Date() } = {}) {
+  constructor(dir, { code = '', startedAt = new Date(), sourceLabel = 'Google Meet 即時字幕' } = {}) {
     this.dir = dir;
     this.code = code;
+    this.sourceLabel = sourceLabel;
     this.startedAt = toIso(startedAt);
     this.jsonlPath = join(dir, 'transcript.jsonl');
     this.mdPath = join(dir, 'transcript.md');
@@ -113,6 +114,7 @@ export class TranscriptStore {
   renderMarkdown({ endedAt = null, captionLang, extraNote, timeZone } = {}) {
     const md = renderTranscriptMd({
       code: this.code,
+      sourceLabel: this.sourceLabel,
       startedAt: this.startedAt,
       endedAt,
       utterances: this._records,
@@ -223,7 +225,7 @@ function makeClock(timeZone) {
  *   utterances?: UtteranceLike[], captionLang?: string, extraNote?: string, timeZone?: string }} params
  * @returns {string}
  */
-export function renderTranscriptMd({ code = '', startedAt = null, endedAt = null, utterances = [], captionLang, extraNote, timeZone } = {}) {
+export function renderTranscriptMd({ code = '', startedAt = null, endedAt = null, utterances = [], captionLang, extraNote, timeZone, sourceLabel = 'Google Meet 即時字幕' } = {}) {
   const clock = makeClock(timeZone);
   const items = (Array.isArray(utterances) ? utterances : [])
     .map((u) => {
@@ -256,7 +258,7 @@ export function renderTranscriptMd({ code = '', startedAt = null, endedAt = null
     '',
     `- 時間：${when}`,
     `- 發言者：${speakers.length ? speakers.join('、') : '（無）'}`,
-    `- 來源：Google Meet 即時字幕（${captionLang || 'unknown'}）`,
+    `- 來源：${sourceLabel}（${captionLang || 'unknown'}）`,
   ];
   if (extraNote) lines.push(`- 備註：${extraNote}`);
   lines.push('');

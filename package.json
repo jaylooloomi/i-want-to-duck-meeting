@@ -1,7 +1,7 @@
 {
   "name": "openmeeting",
   "version": "0.1.0",
-  "description": "Silent Google Meet notetaker bot driven from Claude Code: paste a link, it joins and records the transcript.",
+  "description": "Local meeting notes for Codex and Claude Code: Google Meet captions and audio, live transcripts, and offline microphone transcription.",
   "type": "module",
   "private": true,
   "license": "MIT",

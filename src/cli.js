@@ -41,7 +41,7 @@ const HEARTBEAT_CONFIRM_MS = 60_000;
 const EXIT_ALREADY_RECORDING = 5;
 
 /** Flags that take a value (`--name X` or `--name=X`). */
-const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec']);
+const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port']);
 /** Boolean flags. */
 const BOOL_FLAGS = new Set(['foreground', 'help']);
 
@@ -90,6 +90,7 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   list                                                    列出所有會議（新到舊）
   leave [id|latest]                                       要求機器人離開（最多等 30 秒）
   transcript [id|latest]                                  印出逐字稿（進行中也可以）
+  live [id|latest] [--port 8791]                           啟動本機即時逐字稿網頁（Ctrl+C 關閉網頁服務）
   login                                                   開啟機器人的 Chrome 讓你自己登入 Google
   doctor                                                  檢查環境
   setup-stt                                               安裝離線語音辨識（uv + Python 3.12 + faster-whisper）
@@ -1147,6 +1148,20 @@ export async function main(argv, io = {}) {
   const ctx = { env, out, err, config: getConfig(env), spawnWorker: io.spawnWorker || ((o) => launchWorker(o)) };
   try {
     switch (command) {
+      case 'live': {
+        const port = flags.port === undefined ? 8791 : Number(flags.port);
+        if (!Number.isInteger(port) || port < 0 || port > 65535) {
+          out('ERROR=invalid_arguments'); err('port 必須是 0–65535 的整數'); return 1;
+        }
+        const { startLiveServer } = await import('./live-server.js');
+        const { url, shutdown } = await startLiveServer({ meetingsDir: ctx.config.meetingsDir, port });
+        let closing = false;
+        const close = () => { if (closing) return; closing = true; shutdown().catch((error) => err(error.message)); };
+        process.once('SIGINT', close); process.once('SIGTERM', close);
+        out(`LIVE_URL=${url}/?id=${encodeURIComponent(positionals[0] || 'latest')}`);
+          out('即時逐字稿網頁已啟動；只供本機存取。Ctrl+C 關閉網頁服務並收尾本機收音；Meet 機器人持續記錄。');
+        return 0;
+      }
       case 'join': return await cmdJoin(ctx, positionals, flags);
       case 'wait': return await cmdWait(ctx, positionals, flags);
       case 'status': return await cmdStatus(ctx, positionals);

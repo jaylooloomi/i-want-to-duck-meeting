@@ -131,6 +131,9 @@ test('happy: joins silently, records the exact transcript, audio and stats', { t
   assert.ok(final.joinedAt, 'joinedAt set');
 
   const utterances = readUtterances(dir);
+  const live = JSON.parse(fs.readFileSync(path.join(dir, 'live.json'), 'utf8'));
+  assert.deepEqual(live.pending, [], 'finalization clears live drafts');
+  assert.ok(Date.parse(live.updatedAt), 'worker publishes a live snapshot');
   assert.deepEqual(utterances.map((u) => ({ speaker: u.speaker, text: u.text })), HAPPY_EXPECTED.map((u) => ({ ...u })));
   for (const u of utterances) {
     assert.equal(u.source, 'captions');
