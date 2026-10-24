@@ -84,3 +84,7 @@
 ### 第八輪低價值候選
 - scores-08為TOP none：PCM飽和僅2/403456樣本，不改音訊；中文UI缺實際失敗DOM，不猜；跨帳號缺授權條件，不叫醒使用者。後續稽核找到STOP缺口，已依scores-09完成，連續none計數歸零。
 - 現在補跑正式session的真Chrome本機模擬回歸，以及Teams新字幕受控Chrome案例；用以確認入會snapshot修正未傷害整段生命週期。不是外部Teams真人測試。
+
+### 02:10接續檢查
+- START／DEADLINE未更動，ACTIVE仍在且尚未DONE。真Chrome session回歸仍在進行，前7個案例通過，尚不宣稱整套通過。
+- 更新本對話heartbeat說明為最新120秒合成遠端證據，移除過期的「仍只有本機注入」描述；原排程時間、分支與截止條件維持。
