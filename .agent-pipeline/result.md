@@ -17,6 +17,8 @@
 
 | 02 | 驗證層級與真實檔案報告 | scores-02.md：7.0 | Google Meet字幕官方說明 | 已新增 src/verification.js、scripts/verify-meeting-evidence.js、test/unit/verification.test.js；分開驗證本機注入與遠端來源 | node --test test/unit/verification.test.js；讀本夜實際音檔與字幕 | 6項單元通過（含WAV雜湊綁定與CLI真檔案）；本夜檔案報告 local-content-matched，remote=false | 不用peak當語句證據／不對來源不明資料宣稱遠端成功 |
 
+| 03 | 可重跑合成主持端（第一片） | scores-04.md：3.5 | Google Meet加入說明、Playwright Context API | 已新增 scripts/verify-meet-live-host.js、test/unit/meet-live-host.test.js、docs/live-google-validation.md；--live明確啟用、重用內建TTS、有限時收尾 | node --test test/unit/meet-live-host.test.js；明確啟用真實服務煙霧測試 | 3單元通過；真實服務10秒主持端煙霧測試 completed_host_only | 不接受舊私人錄音／不把host-ready當完整遠端驗證 |
+
 ## 判斷不值得做
 - 中文介面語言選擇器：Score 0.3；正式路徑使用hl=en，缺真實DOM，不猜測實作。
 
