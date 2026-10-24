@@ -40,7 +40,9 @@ export async function runLiveHost(options, deps={}) {
     validationScope:'host-only',remoteContentMatched:false};
   const save=()=>fs.writeFileSync(path.join(dir,'host-result.json'),JSON.stringify(report,null,2)+'\n');
   let chrome,browser,stopped=false,timer;
+  const schedule=deps.setTimeout || setTimeout,unschedule=deps.clearTimeout || clearTimeout;
   const stop=()=>{stopped=true;void browser?.close().catch(()=>{});};
+  const deadline=ms=>{unschedule(timer);timer=schedule(stop,ms);};
   process.once('SIGINT',stop);process.once('SIGTERM',stop);
   try {
     if(!options.live)throw new Error('Explicit --live required');
@@ -56,7 +58,7 @@ export async function runLiveHost(options, deps={}) {
     const {context}=connected;
     const page=await context.newPage();
     await context.grantPermissions(['microphone','camera'],{origin:'https://meet.google.com'});
-    timer=setTimeout(stop,(options.seconds+90)*1000);
+    deadline(90000);
     await page.goto('https://meet.google.com/new?hl=en',{waitUntil:'domcontentloaded',timeout:45000});
     const readyUntil=Date.now()+20000;
     while(!stopped && Date.now()<readyUntil) {
@@ -71,13 +73,19 @@ export async function runLiveHost(options, deps={}) {
     if(await mic.isVisible())await mic.click({timeout:3000}); // synthetic sender only
     report.state='host_ready';report.meetingUrl=page.url();save();
     console.log(`HOST_READY=${report.meetingUrl}`);
-    await deps.onHostReady?.({context,page,dir,url:report.meetingUrl,shouldStop:()=>stopped});
-    const end=Date.now()+options.seconds*1000;
-    while(!stopped && Date.now()<end && !fs.existsSync(path.join(dir,'STOP')))await page.waitForTimeout(500);
+    if(deps.onHostReady) {
+      // Join/preparation, capture, bounded offline decode and cleanup each need time.
+      deadline((options.seconds+300)*1000);
+      await deps.onHostReady({context,page,dir,url:report.meetingUrl,shouldStop:()=>stopped});
+    } else {
+      deadline(options.seconds*1000);
+      const end=Date.now()+options.seconds*1000;
+      while(!stopped && Date.now()<end && !fs.existsSync(path.join(dir,'STOP')))await page.waitForTimeout(500);
+    }
     report.state=stopped?'cancelled':'completed_host_only';
   } catch(error) {report.state=stopped?'cancelled':'failed';report.error=error.message;}
   finally {
-    clearTimeout(timer);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);
+    unschedule(timer);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);
     await browser?.close().catch(()=>{});await chrome?.close().catch(()=>{});save();
   }
   return {dir,...report};

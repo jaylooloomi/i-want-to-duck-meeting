@@ -18,6 +18,6 @@ node scripts/verify-meet-live-host.js --live --seconds 30
 node scripts/verify-meet-live.js --live --seconds 30
 ```
 
-此入口在同一專用登入context建立第二個靜音頁面，使用正式入會／字幕／音訊模組，接收指定秒數，離線Paraformer解碼並核對完整合成測試句與1357。主持端會在接收驗證後另保留指定秒數再關閉。
+此入口在同一專用登入context建立第二個靜音頁面，使用正式入會／字幕／音訊模組，接收指定秒數，離線Paraformer解碼並核對完整合成測試句與1357。主持準備最長90秒，接收與解碼另有「指定收音秒數＋300秒」總期限；完成即關閉，不再額外保留。離線解碼子程序本身最長120秒。
 
 輸出 verification.json、remote.wav、receiver-captions.json、recording-asr.json 與雜湊綁定的 evidence-result.json。缺字、英文名稱錯誤或字幕不符時回報partial／exit2，不修飾平台原文；發生入會或辨識環境錯誤則failed／exit1。全通過仍只代表同帳號兩頁的合成遠端測試，humanSpeakerVerified永遠false，不代表真人或跨組織會議已驗證。
