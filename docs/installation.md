@@ -7,11 +7,11 @@ openmeeting 的 CLI 負責加入 Google Meet、記錄字幕與錄音；兩種 AI
 - Windows 10/11、Node.js 22 以上、Google Chrome。
 - 使用 Codex 時，需要可操作這台電腦的本機 Codex；使用 Claude Code 時，需要 `claude` CLI 已安裝並在 PATH 中。
 - 統一安裝自動準備 uv、Python 3.12、音訊套件及本機模型；首次需下載。uv 缺少時使用官方 astral.sh 安裝器，安裝於資料根目錄 tools/，不改全域 PATH。
-- GitHub 儲存庫目前是私有的，下載者需要該儲存庫的讀取權限。
+- GitHub 儲存庫目前公開，可直接下載；若使用私有 fork，下載者需有該儲存庫的讀取權限。
 
 ```powershell
-git clone https://github.com/jaylooloomi/i-want-to-meeting.git
-cd i-want-to-meeting
+git clone https://github.com/jaylooloomi/i-want-to-duck-meeting.git
+cd i-want-to-duck-meeting
 npm install
 npm run setup
 ```

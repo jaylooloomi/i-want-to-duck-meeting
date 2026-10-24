@@ -1,4 +1,4 @@
-<h1 align="center">i-want-to-meeting 🎙️</h1>
+<h1 align="center">i-want-to-duck-meeting 🎙️</h1>
 
 <p align="center">
   <b>Focus on the meeting. Let AI keep the notes.</b><br>
@@ -57,8 +57,8 @@ Choose your AI tool and follow its three steps.
 **1. Copy this into local Codex**
 
 ```text
-Install the i-want-to-meeting Codex skill for me:
-1. Download https://github.com/jaylooloomi/i-want-to-meeting, or reuse an existing checkout.
+Install the i-want-to-duck-meeting Codex skill for me:
+1. Download https://github.com/jaylooloomi/i-want-to-duck-meeting, or reuse an existing checkout.
 2. Run npm install in the project directory.
 3. Run npm run setup -- --target codex.
 4. Verify installation and report the skill location. Keep credentials and meeting data out of Git.
@@ -82,8 +82,8 @@ To select the skill explicitly, use `$openmeeting` followed by the meeting link.
 **1. Copy this into Claude Code**
 
 ```text
-Install the i-want-to-meeting Claude Code plugin for me:
-1. Download https://github.com/jaylooloomi/i-want-to-meeting, or reuse an existing checkout.
+Install the i-want-to-duck-meeting Claude Code plugin for me:
+1. Download https://github.com/jaylooloomi/i-want-to-duck-meeting, or reuse an existing checkout.
 2. Run npm install in the project directory.
 3. Run npm run setup -- --target claude.
 4. Verify that openmeeting@openmeeting-local is enabled and report completion.
@@ -101,7 +101,7 @@ You can also invoke the command explicitly:
 /openmeeting:meet <Your Google Meet or Teams meeting link>
 ```
 
-> The project is displayed as **i-want-to-meeting**. The CLI, Codex skill, and Claude plugin retain the identifier `openmeeting` for compatibility with existing installations.
+> The project is displayed as **i-want-to-duck-meeting**. The CLI, Codex skill, and Claude plugin retain the identifier `openmeeting` for compatibility with existing installations.
 
 <details>
 <summary><b>Manual installation, both agents, updates, and removal</b></summary>
@@ -109,8 +109,8 @@ You can also invoke the command explicitly:
 Run in PowerShell:
 
 ```powershell
-git clone https://github.com/jaylooloomi/i-want-to-meeting.git
-cd i-want-to-meeting
+git clone https://github.com/jaylooloomi/i-want-to-duck-meeting.git
+cd i-want-to-duck-meeting
 npm install
 npm run setup -- --target codex
 # Claude only: npm run setup -- --target claude

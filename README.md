@@ -1,4 +1,4 @@
-<h1 align="center">i-want-to-meeting 🎙️</h1>
+<h1 align="center">i-want-to-duck-meeting 🎙️</h1>
 
 <p align="center">
   <b>你專心開會，AI 幫你留下重點。</b><br>
@@ -57,8 +57,8 @@
 **1. 複製這段，貼給本機 Codex**
 
 ```text
-請幫我安裝 i-want-to-meeting 的 Codex 技能：
-1. 從 https://github.com/jaylooloomi/i-want-to-meeting 下載專案，已有 checkout 就沿用。
+請幫我安裝 i-want-to-duck-meeting 的 Codex 技能：
+1. 從 https://github.com/jaylooloomi/i-want-to-duck-meeting 下載專案，已有 checkout 就沿用。
 2. 在專案目錄執行 npm install。
 3. 執行 npm run setup -- --target codex。
 4. 確認安裝成功，回報技能位置；不要把登入憑證或會議資料放進 Git。
@@ -82,8 +82,8 @@
 **1. 複製這段，貼給 Claude Code**
 
 ```text
-請幫我安裝 i-want-to-meeting 的 Claude Code 外掛：
-1. 從 https://github.com/jaylooloomi/i-want-to-meeting 下載專案，已有 checkout 就沿用。
+請幫我安裝 i-want-to-duck-meeting 的 Claude Code 外掛：
+1. 從 https://github.com/jaylooloomi/i-want-to-duck-meeting 下載專案，已有 checkout 就沿用。
 2. 在專案目錄執行 npm install。
 3. 執行 npm run setup -- --target claude。
 4. 確認 openmeeting@openmeeting-local 已啟用並回報完成。
@@ -101,7 +101,7 @@
 /openmeeting:meet <你的 Google Meet 或 Teams 會議連結>
 ```
 
-> 專案顯示名稱是 **i-want-to-meeting**。為相容既有安裝，CLI、Codex 技能及 Claude 外掛的識別名稱仍是 `openmeeting`。
+> 專案顯示名稱是 **i-want-to-duck-meeting**。為相容既有安裝，CLI、Codex 技能及 Claude 外掛的識別名稱仍是 `openmeeting`。
 
 <details>
 <summary><b>自己安裝、同時安裝兩邊、更新與移除</b></summary>
@@ -109,8 +109,8 @@
 在 PowerShell 執行：
 
 ```powershell
-git clone https://github.com/jaylooloomi/i-want-to-meeting.git
-cd i-want-to-meeting
+git clone https://github.com/jaylooloomi/i-want-to-duck-meeting.git
+cd i-want-to-duck-meeting
 npm install
 npm run setup -- --target codex
 # 只裝 Claude：npm run setup -- --target claude
