@@ -5,9 +5,9 @@
 ## 收尾
 | 項目 | 狀態 | commit | 備註 |
 |---|---|---|---|
-| 既有 PoC 與 Tactiq 研究整理 | 待處理 | | 不含下載原檔／私人資料 |
-| Teams 原生字幕整合保存 | 待處理 | | 單元490、受控Chrome2已通過，真人未驗證 |
-| Google Meet 自主驗證 | 待處理 | | 不把合成音訊稱作真人 |
+| 既有 PoC 與 Tactiq 研究整理 | 完成 | bf78755、9d3ab75 | 不含下載原檔／私人資料 |
+| Teams 原生字幕整合保存 | 完成 | 9dc0f21 | 單元490、受控Chrome2已通過，真人未驗證 |
+| Google Meet 自主驗證 | 部分通過／遠端受阻 | | 真實平台字幕含Google meet與1357；本機合成擷取24.96秒且ASR核對；匿名遠端blocked。詳見驗證文件 |
 | 驗證缺陷修正與說明 | 待處理 | | 依實際證據 |
 
 ## 加分項（每行一個，可獨立 revert）
@@ -23,3 +23,7 @@
 
 ## 統計
 - 進行中；尚未收工、未推送。
+
+## 接續機制
+- 本對話 heartbeat 已建立，automationId=google-meet，每15分鐘、最多32次；每次依既有DEADLINE判斷，不重設。到期收尾並停用。
+- 使用 night-shift 技能執行；另依 OpenAI Docs 的本對話排程機制接續。https://learn.chatgpt.com/docs/automations
