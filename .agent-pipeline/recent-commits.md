@@ -1,3 +1,11 @@
+f78e7ac feat(night-shift/bonus-03): preserve remote Meet capture and full content verification
+d044e39 feat(night-shift/bonus-03): add explicit bounded synthetic Google Meet test host
+4d1ef68 feat(night-shift/bonus-02): generate offline Paraformer evidence from immutable audio snapshots
+61a432f docs(night-shift): record real remote Meet audio and hook execution limits
+370b27c fix(night-shift): recognize icon-bearing Meet join-alongside buttons
+5ccdf72 docs(night-shift): preserve scored research and continuation evidence
+6598c2c fix(night-shift/bonus-02): bind transcript evidence to the captured audio hash
+ecfff24 feat(night-shift/bonus-02): distinguish live remote evidence from local synthetic capture
 5c9a11f feat(night-shift/bonus-01): explain Meet access failures without inventing causes
 e43475c docs(night-shift): record real Meet caption and synthetic audio validation boundaries
 9dc0f21 feat(night-shift): integrate native Teams captions with Paraformer fallback

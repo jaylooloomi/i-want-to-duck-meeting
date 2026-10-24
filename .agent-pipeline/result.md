@@ -14,9 +14,7 @@
 | # | 名稱 | Score | 參考來源（競品 / 專案 / 文章） | 做了什麼 | 驗證指令 | 測試狀態 | 否決的替代作法 |
 |---|---|---|---|---|---|---|---|
 | 01 | blocked 條件式下一步 | scores-01.md：12.0 | Google Meet官方加入說明 | 已完成 src/meet/failure-guidance.js、src/cli.js、test/unit/failure-guidance.test.js | node --test test/unit/failure-guidance.test.js test/unit/cli.test.js | 69項通過；node --check通過 | 不把blocked猜成訪客／不增加自動重試 |
-
 | 02 | 驗證層級與真實檔案報告 | scores-02.md：7.0 | Google Meet字幕官方說明 | 已新增 src/verification.js、scripts/verify-meeting-evidence.js、test/unit/verification.test.js；分開驗證本機注入與遠端來源 | node --test test/unit/verification.test.js；讀本夜實際音檔與字幕 | 6項單元通過（含WAV雜湊綁定與CLI真檔案）；本夜檔案報告 local-content-matched，remote=false | 不用peak當語句證據／不對來源不明資料宣稱遠端成功 |
-
 | 03 | 可重跑合成主持端（第一片） | scores-04.md：3.5 | Google Meet加入說明、Playwright Context API | 已新增 scripts/verify-meet-live-host.js、test/unit/meet-live-host.test.js、docs/live-google-validation.md；--live明確啟用、重用內建TTS、有限時收尾 | node --test test/unit/meet-live-host.test.js；明確啟用真實服務煙霧測試 | 3單元通過；真實服務10秒主持端煙霧測試 completed_host_only | 不接受舊私人錄音／不把host-ready當完整遠端驗證 |
 
 ## 判斷不值得做
@@ -46,3 +44,13 @@
 - 已新增 stt/verify_audio.py、stt/test_verify_audio.py，3項離線單元通過，真實接收音檔實跑成功：既有Paraformer實際解碼與SHA綁定JSON入口；用本夜真實接收音檔驗證，單元測試不下載模型、不碰外部服務。
 - 否決替代：自動另下載Whisper模型（不需要新環境）；手工填入解碼JSON（不能重跑實際辨識）。
 - scorer指出 scripts/make-tts-wav.ps1 早已支援Unicode／Base64／16kHz PCM，不重造合成工具；本輪先前手寫腳本忽略它是研究遺漏，已修正判斷。
+
+### bonus-03 後續切片計畫（scorer第五輪TOP05後續，5.6）
+- 新增 scripts/meet-test-receiver.js、scripts/verify-meet-live.js、test/unit/meet-live-receiver.test.js；在既有主持端自己的區塊加入onHostReady回呼，docs補完整命令。<=5功能檔／300行淨增。
+- 實際接收音訊後呼叫既有stt/verify_audio.py與離線驗收器。完整原句與1357核對；原生字幕英文名錯誤時標partial，保留音檔與來源，不強行替換。
+- 否決替代：複製帳號Cookie到另一個profile；只讀非零音量就把完整測試標成功。
+
+### bonus-03 後續驗證結果
+- 6項主持端／接收端單元通過，包含證據寫入失敗仍關閉頁面；先前完整回歸502項通過（在新增接收端案例之前）。
+- 新入口真實Meet實跑：25.216秒遠端WAV，SHA256 `36e275e86b90e7462c7c8288526cc4f165bb7b65af950495b321acae284f1a2f`。Paraformer完整句含Google Meet及1357，recordingMatch=true；Google原生字幕把英文名辨識成更高密，captionsMatch=false，總結partial。沒有把原生字幕強行改字，也沒有宣稱真人通過。
+- 證據：test/.tmp/live-meet-host-41a3f01f-c9d2-47b2-8f15-d298cbe0497f/verification.json（忽略的本機資料）。
