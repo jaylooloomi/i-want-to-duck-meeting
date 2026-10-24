@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Decoded meeting audio output</title></head>
+<body><script>
+window.outputReady = (async () => {
+  const ctx = new AudioContext({ sampleRate: 48000 });
+  const osc = ctx.createOscillator();
+  osc.frequency.value = 440;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.4;
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  gain.connect(ctx.destination); // repeated native connections must not double the tap
+  osc.start();
+  await ctx.resume();
+  window.outputFixture = { ctx, osc, gain };
+})();
+</script></body></html>

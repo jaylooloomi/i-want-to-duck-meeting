@@ -14,7 +14,7 @@ import { dismissModals, ensureCaptions, getCaptionLanguage, leaveCall, prepareIn
 import { classifyInCall, inCallSignal, STATES } from './meet/state.js';
 import { SEL, TEXT, matchAny, serializableSel } from './meet/selectors.js';
 import { installCaptionObserver } from './page/caption-observer.js';
-import { installAudioCapture, installTrackMirror } from './page/audio-capture.js';
+import { installAudioCapture, installAudioOutputCapture, installTrackMirror } from './page/audio-capture.js';
 import { CaptionAssembler } from './captions/assembler.js';
 import { TranscriptStore } from './transcript/store.js';
 import { WavWriter } from './audio/wav-writer.js';
@@ -120,9 +120,9 @@ export async function runSession(opts) {
   /**
    * audioTracks: only present once the "no remote audio track" warning fired (then 0, later the
    * captured track count).
-   * @type {{ utterances: number, speakers: string[], audioSeconds: number, captionLang: string, captionsOn: boolean, audioTracks?: number }}
+   * @type {{ utterances: number, speakers: string[], audioSeconds: number, audioPeak: number, captionLang: string, captionsOn: boolean, audioTracks?: number }}
    */
-  const stats = { utterances: 0, speakers: [], audioSeconds: 0, captionLang: 'unknown', captionsOn: false };
+  const stats = { utterances: 0, speakers: [], audioSeconds: 0, audioPeak: 0, captionLang: 'unknown', captionsOn: false };
   writeStatus(dir, {
     id, code, url, displayName, pid: process.pid, state: 'starting', startedAt,
     joinedAt: null, endedAt: null, endReason: null, error: null, stats, heartbeatAt: new Date().toISOString(),
@@ -214,7 +214,10 @@ export async function runSession(opts) {
       stats.utterances = store.count;
       stats.speakers = store.speakers;
     }
-    if (wav) stats.audioSeconds = Math.round(wav.seconds * 10) / 10;
+    if (wav) {
+      stats.audioSeconds = Math.round(wav.seconds * 10) / 10;
+      stats.audioPeak = wav.peak;
+    }
     const now = Date.now();
     if (!force && now - lastStatsWrite < STATS_EVERY_MS) return;
     lastStatsWrite = now;
@@ -598,9 +601,10 @@ export async function runSession(opts) {
     });
 
     // before navigation: page→node bindings, deny mic/cam for the meeting origin. The
-    // RTCPeerConnection track mirror is opt-in (OPENMEETING_TRACK_MIRROR=1): wrapping
-    // RTCPeerConnection leaves a detectable main-world fingerprint, and Meet already plays remote
-    // audio through <audio>/<video> elements with a srcObject, which audio capture taps directly.
+    // Capture decoded WebAudio playback before navigation. Native receiver tracks may be silent
+    // when Meet decodes audio in its own worklet. The optional receiver-track mirror remains a
+    // fallback for pages that render neither a WebAudio output nor native media elements.
+    await conn.context.addInitScript(installAudioOutputCapture);
     if (config.trackMirror) {
       await conn.context.addInitScript(installTrackMirror);
       L.info('RTCPeerConnection track mirror enabled (OPENMEETING_TRACK_MIRROR=1)');
@@ -711,7 +715,9 @@ export async function runSession(opts) {
   try {
     if (wav) {
       stats.audioSeconds = Math.round(wav.seconds * 10) / 10;
+      stats.audioPeak = wav.peak;
       L.info(`audio: ${stats.audioSeconds} s, peak ${wav.peak}`);
+      if (wav.seconds > 0 && wav.peak === 0) L.warn('audio.wav contains only zero samples; no voice was recorded');
       await wav.close();
     }
   } catch (err) {

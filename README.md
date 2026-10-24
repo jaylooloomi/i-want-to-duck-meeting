@@ -4,6 +4,7 @@
 
 - 機器人用你電腦上的 Google Chrome（獨立設定檔、有視窗）加入，**麥克風與鏡頭永遠關閉，不會說話**。
 - 文字來源是 Meet 免費的即時字幕（預設「中文（國語，台灣）」`cmn-Hant-TW`）；同時錄下會議音訊 `audio.wav` 當備援，可用本機 Whisper 離線轉錄。
+- 錄音優先擷取 Meet 的 WebAudio 播放輸出，支援自行解碼音訊、沒有 `<audio>` 元素的介面；沒有播放輸出時才使用媒體元素的音軌。`status.json` 的 `stats.audioPeak` 是實際訊號峰值（0～32767）；只有錄音長度增加、但峰值為 0 時，仍代表沒有錄到聲音。
 - 機器人自己偵測會議結束（會議結束、被移出、只剩自己、一直沒人加入……）並離開。
 - 全部免費：不需要付費服務、API 金鑰或 Google Workspace 功能。
 
@@ -40,6 +41,21 @@ node bin/openmeeting.js doctor     # 檢查環境
 ```
 
 移除：`claude plugin uninstall openmeeting@openmeeting-local`，再 `claude plugin marketplace remove openmeeting-local`。
+
+### 登入視窗與會議視窗
+
+`login` 開啟的是機器人專用 Chrome，和你平常參加會議的 Chrome 分開。登入完成後請關閉整個專用視窗，再執行 `join`；機器人會重新開啟視窗並沿用登入狀態。你自己的會議視窗保持開著。若 `doctor` 顯示「設定檔使用中」或出現 `chrome_launch_failed`，先確認專用視窗已關閉。
+
+已登入時，Meet 顯示的是機器人 Google 帳號的名稱；`--name` 主要用於未登入的訪客。麥克風與攝影機旁的權限警示是機器人刻意封鎖裝置的結果，不需要為了錄下其他人的聲音而開啟這兩個權限。
+
+### 確認字幕與錄音成功
+
+1. 在你平常的 Chrome 以自己的帳號主持會議，讓機器人加入並放行；用自己的帳號開啟麥克風說一段可辨識的測試句。
+2. 執行 `node bin/openmeeting.js leave latest` 正常收尾，再讀取 `transcript.md`。最後一段字幕可能等到收尾才定稿落盤。
+3. 用 `status latest` 檢查 `stats.audioSeconds` 與 `stats.audioPeak`。只有檔案存在或長度增加，不能證明錄到了聲音；峰值為 0 代表全靜音。
+4. 播放 `audio.wav`，或在已安裝 STT 時執行 `transcribe latest`，核對錄音內容是否包含剛才的測試句。非零峰值只能證明有訊號，仍應核對語音內容。
+
+本次修正及真人測試結果見 [專案檢查紀錄](docs/2026-10-24-project-audit.md) 與 [真人錄音驗證紀錄](docs/2026-10-24-live-meet-recording.md)。
 
 ## 使用
 
@@ -88,7 +104,7 @@ node bin/openmeeting.js doctor     # 檢查環境
 | 指令 | 說明 | 結束碼 |
 |---|---|---|
 | `join <連結> [--name 名稱] [--lang 代碼] [--foreground]` | 檢查連結、建立會議資料夾、在背景啟動機器人；印出 `LAUNCHER=`（`wmi`／`spawn`／`spawn-fallback`）、`MEETING_ID=`、`MEETING_DIR=`。已有會議在記錄時拒絕並印出 `ERROR=already_recording`、`ACTIVE_MEETING_ID=`；背景機器人沒有啟動時印出 `ERROR=crashed`（沒有 `MEETING_ID=`，原因在 stderr 與 `worker.out`） | 0 成功、1 連結無效或機器人沒啟動、5 已有會議在記錄 |
-| `wait <id\|latest> [--timeout-min N]` | 等到會議結束；印出 `STATE=` 進度與 `RESULT=`、`TRANSCRIPT=`、`UTTERANCES=`、`ERROR=` | 0 有逐字稿、2 沒擷取到字幕、3 失敗、4 等待逾時 |
+| `wait <id\|latest> [--timeout-min N]` | 等到會議結束；印出 `STATE=` 進度與 `RESULT=`、`TRANSCRIPT=`、`UTTERANCES=`、`ERROR=`。沒有字幕但有 Whisper 備援逐字稿時，印出 `TRANSCRIPT_WHISPER=`、`WHISPER_SEGMENTS=` | 0 有字幕或 Whisper 逐字稿、2 兩者皆無內容、3 失敗、4 等待逾時 |
 | `status [id\|latest]` | 印出 status.json | 0／1 找不到 |
 | `list` | 列出所有會議（新到舊）：id、狀態、段數 | 0 |
 | `leave [id\|latest]` | 要求機器人離開，最多等 30 秒 | 0 |
@@ -99,6 +115,8 @@ node bin/openmeeting.js doctor     # 檢查環境
 | `transcribe <id\|latest> [--model M]` | 用 Whisper 離線轉錄 `audio.wav` | 0／1 |
 
 失敗時的錯誤代碼：`signin_required`、`not_found`、`blocked`、`denied`、`lobby_timeout`、`chrome_not_found`、`chrome_launch_failed`、`join_failed`、`crashed`。
+
+需要值的選項（例如 `--name`、`--lang`、`--timeout-min`）若沒有提供值，CLI 會印出 `ERROR=invalid_arguments` 並以結束碼 1 結束，不會啟動機器人。`UTTERANCES` 只計算字幕段數；Whisper 備援段數另以 `WHISPER_SEGMENTS` 回報。
 
 常用環境變數：`OPENMEETING_HOME`（資料位置）、`OPENMEETING_NAME`（機器人顯示名稱，預設「Arthur 的會議記錄」）、`OPENMEETING_CAPTION_LANG`（字幕語言，預設 `cmn-Hant-TW`）、`CHROME_PATH`、`OPENMEETING_PROFILE`（Chrome 設定檔位置）、`OPENMEETING_MUTE=0`（讓電腦喇叭播放會議聲音）。
 

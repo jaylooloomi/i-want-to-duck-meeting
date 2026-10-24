@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { chromium } from 'playwright-core';
 
-import { installAudioCapture, installTrackMirror } from '../../src/page/audio-capture.js';
+import { installAudioCapture, installAudioOutputCapture, installTrackMirror } from '../../src/page/audio-capture.js';
 import { WavWriter } from '../../src/audio/wav-writer.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -61,9 +61,10 @@ after(async () => {
 });
 
 /** New isolated context + page with __omAudio / __omAudioStatus collectors. */
-async function openPage({ mirror = false, init = null } = {}) {
+async function openPage({ mirror = false, outputs = false, init = null } = {}) {
   const context = await browser.newContext();
   if (mirror) await context.addInitScript(installTrackMirror);
+  if (outputs) await context.addInitScript(installAudioOutputCapture);
   if (init) await context.addInitScript(init);
   const page = await context.newPage();
   const chunks = [];
@@ -209,6 +210,31 @@ test('falls back to ScriptProcessorNode when audioWorklet.addModule fails (CSP /
     const f = freqOf(samples);
     assert.ok(Math.abs(f - 440) < 25, `tone frequency ${f} Hz should be ~440 Hz`);
     assert.ok(statuses.some((s) => s.mode === 'scriptprocessor' && s.tracks === 1));
+  } finally {
+    await context.close();
+  }
+});
+
+test('decoded WebAudio output is recorded without media elements, without feedback, and stops on disconnect', T, async () => {
+  const { context, page, chunks } = await openPage({ outputs: true });
+  try {
+    await context.addInitScript(installAudioOutputCapture); // idempotent
+    await page.goto(`${base}/output.html`, NAV);
+    await page.evaluate(() => window.outputReady);
+    assert.equal(await page.locator('audio,video').count(), 0);
+    const res = await page.evaluate(installAudioCapture, { sampleRate: RATE, flushMs: 250, scanMs: 100 });
+    assert.equal(res.tracks, 1);
+    await sleep(1800);
+    const samples = decode(chunks);
+    const peak = peakOf(samples);
+    assert.ok(peak > 10000 && peak < 15000, `single output peak ${peak}, no duplicate mixing`);
+    assert.ok(Math.abs(freqOf(samples) - 440) < 25);
+    assert.equal(await page.evaluate(() => window.__omAudioOutputCapture.outputs.size), 1, 'capture sink is never tapped');
+    await page.evaluate(() => window.outputFixture.gain.disconnect(window.outputFixture.ctx.destination));
+    await sleep(600);
+    chunks.length = 0;
+    await sleep(800);
+    assert.equal(peakOf(decode(chunks)), 0, 'disconnected output must no longer be recorded');
   } finally {
     await context.close();
   }

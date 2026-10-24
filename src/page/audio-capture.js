@@ -1,14 +1,67 @@
 /**
  * Browser-side audio capture for the meeting page (spec 5.13).
  *
- * Both exports are passed to Playwright (`page.evaluate` / `context.addInitScript`), which
+ * The exports are passed to Playwright (`page.evaluate` / `context.addInitScript`), which
  * serializes them with `Function.prototype.toString`. They MUST stay fully self-contained:
  * no imports, no references to module scope, all inputs as parameters.
  */
 
 /**
+ * Install before navigation: mirror WebAudio connections to each context's speaker destination
+ * into a MediaStreamDestination. Meet may decode audio in its own worklet, leaving native
+ * receiver tracks silent. The page's graph, speaker gain and connection return values stay
+ * intact; capture contexts are excluded to prevent recording feedback. Disconnects are mirrored.
+ * Self-contained and idempotent; shared streams live in window.__omAudioOutputCapture.outputs.
+ */
+export function installAudioOutputCapture() {
+  if (window.__omAudioOutputCapture || typeof AudioNode === 'undefined') return;
+  const state = { outputs: new Map(), ignoredContexts: new WeakSet() };
+  Object.defineProperty(window, '__omAudioOutputCapture', { value: state, configurable: true });
+  const connect = AudioNode.prototype.connect;
+  const disconnect = AudioNode.prototype.disconnect;
+  const attached = new WeakMap();
+  AudioNode.prototype.connect = function (...args) {
+    const result = Reflect.apply(connect, this, args);
+    try {
+      const ctx = this.context;
+      if (args[0] !== ctx.destination || state.ignoredContexts.has(ctx)) return result;
+      let tap = state.outputs.get(ctx);
+      if (!tap) {
+        tap = ctx.createMediaStreamDestination();
+        state.outputs.set(ctx, tap);
+      }
+      const output = args[1] ?? 0;
+      let outputs = attached.get(this);
+      if (!outputs) { outputs = new Set(); attached.set(this, outputs); }
+      if (!outputs.has(output)) {
+        Reflect.apply(connect, this, [tap, output, 0]);
+        outputs.add(output);
+      }
+    } catch { /* observing audio must never break Meet's graph */ }
+    return result;
+  };
+  AudioNode.prototype.disconnect = function (...args) {
+    const result = Reflect.apply(disconnect, this, args);
+    try {
+      const outputs = attached.get(this);
+      if (outputs && args[0] === this.context.destination) {
+        const tap = state.outputs.get(this.context);
+        for (const output of [...outputs]) {
+          if (args.length > 1 && args[1] !== output) continue;
+          Reflect.apply(disconnect, this, [tap, output, 0]);
+          outputs.delete(output);
+        }
+      } else if (!args.length) attached.delete(this);
+      else if (typeof args[0] === 'number') outputs?.delete(args[0]);
+    } catch { /* preserve the page's original disconnect result */ }
+    return result;
+  };
+}
+
+/**
  * Install (once per page) a silent capture of every live remote audio track rendered by
- * `<audio>` / `<video>` elements with a MediaStream `srcObject`.
+ * `<audio>` / `<video>` elements with a MediaStream `srcObject`, or the page playback outputs.
+ * Playback outputs take precedence over native tracks to avoid duplicate recording.
  *
  * Graph: one `AudioContext({ sampleRate })`; each track -> `createMediaStreamSource` ->
  * shared mono mixer GainNode -> AudioWorkletNode (processor loaded from a Blob URL; falls back
@@ -149,6 +202,7 @@ registerProcessor('om-capture-processor', OmCaptureProcessor);
       ctx = new AudioContext();
     }
     st.ctx = ctx;
+    window.__omAudioOutputCapture?.ignoredContexts.add(ctx);
     ctx.resume().catch(() => {});
     const resample = makeResampler(ctx.sampleRate, targetRate);
 
@@ -214,10 +268,26 @@ registerProcessor('om-capture-processor', OmCaptureProcessor);
           st.tracks.delete(id);
         }
       }
+      const outputStreams = [];
+      const outputCapture = window.__omAudioOutputCapture;
+      if (outputCapture) {
+        for (const [outputContext, output] of outputCapture.outputs) {
+          if (outputContext.state === 'closed') {
+            for (const track of output.stream.getTracks()) track.stop();
+            outputCapture.outputs.delete(outputContext);
+          } else outputStreams.push(output.stream);
+        }
+      }
+      const preferredTracks = new Set(outputStreams.flatMap((s) => s.getAudioTracks().map((t) => t.id)));
+      if (outputStreams.length) {
+        for (const [id, item] of st.tracks) {
+          if (!preferredTracks.has(id)) { item.source.disconnect(); st.tracks.delete(id); }
+        }
+      }
       let els = [];
       try { els = document.querySelectorAll('audio, video'); } catch (e) { /* ignore */ }
-      for (const el of els) {
-        const so = el.srcObject;
+      const streams = outputStreams.length ? outputStreams : Array.from(els, (el) => el.srcObject);
+      for (const so of streams) {
         if (!(so instanceof MediaStream)) continue;
         for (const track of so.getAudioTracks()) {
           if (track.readyState !== 'live' || st.tracks.has(track.id)) continue;

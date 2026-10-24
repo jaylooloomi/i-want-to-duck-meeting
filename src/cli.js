@@ -141,7 +141,7 @@ export function parseArgs(argv) {
       const name = m[1].toLowerCase();
       if (VALUE_FLAGS.has(name)) {
         if (m[2] !== undefined) flags[name] = m[2];
-        else if (i + 1 < argv.length) flags[name] = String(argv[++i]);
+        else if (i + 1 < argv.length && !argv[i + 1].startsWith('--') && argv[i + 1] !== '-h') flags[name] = String(argv[++i]);
         else unknown.push(a);
       } else if (BOOL_FLAGS.has(name)) {
         flags[name] = true;
@@ -235,11 +235,18 @@ export function reconcileStatus(dir, status, { heartbeatSilentForMs, confirmMs =
   }
 }
 
-/** Number of utterances: transcript.jsonl lines when present, else stats.utterances. */
+/** Number of valid non-empty transcript records when present, else stats.utterances. */
 function countUtterances(dir, status) {
   const file = path.join(dir, 'transcript.jsonl');
   try {
-    const n = fs.readFileSync(file, 'utf8').split(/\r?\n/).filter((l) => l.trim()).length;
+    const n = fs.readFileSync(file, 'utf8').split(/\r?\n/).filter((line) => {
+      try {
+        const rec = JSON.parse(line);
+        return typeof rec?.text === 'string' && rec.text.trim().length > 0;
+      } catch {
+        return false; // includes a partial final line left by a crashed worker
+      }
+    }).length;
     return n;
   } catch {
     const s = status && status.stats && status.stats.utterances;
@@ -275,6 +282,22 @@ function printResult(out, dir, status) {
   if (n > 0) {
     const speakers = (status.stats && Array.isArray(status.stats.speakers)) ? status.stats.speakers : [];
     out(`記錄完成（${reason}）：${n} 段發言${speakers.length ? `，發言者：${speakers.join('、')}` : ''}。逐字稿：${transcript}`);
+    return 0;
+  }
+  // A successful audio fallback is usable even when no captions were captured.
+  // The markdown alone may be empty or left behind by a failed transcription.
+  let whisperSegments = 0;
+  try {
+    const doc = JSON.parse(fs.readFileSync(path.join(dir, 'transcript-whisper.json'), 'utf8'));
+    if (fs.existsSync(whisper) && Array.isArray(doc?.segments)) {
+      whisperSegments = doc.segments.filter((s) => typeof s?.text === 'string' && s.text.trim()).length;
+    }
+  } catch {
+    /* missing or incomplete fallback output is not a successful transcript */
+  }
+  if (whisperSegments > 0) {
+    out(`WHISPER_SEGMENTS=${whisperSegments}`);
+    out(`記錄完成（${reason}）：Whisper 備援逐字稿 ${whisperSegments} 段。逐字稿：${whisper}`);
     return 0;
   }
   out(`會議已結束（${reason}），但沒有擷取到任何字幕。`);
@@ -778,6 +801,9 @@ async function cmdJoin(ctx, pos, flags) {
   try {
     const r = await ctx.spawnWorker({ dir, url: parsed.url, code: parsed.code, id, displayName, captionLang, env: ctx.env, config });
     launch = r !== null && typeof r === 'object' ? r : { pid: r };
+    if (!Number.isInteger(launch.pid) || launch.pid <= 0) {
+      throw new Error('the worker launcher returned no valid process id');
+    }
   } catch (e) {
     writeStatus(dir, { state: 'failed', endedAt: new Date().toISOString(), error: { code: 'crashed', message: `could not start the worker: ${e && /** @type {any} */ (e).message}` } });
     err(`無法啟動背景機器人：${e && /** @type {any} */ (e).message}`);
@@ -1109,6 +1135,12 @@ export async function main(argv, io = {}) {
   if (flags.help) {
     out(USAGE);
     return 0;
+  }
+  const missing = unknown.filter((a) => VALUE_FLAGS.has(a.replace(/^--/, '').toLowerCase()));
+  if (missing.length) {
+    err(`參數缺少值：${missing.join(' ')}`);
+    out('ERROR=invalid_arguments');
+    return 1;
   }
   if (unknown.length) err(`忽略未知參數：${unknown.join(' ')}`);
   /** @type {Ctx} */

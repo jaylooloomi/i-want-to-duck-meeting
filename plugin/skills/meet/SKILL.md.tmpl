@@ -42,6 +42,7 @@ allowed-tools: Bash(node:*)
 依輸出的行判斷結果（不要只看結束碼）：
 - 有 `MEETING_ID=<id>` 和 `MEETING_DIR=<資料夾路徑>` → 機器人已在背景啟動。記住這兩個值，繼續步驟 2（即使結束碼不是 0 也一樣）。
 - `ERROR=not_a_meet_url` → 不是有效的 Google Meet 連結 → 告訴使用者並請他重貼連結，流程結束。
+- `ERROR=invalid_arguments` → 選項缺少值，依 stderr 修正指令後重試；這次尚未啟動機器人。
 - `ERROR=already_recording`（結束碼 5）→ 另一場會議（`ACTIVE_MEETING_ID=`）還在記錄中，一次只能記錄一場。問使用者要不要先結束那場；同意後執行 `{{CLI}} leave <ACTIVE_MEETING_ID>`，再重新執行本步驟。
 - `ERROR=crashed` 而且沒有 `MEETING_ID=` → 背景機器人沒有啟動。把 stderr 的原因告訴使用者（細節在 stderr 提到的 `worker.out`），流程結束；使用者要重試時從本步驟重新開始。
 
@@ -68,8 +69,10 @@ join 成功後，立刻用簡短的話告訴使用者：
 
 先讀背景工作的輸出與結束碼。必要時執行 `{{CLI}} status <MEETING_ID>` 取得 `endReason`、`stats`、`error`。
 
+字幕成功不代表錄音成功。使用者詢問錄音時，檢查 `stats.audioPeak`；為 0 代表沒有聲音訊號，不可只因 `audioSeconds` 增加就宣稱錄音成功。需要確認有錄到使用者的聲音時，再播放錄音或轉錄並核對測試發言內容。
+
 **結束碼 0（有逐字稿）**
-1. 用 Read 讀 `<MEETING_DIR>/transcript.md`（很長就分段讀完）。若輸出有 `TRANSCRIPT_WHISPER=<路徑>`（字幕語言沒能設成中文，系統另外用 Whisper 轉錄了錄音），也讀那個檔；transcript.md 開頭若註明「字幕語言未能設定」，摘要以 Whisper 逐字稿為主，並註明來源。
+1. 用 Read 讀 `<MEETING_DIR>/transcript.md`（很長就分段讀完）。若輸出有 `TRANSCRIPT_WHISPER=<路徑>`，也讀那個檔；`UTTERANCES=0` 且 `WHISPER_SEGMENTS` 大於 0，或 transcript.md 開頭註明「字幕語言未能設定」時，摘要以 Whisper 逐字稿為主，並註明來源。Whisper 無法辨識發言者，不要把字幕發言者人數或段數套用到 Whisper 內容。
 2. 寫 `<MEETING_DIR>/summary.md`，繁體中文，只根據逐字稿內容，不要編造；沒提到的負責人或期限寫「未指定」；某段沒有內容寫「（無）」；字幕可能有錯字或人名辨識錯誤，不確定處標「（?）」。格式：
 
    ```

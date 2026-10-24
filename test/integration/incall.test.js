@@ -4,7 +4,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { ensureCaptions, getCaptionLanguage, setCaptionLanguage } from '../../src/meet/incall.js';
-import { JoinError, joinMeeting } from '../../src/meet/join.js';
+import { JoinError, joinMeeting, dismissDevicePrompt } from '../../src/meet/join.js';
 
 const ORIGIN = 'http://incall-fixtures.test';
 
@@ -51,6 +51,26 @@ const C_TOGGLE = `
     r.hidden = !r.hidden;
   });
 </script>`;
+
+test('device invitation: closes only the microphone prompt without enabling devices', async () => {
+  const page = await open('device-prompt', `
+    <div role="dialog" id="other"><p>Other settings</p><button aria-label="Close dialog" onclick="window.wrong=true">Close</button></div>
+    <div role="dialog" id="devices"><p>Do you want people to hear you in the meeting?</p>
+      <button aria-label="Close dialog" onclick="window.trusted=event.isTrusted; this.parentElement.remove()">Close</button>
+      <button onclick="window.enabled=true">Use microphone</button>
+      <button onclick="window.enabled=true">Use microphone and camera</button>
+    </div>`);
+  try {
+    assert.equal(await dismissDevicePrompt(page), true);
+    assert.equal(await page.locator('#devices').count(), 0);
+    assert.equal(await page.evaluate(() => window.trusted), true);
+    assert.equal(await page.evaluate(() => !!window.enabled || !!window.wrong), false);
+    assert.equal(await dismissDevicePrompt(page), false);
+    assert.equal(await page.locator('#other').count(), 1);
+  } finally {
+    await page.close();
+  }
+});
 
 test('ensureCaptions: a visible caption region means "on" — c is never pressed (it would toggle them off)', async () => {
   const page = await open('region-only', `

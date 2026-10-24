@@ -215,6 +215,27 @@ export async function clickElement(page, spec, { log, label, timeout } = {}) {
   }
 }
 
+/** Close Meet's device invitation without clicking any device-enabling action. */
+export async function dismissDevicePrompt(page, { log } = {}) {
+  const L = toLog(log);
+  let button;
+  try {
+    const dialog = page.locator('[role="dialog"], [role="alertdialog"]')
+      .filter({ hasText: 'Do you want people to hear you in the meeting?' });
+    const close = dialog.locator(SEL.closeDialog.join(',')).first();
+    if (!(await close.isVisible())) return false;
+    button = await close.elementHandle();
+    if (!button) return false;
+    await humanClick(button);
+    return true;
+  } catch (err) {
+    L.debug(`could not close the device prompt: ${err && err.message}`);
+    return false;
+  } finally {
+    if (button) await button.dispose().catch(() => {});
+  }
+}
+
 /** @param {any} spec */
 function describeSpec(spec) {
   if (!spec) return '?';
@@ -245,6 +266,7 @@ export async function humanType(page, text) {
  *   or camera could not be turned off, so the join button was NOT clicked
  */
 async function prejoinStep(page, { displayName, log }) {
+  if (await dismissDevicePrompt(page, { log })) return 'dismiss';
   if (await clickElement(page, { texts: TEXT.continueWithoutDevices }, { log, label: 'continue without devices' })) {
     log.info('join: clicked "continue without microphone and camera"');
     return 'continue';
@@ -526,7 +548,9 @@ export async function joinMeeting(page, {
       }
       default:
         // UNKNOWN / RECONNECTING: dialogs can hide the page behind them
-        if (await clickElement(page, { texts: TEXT.continueWithoutDevices }, { log: L })) {
+        if (await dismissDevicePrompt(page, { log: L })) {
+          L.info('join: closed the microphone permission prompt without enabling devices');
+        } else if (await clickElement(page, { texts: TEXT.continueWithoutDevices }, { log: L })) {
           L.info('join: clicked "continue without microphone and camera"');
         } else if (await clickElement(page, { texts: TEXT.dismiss }, { log: L })) {
           L.info('join: dismissed a popup');

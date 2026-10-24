@@ -101,6 +101,63 @@ test('parseArgs: unknown flags are collected, a value flag without value is unkn
 
 // --- help / unknown ------------------------------------------------------------------------------
 
+test('parseArgs: a missing value does not consume the next option', () => {
+  const r = parseArgs(['join', 'abc-defg-hij', '--name', '--foreground']);
+  assert.equal(r.flags.foreground, true);
+  assert.equal(r.flags.name, undefined);
+  assert.deepEqual(r.unknown, ['--name']);
+});
+
+test('join: missing option values fail before starting a worker', async () => {
+  const home = newHome();
+  const r = await run(['join', 'abc-defg-hij', '--name', '--foreground'], { home });
+  assert.equal(r.code, 1);
+  assert.equal(kv(r.out).ERROR, 'invalid_arguments');
+  assert.deepEqual(fs.readdirSync(path.join(home, 'meetings')), []);
+});
+
+test('join: a launcher without a valid pid fails instead of reporting success', async () => {
+  for (const pid of [undefined, null, 0, -1, NaN]) {
+    const home = newHome();
+    const r = await run(['join', 'abc-defg-hij'], { home, spawnWorker: () => ({ pid, launcher: 'spawn' }) });
+    assert.equal(r.code, 1);
+    assert.equal(kv(r.out).ERROR, 'crashed');
+    assert.equal(kv(r.out).MEETING_ID, undefined);
+    const [id] = fs.readdirSync(path.join(home, 'meetings'));
+    assert.equal(readStatus(path.join(home, 'meetings', id)).state, 'failed');
+  }
+});
+
+test('wait: successful Whisper fallback counts as a transcript; empty or corrupt output does not', async () => {
+  for (const segments of [[{ start: 0, end: 1, text: '備援內容' }], [], [{ text: '  ' }], null]) {
+    const home = newHome();
+    const dir = fakeMeeting(home, '20261004-220000-abc-defg-hij', { state: 'done' });
+    fs.writeFileSync(path.join(dir, 'transcript-whisper.md'), '# 備援逐字稿\n');
+    fs.writeFileSync(path.join(dir, 'transcript-whisper.json'), segments === null ? '{' : JSON.stringify({ segments }));
+    const r = await run(['wait', 'latest'], { home });
+    const valid = segments?.some((s) => s.text.trim());
+    assert.equal(r.code, valid ? 0 : 2);
+    assert.equal(kv(r.out).UTTERANCES, '0');
+    if (valid) {
+      assert.equal(kv(r.out).WHISPER_SEGMENTS, '1');
+      assert.doesNotMatch(r.text, /但沒有擷取到任何字幕/);
+    }
+  }
+});
+
+test('wait: corrupt or empty transcript records do not count as captured utterances', async () => {
+  const home = newHome();
+  const dir = fakeMeeting(home, '20261004-220000-abc-defg-hij', { state: 'done' });
+  fs.writeFileSync(path.join(dir, 'transcript.jsonl'), '{"text":"unfinished\n{}\n{"text":"  "}\nnull\n');
+  const empty = await run(['wait', 'latest'], { home });
+  assert.equal(empty.code, 2);
+  assert.equal(kv(empty.out).UTTERANCES, '0');
+  fs.appendFileSync(path.join(dir, 'transcript.jsonl'), '{"text":"有效發言"}\n');
+  const valid = await run(['wait', 'latest'], { home });
+  assert.equal(valid.code, 0);
+  assert.equal(kv(valid.out).UTTERANCES, '1');
+});
+
 test('help prints usage (exit 0); unknown command exits 1; no command exits 1', async () => {
   const home = newHome();
   const h = await run(['help'], { home });

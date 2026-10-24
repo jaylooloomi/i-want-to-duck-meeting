@@ -154,6 +154,7 @@ test('happy: joins silently, records the exact transcript, audio and stats', { t
   assert.ok(wav.seconds >= 3, `audio.wav has ${wav.seconds} s`);
   assert.ok(wav.peak > 1000, `audio peak ${wav.peak}`);
   assert.ok(final.stats.audioSeconds >= 3);
+  assert.ok(final.stats.audioPeak > 1000, 'status reports the actual captured signal, not just duration');
 
   assert.ok(mockState, 'mock state captured before leaving');
   assert.equal(mockState.micOff, true, 'microphone off');
