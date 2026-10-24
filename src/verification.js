@@ -4,12 +4,14 @@ const normalize = value => String(value || '').normalize('NFKC').toLowerCase().r
 export function evaluateMeetingEvidence(evidence) {
   const markers=Array.isArray(evidence.markers)?evidence.markers:[];
   const validMarkers=markers.length>0 && markers.every(x=>typeof x==='string' && normalize(x));
-  const match=text=>!!validMarkers && markers.every(marker=>{
+  const match=(marker,text)=>{
     const value=normalize(marker),haystack=normalize(text);
     return /^\d+$/.test(value)?new RegExp(`(?<!\\d)${value}(?!\\d)`).test(haystack):haystack.includes(value);
-  });
-  const captionsMatch=match(evidence.captionText);
-  const recordingMatch=match(evidence.recordingText);
+  };
+  const markerResults=validMarkers?markers.map(marker=>({marker,
+    captionsMatch:match(marker,evidence.captionText),recordingMatch:match(marker,evidence.recordingText)})):[];
+  const captionsMatch=!!validMarkers && markerResults.every(x=>x.captionsMatch);
+  const recordingMatch=!!validMarkers && markerResults.every(x=>x.recordingMatch);
   const signal=evidence.audioSeconds>0 && evidence.audioPeak>0;
   const contentMatched=captionsMatch && recordingMatch && signal;
   let level='incomplete';
@@ -20,7 +22,8 @@ export function evaluateMeetingEvidence(evidence) {
       level='remote-content-matched';
     else level='content-matched-provenance-unconfirmed';
   }
-  return {level,captionsMatch,recordingMatch,signal,
+  return {level,captionsMatch,recordingMatch,signal,markerResults,
+    observedText:{captions:String(evidence.captionText || ''),recording:String(evidence.recordingText || '')},
     remoteContentMatched:level==='remote-content-matched',
     humanSpeakerVerified:false,
     provenance:'environment, capture route and input type are declarations; verify them separately',

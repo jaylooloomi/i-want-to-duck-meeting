@@ -24,6 +24,18 @@ test('signal or captions alone cannot prove recorded sentence',()=>{
 test('confirmation digits cannot match the middle of a longer number',()=>{
   assert.equal(check({...evidence,recordingText:'Google Meet 913570'}).recordingMatch,false);
 });
+
+test('partial report explains each marker using unchanged observed text',()=>{
+  const captionText='Google Map，確認代碼1357';
+  const result=check({...evidence,captionText});
+  assert.equal(result.level,'incomplete');
+  assert.deepEqual(result.markerResults,[
+    {marker:'Google Meet',captionsMatch:false,recordingMatch:true},
+    {marker:'1357',captionsMatch:true,recordingMatch:true},
+  ]);
+  assert.deepEqual(result.observedText,{captions:captionText,recording:evidence.recordingText});
+  assert.deepEqual(check({...evidence,markers:[]}).markerResults,[]);
+});
 test('remote requires explicit live source and membership; human labels are not authentication',()=>{
   assert.equal(check({...evidence,captureRoute:'remote-received'}).remoteContentMatched,true);
   assert.equal(check({...evidence,captureRoute:'remote-received',joined:false}).remoteContentMatched,false);
