@@ -77,3 +77,6 @@
 - 否決：只關視窗不寫狀態（無法核對）；忽略STOP直到收音期限到（不符合使用介面）。
 
 - STOP續作：8項主持／接收單元全通過；STOP於回呼內產生時shouldStop立即true，最終cancelled，兩個owner均清理。
+
+### 120秒實測（非真人）
+- 120.064秒遠端音訊、SHA337b6f28d882e1cbab9485b7b7c5a043fc9ee3e077418f3212eb4312d39ede54，完整句在Google原生字幕與Paraformer解碼均至少出現一次，completed_synthetic_remote。仍有其他重複段錯字，不宣稱100%準確。較短25秒partial場次保留。

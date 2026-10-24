@@ -39,7 +39,7 @@ Recording and local ASR do not require an additional cloud speech API key. **Sum
 
 An explicit test command, `node scripts/verify-meet-live.js --live --seconds 30`, creates a private test meeting, sends newly generated synthetic speech, and records it from a second muted page in the same signed-in browser context. It requires the existing Windows/Chrome and local Paraformer setup. [Commands and evidence limits](docs/live-google-validation.md).
 
-The 2026-10-25 run captured 25.216 seconds of received audio; offline Paraformer matched the complete test sentence, Google Meet, and 1357. Google native captions contained errors, so the overall result is **partial**. This verifies a synthetic same-account remote path, not two human participants or independent organizations. Captions and decoded recording are checked separately against the actual WAV hash. Test artifacts remain local and ignored by Git.
+The 2026-10-25 run captured 25.216 seconds of received audio; offline Paraformer matched the complete test sentence, Google Meet, and 1357. Google native captions contained errors, so the overall result is **partial**. A subsequent 120.064-second run contained at least one complete matching sentence in both native captions and decoded audio; other repetitions still contained errors. This verifies a synthetic same-account remote path, not two human participants or independent organizations. Captions and decoded recording are checked separately against the actual WAV hash. Test artifacts remain local and ignored by Git.
 
 ## Teams native captions first (live acceptance pending)
 

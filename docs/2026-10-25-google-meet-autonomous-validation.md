@@ -81,3 +81,12 @@ node scripts/verify-meeting-evidence.js --manifest test/.tmp/night-meet-dual/evi
 `--out` 需選新檔名，避免蓋掉既有證據；manifest的audioTranscriptFile需對應實際產出的JSON。既有本夜manifest使用已生成的paraformer-evidence-v2.json。入口沿用既有Paraformer與OpenCC，只讀本機PCM16／16kHz單聲道WAV、不下載、不提供expected prompt。它對實際讀入的同一份bytes計算SHA，因此輸入檔在辨識中被改動也不會錯綁另一份音訊。3項單元測試與本夜實際音檔皆通過。
 
 產生合成輸入原本已有 `scripts/make-tts-wav.ps1`，可用TextBase64安全傳入Unicode，無需新增套件或重造工具；本夜首次臨時腳本沒有沿用它而出現BOM問題，後續重跑應使用既有入口。
+
+
+## 可重跑入口120秒實測
+
+02:05–02:08執行 `node scripts/verify-meet-live.js --live --seconds 120`。主持端與接收端正常收尾，接收120.064秒PCM16，peak32657。Google原生字幕與離線Paraformer均至少包含一次完整「這是自動化會議測試。我正在使用Google Meet。確認代碼是1357。」；結果completed_synthetic_remote，humanSpeakerVerified=false。
+
+這次比25秒場次多次重複後出現完整匹配；並非修改Google原文或提高模糊比對容許度。原生字幕仍有更高密／Google秘密等錯字，ASR也有部分重複段錯誤。因此只代表至少一次完整內容存在，不是逐句正確率100%。
+
+音檔SHA256：`337b6f28d882e1cbab9485b7b7c5a043fc9ee3e077418f3212eb4312d39ede54`。本機證據：`test/.tmp/live-meet-host-dd61347d-ac3f-49ba-89af-93167663288d/verification.json`。僅同帳號兩頁合成測試；未驗證獨立帳號、真人或跨組織。舊25秒partial證據保留，不覆蓋。
