@@ -82,3 +82,17 @@
 
 ## 10：滿幅樣本比例診斷
 因為原始需求是 **可靠遠端音訊驗證**，所以頂尖做法會順便做 **削波量化**；目前 **只有峰值，但2/403456樣本滿幅，未有實際問題**。來源：https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/getChannelData 。不自動改原音檔。
+
+
+# 第十輪（完整句驗收數字邊界）
+
+## 12：完整句內的確認碼也拒絕長數字誤中（bonus02續作）
+因為原始需求是 **完整測試句與1357正確核對**，所以頂尖做法會順便做 **無論單獨marker或句子內marker，都維持數字邊界**；目前成果 **只有部分（獨立1357已有邊界，但完整句含1357走includes，13579可能當作1357）**。
+- 來源：https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Lookbehind_assertion ，既有verification數字規則與本夜完整句驗收入口。
+- 切片：純函式沿用正規化，每段數字都要求左右不是其他數字；標點仍忽略，不改原文／不做模糊比對。測試完整句13579、91357拒絕與正確1357、NFKC全形保留；最多2檔／80行，沿用bonus02。
+
+## 03：中文UI控制相容（未有失敗DOM）
+因為原始需求是 **自動中文字幕**，所以頂尖做法會順便做 **本地化控制**；目前成果 **hl=en正式策略已實測，缺實際失敗DOM**。來源：https://support.google.com/meet/answer/15077804?hl=en-GB 。不猜。
+
+## 10：PCM飽和比例（沒有實際持續削波）
+因為原始需求是 **可靠錄音驗證**，所以頂尖做法會順便做 **量化削波**；目前成果 **peak已存，實測僅2/403456滿幅，尚無需功能**。來源：https://developer.mozilla.org/en-US/docs/Web/API/AudioBuffer/getChannelData 。不改音訊。

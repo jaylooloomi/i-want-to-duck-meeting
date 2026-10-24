@@ -1,3 +1,5 @@
+5617aff docs(night-shift): refresh continuation evidence checkpoint
+a4f6024 docs(night-shift): retain scoring and ongoing regression checkpoint
 d44b4cf docs(night-shift): preserve successful long synthetic Meet content check
 bc3667b fix(night-shift/bonus-03): honor STOP during receiver callback
 3d12141 docs(night-shift): document repeatable Meet test and partial caption result

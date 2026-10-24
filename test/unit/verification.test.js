@@ -25,6 +25,16 @@ test('confirmation digits cannot match the middle of a longer number',()=>{
   assert.equal(check({...evidence,recordingText:'Google Meet 913570'}).recordingMatch,false);
 });
 
+test('digit boundaries also apply inside a complete expected sentence',()=>{
+  const markers=['確認代碼是1357'];
+  for(const text of ['確認代碼是13579','確認代碼是91357']) {
+    const result=check({...evidence,markers,captionText:text,recordingText:text});
+    assert.equal(result.captionsMatch,false);assert.equal(result.recordingMatch,false);
+  }
+  const result=check({...evidence,markers,captionText:'確認代碼是１３５７。',recordingText:'確認代碼是1357'});
+  assert.equal(result.captionsMatch,true);assert.equal(result.recordingMatch,true);
+});
+
 test('partial report explains each marker using unchanged observed text',()=>{
   const captionText='Google Map，確認代碼1357';
   const result=check({...evidence,captionText});

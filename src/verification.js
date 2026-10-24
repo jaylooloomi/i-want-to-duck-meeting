@@ -6,7 +6,9 @@ export function evaluateMeetingEvidence(evidence) {
   const validMarkers=markers.length>0 && markers.every(x=>typeof x==='string' && normalize(x));
   const match=(marker,text)=>{
     const value=normalize(marker),haystack=normalize(text);
-    return /^\d+$/.test(value)?new RegExp(`(?<!\\d)${value}(?!\\d)`).test(haystack):haystack.includes(value);
+    const pattern=value.split(/(\d+)/).map(part=>/^\d+$/.test(part)
+      ? `(?<!\\d)${part}(?!\\d)` : part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('');
+    return new RegExp(pattern,'u').test(haystack);
   };
   const markerResults=validMarkers?markers.map(marker=>({marker,
     captionsMatch:match(marker,evidence.captionText),recordingMatch:match(marker,evidence.recordingText)})):[];
