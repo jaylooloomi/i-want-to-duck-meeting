@@ -1,0 +1,7 @@
+# Downloaded vendor material and local inspection output are research-only.
+official/
+videos/*.html
+videos/*.mp4
+videos/*.webm
+analysis/inspection.txt
+analysis/details.txt

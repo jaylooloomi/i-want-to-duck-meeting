@@ -1,0 +1,204 @@
+[
+  {
+    "file": "background.js",
+    "needle": "tactiq-rtc-meet-main",
+    "characterOffsets": [
+      1046432
+    ]
+  },
+  {
+    "file": "background.js",
+    "needle": "world:\"MAIN\"",
+    "characterOffsets": [
+      1046723,
+      1047017,
+      1068194
+    ]
+  },
+  {
+    "file": "googlemeet.inline.js",
+    "needle": "captions_v2",
+    "characterOffsets": [
+      208161,
+      209096,
+      209459,
+      209494,
+      209533,
+      209574,
+      220541,
+      223463,
+      223713,
+      225084,
+      226174
+    ]
+  },
+  {
+    "file": "googlemeet.inline.js",
+    "needle": "messageVersion",
+    "characterOffsets": [
+      137146,
+      137540,
+      137592,
+      137631,
+      138136,
+      138729,
+      138769,
+      138802,
+      138823,
+      138853,
+      138888,
+      138911,
+      139717,
+      139750,
+      139784,
+      139822,
+      139849,
+      139875,
+      139903,
+      139930,
+      139947,
+      139971,
+      140000,
+      140032,
+      140057,
+      140673,
+      140757,
+      141342,
+      141382,
+      141410,
+      141437,
+      141478,
+      141496,
+      141513,
+      141578,
+      141628,
+      141653,
+      141691,
+      203651,
+      203848,
+      203959,
+      203983,
+      204010,
+      204027,
+      206064,
+      206662,
+      210948,
+      211867,
+      219067,
+      219085
+    ]
+  },
+  {
+    "file": "googlemeet.inline.js",
+    "needle": "RTCDataChannel.prototype.send",
+    "characterOffsets": [
+      219380,
+      219410
+    ]
+  },
+  {
+    "file": "googlemeet.inline.js",
+    "needle": "BTranscriptMessage",
+    "characterOffsets": [
+      136917,
+      137992,
+      139267,
+      139324,
+      142142,
+      142168,
+      142525,
+      142863,
+      142971,
+      143337,
+      143571,
+      143635,
+      143746,
+      143828,
+      144099,
+      144313,
+      203726
+    ]
+  },
+  {
+    "file": "googlemeet.inline.js",
+    "needle": "notePacket",
+    "characterOffsets": [
+      208521,
+      221078
+    ]
+  },
+  {
+    "file": "googlemeet.inline.js",
+    "needle": "channelReopened",
+    "characterOffsets": [
+      120279,
+      222801
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "main-channel",
+    "characterOffsets": [
+      105725,
+      106185
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "recognitionResults",
+    "characterOffsets": [
+      105969,
+      106012,
+      106050,
+      110790,
+      110831,
+      110867
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "msteamscalling.deref",
+    "characterOffsets": [
+      107459,
+      113519
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "startClosedCaption()",
+    "characterOffsets": [
+      110433
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "remoteUserEventsReceived",
+    "characterOffsets": [
+      110662,
+      111693
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "lightproxy.teams.microsoft.com",
+    "characterOffsets": [
+      99643,
+      104363
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "timestampAudioSent",
+    "characterOffsets": [
+      106073,
+      107360
+    ]
+  },
+  {
+    "file": "msteams.inline.js",
+    "needle": "closed-captions-button",
+    "characterOffsets": [
+      102033
+    ]
+  }
+]

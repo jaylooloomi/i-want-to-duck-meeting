@@ -1,0 +1,60 @@
+{
+  "version": "3.1.7320",
+  "files": [
+    {
+      "name": "background.js",
+      "sha256": "45f71a537aace007033a27edb2ea0fc8f0795fce3841432073e7779f0b9778d7",
+      "bytes": 1069483
+    },
+    {
+      "name": "chatgoogle.inline.js",
+      "sha256": "ac6f94d196870c227f2048caf48c4d7fd270e8a24da5a7a1828e28871301c802",
+      "bytes": 67617
+    },
+    {
+      "name": "chatgoogle.main.inline.js",
+      "sha256": "4ab54df7b3b14108f65e1f8c3ee1de377d551d57183672d225eafa0d79e0d394",
+      "bytes": 1856
+    },
+    {
+      "name": "content.js",
+      "sha256": "67d2d14cb376e17ac9cb3309784ee580228948f84be8606fcc1dc5a5c35bd4d8",
+      "bytes": 2035664
+    },
+    {
+      "name": "googlemeet.inline.js",
+      "sha256": "ef0dea002ce3cdebcb8193a90446476d8758b71b4e5f596bf33b2f962aa976ba",
+      "bytes": 234733
+    },
+    {
+      "name": "msteams.inline.js",
+      "sha256": "487ef1da143683c460761c24b1f9525c9c64421415c546b94319e42ececcff60",
+      "bytes": 115310
+    },
+    {
+      "name": "options.js",
+      "sha256": "6d855fccae4797e0faaba61f95586667e348ba21c56bc7ea5c415fb2cfcaaaf2",
+      "bytes": 1523825
+    },
+    {
+      "name": "popup.js",
+      "sha256": "4156cb72ac71ab1e93ccd45c50ff872d7fa240237d2086195a28150446c5c5e1",
+      "bytes": 1343887
+    },
+    {
+      "name": "rtcinjector.js",
+      "sha256": "f661a95bc231966f53ed9572d1824bc09299080ddb527f0fc52dee88a91d5d0c",
+      "bytes": 1810
+    },
+    {
+      "name": "webext-dynamic-content-scripts.9.2.0.js",
+      "sha256": "4646bb14cbe741bb9393451d7ac5c0295d32e1ff912684fbd37ecf40199bd778",
+      "bytes": 20463
+    },
+    {
+      "name": "zoom.inline.js",
+      "sha256": "3590015c233473b90d9c4ab11fb54a2adff12a09bc601fca47f7f90e053e3e40",
+      "bytes": 76793
+    }
+  ]
+}
