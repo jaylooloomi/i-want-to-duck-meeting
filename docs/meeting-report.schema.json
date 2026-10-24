@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["meetingId", "summary", "decisions", "proposals", "actionItems", "openQuestions"],
+  "properties": {
+    "meetingId": {"type": "string"},
+    "summary": {"type": "string"},
+    "decisions": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "proposals": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "actionItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task", "owner", "deadline", "evidence"],
+        "properties": {
+          "task": {"type": "string"},
+          "owner": {"type": ["string", "null"]},
+          "deadline": {"type": ["string", "null"]},
+          "evidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/evidence"}}
+        }
+      }
+    },
+    "openQuestions": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordId", "quote"],
+      "properties": {
+        "recordId": {"type": "integer", "minimum": 1},
+        "quote": {"type": "string", "minLength": 1}
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "evidence"],
+      "properties": {
+        "text": {"type": "string"},
+        "evidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/evidence"}}
+      }
+    }
+  }
+}
