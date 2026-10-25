@@ -138,3 +138,21 @@ BUG-004 保持開放為驗收限制：Chromium 在 HTTP 400/401/403/500 或連�
 ## 修復後故障注入複核
 
 另外啟用 16 個 BUG-004 案例實跑，16 個均在功能斷言完成後由嚴格 console guard 判定失敗（退出 1）；所有錯誤都是 Chromium `Failed to load resource`，沒有 pageerror 或其他錯誤種類。這是預期限制重現，不與兩輪正常回歸的成功混算。[當次分類與完整診斷](docs/qa/reports/repaired-fault-confirmation.json)、[原始 log](docs/qa/reports/repaired-fault-confirmation.txt)。
+
+## BUG-010 — 多帳號登入後 Meet 仍使用原預設帳號
+
+- 嚴重度：P1；後續真人操作確認的身分錯用問題，與原七項產品修復分開。
+- 原因：Google 登入完成／Chrome account_info 只表示設定檔有帳號；加入第二個帳號後直接開 Meet 並不保證使用該帳號。
+- 狀態：程式已補上入會前選擇、authuser 綁定及可見 Google Account 控制項核對；真實 Google 頁面相容性待驗證。
+- 預期：即使已有登入，也必須先明確選帳號；實際身分不符、缺失、多重時都不點加入。
+- 修正定位：src/meet/account.js、src/session.js 的 selecting_account/beforeJoin，src/meet/join.js 的入會前 gate。
+- 證據：ACCOUNT-01、ACCOUNT-02 與 ACCOUNT-03 三種參數案例直接核對 Meet 加入按鈕點擊數；錯誤／缺失／多重皆 0，選定 B 且身分相符才 1。
+- 限制：只採實際 Meet 可見帳號控制項為證據；若平台 UI 改版不能核對，會停止而非繞過。不能把受控頁面測試當作真人 Google 登入已通過。
+
+## 後續：移除自製帳號頁並修正真實 Meet 預備頁核對
+
+原生頁面實查發現目前 Meet 在「切換帳戶」區域顯示 email，沒有先前要求的 Google Account aria-label。新版限定從該帳號區域或 Google 帳號控制項取值，並改用 Google 原生 AccountChooser 取得使用者選擇，移除本機選帳號頁與導航競爭。
+
+已有真正 Google 原生選帳號與預備頁身分一致的唯讀證據，加入按鈕點擊 0。新帳號認證／主持人放行／真人音訊不在該證據內。NATIVE-01–12 共十四例取代歷史 ACCOUNT 表單案例。
+
+BUG-010 後續真人核對：原生選定帳號與實際身分一致，主持人放行及入會成功；核對過實際錄音與 1357。語音品牌／姓名錯字仍保留為辨識限制，不與帳號修復混為一談。去識別證據見 docs/qa/reports/native-account-live-validation.json。

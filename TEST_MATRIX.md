@@ -75,3 +75,57 @@ Phase 2建立時間：任何新測試程式撰寫之前。判定依使用者合�
 ## 授權修復後狀態（2026-10-25）
 
 七項產品缺陷已修復，相關 skip 已移除；37 個矩陣群組為 [x]，4 個為 [!]（均為 BUG-004 驗收限制），沒有待處理案例。初始唯讀階段結論與舊報告作為歷史證據保留。Teams 空裝置／格式錯誤現在預期顯示錯誤且開始禁用，不再對無效配置嘗試送出。完整兩輪回歸結果見 TEST_SUMMARY.md。
+
+## 後續 Google Meet 登入接續驗證
+
+此區是七項修復後追加的需求，與上方歷史 41 組矩陣分開。
+
+| 狀態 / ID | 層級 | 目標 | 維度 | 步驟與預期 |
+|---|---|---|---|---|
+| [x] LOGIN-01 | FE-E2E | Google 登入接續 | Happy/Navigation | 模擬要求登入、手動完成，返回相同 Meet URL，waiting_login → joining，只執行一次接續 |
+| [x] LOGIN-02 | FE-E2E | 登入仍被要求 | Error/Loop | 返回後仍在登入頁，明確失敗，不重複登入 |
+| [x] LOGIN-03 | FE-E2E | 登入等待 | Async/Timeout | 等待逾時回報 signin_required，不無限等待 |
+| [x] LOGIN-04 | FE-E2E | 登入視窗 | Browser | 關窗明確失敗，不宣稱已加入 |
+| [x] LOGIN-05 | FE-E2E | 取消 | Async | STOP 原因保留 user_stop，等待可取消 |
+| [x] LOGIN-06 | FE-E2E | 返回網址 | Validation | 非 HTTPS Google Meet 目標拒絕，沒有導航 |
+| [x] LOGIN-07 | Backend | 帳號提示 | Data | 缺檔／損壞資料安全回傳空；只回傳 metadata，不當成有效登入證據 |
+| [x] LOGIN-08 | Backend | CLI join | Contract | 印出 GOOGLE_ACCOUNT_HINT 與保持視窗開啟說明，不把設定檔提示當驗證身分 |
+
+此 LOGIN 區為受控登入測試，未包含真人驗證數。後續真人原生選帳號、放行與錄音結果另見下方目前流程及去識別報告。
+
+## 歷史：自製帳號頁版本（已被原生流程取代）
+
+| 狀態 / ID | 層級 | 操作與預期 |
+|---|---|---|
+| [x] ACCOUNT-01 | FE-E2E | 即使有預設帳號，也必須先明確選擇；選擇前無 Meet 請求 |
+| [x] ACCOUNT-02 | FE-E2E | 選第二帳號 B，URL 保留 authuser=B，Meet 控制項核對後才有一次加入點擊 |
+| [x] ACCOUNT-03 | FE-E2E | 錯誤、缺失、多重身分三種案例全部零加入點擊 |
+| [x] ACCOUNT-04 | FE-E2E | 取消選擇不進入 Meet |
+| [x] ACCOUNT-05 | FE-E2E | 選擇頁關閉與逾時明確失敗 |
+| [x] ACCOUNT-06 | FE-E2E | 跨 Origin POST 拒絕，帳號名稱 XSS 不能執行 |
+| [x] ACCOUNT-07 | Backend | 拒絕非法目標／非 email 帳號，不猜索引 |
+| [x] ACCOUNT-08 | FE-E2E | 空值顯示驗證提示，可重新選擇成功 |
+| [x] ACCOUNT-09 | FE-E2E | 1920px 與 390px 下核心按鈕可見可點 |
+
+此區包含十二個參數案例；實際 Google 控制項相容性仍待真人驗證，不能用這些受控頁面證明實際登入身分已正確。
+
+## 目前 Google 原生帳號流程
+
+以下取代歷史自製表單案例，不將已移除頁面算成現行路由。
+
+| 狀態 / ID | 層級 | 預期 |
+|---|---|---|
+| [x] NATIVE-01 | FE-E2E | 直接開 Google 原生選帳號頁，沒有 localhost 表單或原會議加入請求 |
+| [x] NATIVE-02 | FE-E2E | 原生選 B，綁定 B，支援實際 Meet 切換帳戶區域格式，核對後一次加入 |
+| [x] NATIVE-03 | FE-E2E | 不同／缺失／多重身分共三例，加入點擊全部為零 |
+| [x] NATIVE-04 | FE-E2E | 選 B 但 Google 回傳 A 時拒絕接續 |
+| [x] NATIVE-05 | FE-E2E | 沒有明確操作的預設帳號跳轉不接受 |
+| [x] NATIVE-06 | FE-E2E | 使用其他帳戶經 Google 原生登入頁完成後接續 |
+| [x] NATIVE-07 | FE-E2E | 原生選擇逾時明確停止 |
+| [x] NATIVE-08 | FE-E2E | 關閉原生視窗明確停止 |
+| [x] NATIVE-09 | FE-E2E | 取消保留 user_stop 原因 |
+| [x] NATIVE-10 | FE-E2E | 任意聊天／頁面 email 不得替代帳號區域 |
+| [x] NATIVE-11 | Backend | chooser 返回非會議首頁，拒絕不可信 host 與帳號索引猜測 |
+| [x] NATIVE-12 | FE-E2E | 未登入時在原生登入頁按 Enter 可接續，不讀取欄位值 |
+
+證據分開保存：早期 Google 唯讀檢查為零加入點擊；2026-10-26 後續使用者實際選帳號、主持人放行與約 121.7 秒錄音成功，字幕及錄音轉錄均含 1357。Google Meet／Arthur 仍有錯字，完整測試句未通過。見 [去識別真人結果](docs/qa/reports/native-account-live-validation.json)，不得把受控案例數當真人測試數。

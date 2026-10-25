@@ -125,7 +125,7 @@ export async function main(argv, deps = {}) {
       if (!active) throw new Error('Claude plugin installed but its enabled state could not be verified. Run claude plugin enable openmeeting@openmeeting-local and claude plugin list --json.');
       io.log('Claude Code plugin installed and enabled. Run /reload-plugins or restart Claude Code.');
     }
-    io.log('Run node bin/openmeeting.js doctor. For first login, run login and close the dedicated browser when finished.');
+    io.log('Run node bin/openmeeting.js doctor, then paste a meeting link. Choose the recording account on Google native account page in the dedicated window; join verifies the actual Meet identity before requesting admission. Keep this window open if Google requires login.');
     return 0;
   } catch (error) {
     io.error(String(error.message || error));

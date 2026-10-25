@@ -115,5 +115,15 @@
     "status": "fixed",
     "resolution": "start body 必須為非 null、非陣列 JSON 物件；不合法時回傳 400，且不得呼叫 capture service。保留 mode/input/output 白名單。BE-07 四個型別案例已啟用。",
     "fixSource": "src/live-server.js:64"
+  },
+  {
+    "id": "BUG-010",
+    "severity": "P1",
+    "title": "多帳號登入後 Meet 仍使用預設帳號",
+    "status": "fixed-native-account-choice-admission-live-verified",
+    "case": "NATIVE-01/02/03/04/05",
+    "source": "src/meet/account.js; src/meet/join.js; src/session.js",
+    "resolution": "Google 原生選帳號，首頁核對選擇結果，綁定原會議並支援實際 Meet 切換帳戶 email 區域核對；未知或不同即停止。",
+    "liveEvidence": "docs/qa/reports/native-account-live-validation.json"
   }
 ]

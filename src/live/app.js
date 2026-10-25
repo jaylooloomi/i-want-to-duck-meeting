@@ -10,7 +10,7 @@ document.addEventListener('microphone-started', ({ detail }) => {
   selected = detail.id; signature = ''; selector.dataset.signature = '';
   syncSelection();
 });
-const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', failed:'記錄失敗' };
+const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', failed:'記錄失敗' };
 const clock = (value) => { const date = new Date(value); return Number.isNaN(+date) ? '' : date.toLocaleTimeString('zh-TW', { hour12:false }); };
 function row(record, pending) {
   const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');

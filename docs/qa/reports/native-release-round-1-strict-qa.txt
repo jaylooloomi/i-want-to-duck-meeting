@@ -1,0 +1,121 @@
+✔ BE-01 assets MIME security headers methods and 404 (108.0269ms)
+✔ BE-02 hostile Origin Host and missing Origin cannot mutate capture (31.3249ms)
+✔ BE-03 empty list and public list excludes sensitive status fields (18.6715ms)
+✔ BE-04 malformed partial JSON sorted transcript and terminal pending suppression (15.3769ms)
+✔ BE-05 traversal unknown IDs and extreme query never read outside meeting root (16.8702ms)
+✔ BE-06 start strips worker-owned filesystem and managed properties (10.375ms)
+✔ BE-07 invalid body MIME excessive size and unknown actions recover (31.1404ms)
+✔ BE-07 reject non-object start body [] (8.5397ms)
+✔ BE-07 reject non-object start body "text" (6.9495ms)
+✔ BE-07 reject non-object start body 123 (7.6005ms)
+✔ BE-07 reject non-object start body true (6.9438ms)
+✔ BE-08 real service rejects invalid and duplicate starts before spawning (2.3462ms)
+✔ BE-09 real audio rejects token sequence format lane and backpressure without mutation (1.1357ms)
+✔ BE-10 real ordered PCM heartbeat and idempotent stop (1.2396ms)
+✔ BE-11 missing Windows device dependency returns JSON error and server survives (18.5752ms)
+✔ E2E-01 live HTTP transcript update finalization and meeting selection (3224.222ms)
+✔ E2E-02 extreme transcript and missing speaker render as text (1295.9089ms)
+✔ E2E-03 empty initial state and final pending removal (2901.462ms)
+✔ E2E-03 deleting the last meeting removes private content from the viewer (1968.2785ms)
+﹣ E2E-04 poll HTTP 400 visible error and strict console (0.3029ms) # BUG-004
+﹣ E2E-04 poll HTTP 401 visible error and strict console (0.1462ms) # BUG-004
+﹣ E2E-04 poll HTTP 403 visible error and strict console (0.1328ms) # BUG-004
+﹣ E2E-04 poll HTTP 500 visible error and strict console (0.1485ms) # BUG-004
+✔ E2E-05 unknown deep link cannot silently display latest under a stale URL (1310.2789ms)
+✔ E2E-06 transcript viewport 1920 semantic controls and overflow (1515.5103ms)
+✔ E2E-06 transcript viewport 390 semantic controls and overflow (1426.3256ms)
+✔ E2E-07 real browser AudioWorklet PCM to HTTP and graceful stop (3090.7033ms)
+✔ E2E-08 denied microphone never creates a backend session (1254.877ms)
+✔ E2E-09 in-flight start is disabled and stop issues one request (1416.787ms)
+﹣ E2E-10 start HTTP 400 recovers controls with strict console (0.2497ms) # BUG-004
+﹣ E2E-10 start HTTP 401 recovers controls with strict console (0.1186ms) # BUG-004
+﹣ E2E-10 start HTTP 403 recovers controls with strict console (0.1015ms) # BUG-004
+﹣ E2E-10 start HTTP 500 recovers controls with strict console (0.0991ms) # BUG-004
+﹣ E2E-10 stop failure restores start controls and reports incomplete finalization (0.0969ms) # BUG-004
+﹣ E2E-10 upload failure stops capture and shows the packet error (0.0983ms) # BUG-004
+✔ E2E-11 pagehide sends stop beacon and reload has no active capture claim (1674.5769ms)
+✔ E2E-12 microphone controls actionable viewport 1920 (1580.0869ms)
+✔ E2E-12 microphone controls actionable viewport 390 (1495.1788ms)
+✔ E2E-13 Teams device IDs start heartbeat levels and stop (3302.3356ms)
+✔ E2E-14 absent Teams devices block start with a readable message (1040.052ms)
+✔ E2E-15 pending Teams device request blocks unsafe start and shows loading (1058.3408ms)
+﹣ E2E-16 Teams device API failure has visible feedback and zero console (0.2208ms) # BUG-004
+✔ E2E-17 Teams mode query survives start stop and reload (1394.6333ms)
+✔ E2E-18 long Teams device labels viewport 1920 (1224.5548ms)
+✔ E2E-18 long Teams device labels viewport 390 (1221.8628ms)
+✔ E2E-19 root query routes browser back forward and 404 (1607.6939ms)
+✔ FE-01 transcript component revisions drafts state and speakers (2177.1024ms)
+✔ FE-02 transcript component hostile text and unsafe meeting link (1223.819ms)
+✔ FE-03 empty list clears previously displayed private transcript (2123.4757ms)
+﹣ FE-04 HTTP 400 recovery and strict console (0.389ms) # BUG-004
+﹣ FE-04 HTTP 401 recovery and strict console (0.1437ms) # BUG-004
+﹣ FE-04 HTTP 403 recovery and strict console (0.151ms) # BUG-004
+﹣ FE-04 HTTP 500 recovery and strict console (0.1507ms) # BUG-004
+﹣ FE-04 network abort recovers with visible feedback and zero console (0.2115ms) # BUG-004
+✔ FE-05 microphone component permission denial restores controls (1424.912ms)
+✔ FE-06 empty Teams devices do not claim capture readiness (1319.8506ms)
+✔ FE-06 malformed device response shows an error instead of throwing (1283.28ms)
+✔ FE-07 delayed start prevents duplicate submit and then stops (1602.0671ms)
+✔ FE-08 outdated Teams response cannot overwrite current microphone feedback (1409.9329ms)
+✔ QA-01 production content matches the audit baseline plus explicitly authorized fixes (23.855ms)
+✔ QA-01 authored browser tests contain no hard sleeps CSS-class or XPath locator calls (1.6712ms)
+✔ QA-01 shared guard fails on both console errors and uncaught page exceptions (4.6508ms)
+✔ NATIVE-01 always opens Google native chooser without a local account page (1250.4452ms)
+✔ NATIVE-02 native second account choice binds and verifies actual Meet prejoin header (1901.0467ms)
+✔ NATIVE-03 wrong Meet identity prevents join (1115.8964ms)
+✔ NATIVE-03 missing Meet identity prevents join (1166.1901ms)
+✔ NATIVE-03 ambiguous Meet identity prevents join (1210.9216ms)
+✔ NATIVE-04 Google returning a different authenticated account rejects the choice (1364.969ms)
+✔ NATIVE-05 automatic default-account redirect without user selection is rejected (938.7893ms)
+✔ NATIVE-06 use another account continues through native login without reading credentials (1503.202ms)
+✔ NATIVE-07 native chooser timeout never joins (917.254ms)
+✔ NATIVE-08 closing chooser cancels without joining (947.5892ms)
+✔ NATIVE-09 stop during chooser preserves cancellation reason (1416.1684ms)
+✔ NATIVE-10 arbitrary page emails cannot substitute for native account identity (931.9282ms)
+✔ NATIVE-11 native chooser never includes meeting admission path or unsafe host (0.8079ms)
+✔ NATIVE-12 signed-out native keyboard login continues without reading input values (1357.671ms)
+✔ LOGIN-01 signed-out Meet resumes same URL after manual login, once only (1186.4949ms)
+✔ LOGIN-02 returning to another login wall fails without a second login loop (793.0613ms)
+✔ LOGIN-03 login timeout is explicit and bounded (896.5565ms)
+✔ LOGIN-04 closing the login window stops with an actionable error (873.6054ms)
+✔ LOGIN-05 stop request cancels waiting with the original stop reason (1848.6524ms)
+✔ LOGIN-06 untrusted continuation host never opens a login page (790.1308ms)
+✔ LOGIN-07 profile identity is labeled metadata and missing/corrupt profiles are safe (3.9813ms)
+ℹ tests 83
+ℹ suites 0
+ℹ pass 67
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 16
+ℹ todo 0
+ℹ duration_ms 78364.5119
+ℹ start of coverage report
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                    | line % | branch % | funcs % | uncovered lines
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ src                     |        |          |         |
+ℹ  audio-settings.js      |  28.57 |   100.00 |    0.00 | 9-12 14-24 26-30 32-36 38-41 44-49
+ℹ  audio                  |        |          |         |
+ℹ   multi-track-writer.js |  27.50 |   100.00 |    0.00 | 8-13 15-32 35-39
+ℹ   wav-writer.js         |  38.40 |   100.00 |    0.00 | 20-36 46-59 67-91 95-96 100-101 105-114 118-124
+ℹ  captions               |        |          |         |
+ℹ   assembler.js          |  47.48 |   100.00 |    0.00 | 45-50 77-101 111-121 136-144 167-185 196-207 220-238 272-282 291-346 354-363 371-376 380-386 390-391 399-407 417-434 445-461 468-485 489-491 495-497
+ℹ  live-server.js         | 100.00 |    92.77 |  100.00 |
+ℹ  meet                   |        |          |         |
+ℹ   account.js            |  64.52 |    86.79 |   86.67 | 21-41 83-105
+ℹ   join.js               |  69.18 |    59.57 |   62.79 | 71 98-163 211-212 227-233 240-244 253-257 271-273 275-277 284-294 296 305-307 316-318 323-324 331 342-343 410-411 421-424 443-445 457-464 482-485 514-515 517-518 520-521 523-524 526-527 529-534 544 546-555 568-583 589-591 593-594
+ℹ   login.js              | 100.00 |    75.86 |  100.00 |
+ℹ   selectors.js          |  95.81 |    76.47 |   62.50 | 126-128 138-141
+ℹ   state.js              |  91.28 |    55.81 |   88.89 | 90 93-94 107-109 127-135 179-180
+ℹ  microphone.js          |  40.00 |    75.56 |   23.81 | 16-18 32 46-113 115-126 153-155 167-199
+ℹ  page                   |        |          |         |
+ℹ   snapshot.js           |  16.94 |   100.00 |    0.00 | 32-183
+ℹ  status.js              |  76.89 |    55.26 |   66.67 | 12-14 27-31 40-43 57-61 86-89 94-98 119 135-146 156-158 170-171 218-225
+ℹ  stt.js                 |  42.90 |    50.00 |   18.75 | 43-51 75-85 95-103 114-118 126-135 143-150 153-156 159-181 187-211 214-222 224-234 246-264 277-310
+ℹ  teams-captions.js      |  12.61 |   100.00 |    0.00 | 8-10 12-28 30-33 35-47 53-119
+ℹ  transcript             |        |          |         |
+ℹ   store.js              |  36.95 |   100.00 |    0.00 | 36-42 45-47 56-68 77-91 95-100 103-104 108-109 113-114 123-137 141-143 151-173 179-214 237-295
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files               |  56.01 |    72.90 |   44.39 |
+ℹ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report

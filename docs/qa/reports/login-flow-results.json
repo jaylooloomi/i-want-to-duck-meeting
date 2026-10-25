@@ -1,0 +1,40 @@
+{
+  "scope": "Controlled offline regression; no real Google login or meeting started",
+  "runs": [
+    {
+      "log": "docs/qa/reports/login-regression.txt",
+      "tests": 578,
+      "pass": 562,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "log": "docs/qa/reports/login-final-regression.txt",
+      "tests": 152,
+      "pass": 136,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "log": "docs/qa/reports/login-confirmed-regression.txt",
+      "tests": 139,
+      "pass": 123,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "log": "docs/qa/reports/login-session-regression.txt",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "log": "docs/qa/reports/login-install-regression.txt",
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    }
+  ]
+}

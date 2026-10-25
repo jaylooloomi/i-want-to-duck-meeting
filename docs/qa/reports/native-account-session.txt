@@ -1,0 +1,11 @@
+✔ happy: joins silently, records the exact transcript, audio and stats (24888.188ms)
+✔ signin → failed/signin_required (1281.0078ms)
+✔ STOP file while in the call → done/user_stop (10453.9384ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37811.1744

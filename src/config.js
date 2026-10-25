@@ -36,6 +36,7 @@ import { fileURLToPath } from 'node:url';
 /** Default values for every `*Ms` timeout. Each is overridable via `OPENMEETING_<UPPER_SNAKE>`. */
 export const TIMEOUT_DEFAULTS = Object.freeze({
   lobbyTimeoutMs: 15 * 60_000,
+  loginTimeoutMs: 10 * 60_000,
   aloneTimeoutMs: 60_000,
   noOneTimeoutMs: 15 * 60_000,
   maxDurationMs: 4 * 3600_000,

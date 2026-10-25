@@ -6,6 +6,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { getConfig } from './config.js';
+import { accountHint, waitForGoogleLogin } from './meet/login.js';
+import { selectMeetingAccount, bindAccountUrl, verifyMeetingAccount } from './meet/account.js';
 import { readStatus, writeStatus } from './status.js';
 import { createLogger } from './log.js';
 import { launchChrome, connectChrome } from './chrome.js';
@@ -596,7 +598,7 @@ export async function runSession(opts) {
 
   // --- run ----------------------------------------------------------------------------------
   try {
-    setStatus({ state: 'launching' });
+    setStatus({ state: 'launching', auth:{ state:'checking', accountHint:accountHint(config.profileDir), identityVerified:false } });
     chrome = await launchChrome({
       chromePath: config.chromePath || undefined,
       profileDir: config.profileDir,
@@ -656,9 +658,23 @@ export async function runSession(opts) {
       throw new JoinError('join_failed', 'could not block the microphone and camera for the meeting page; refusing to join');
     }
 
+    let meetingUrl = url, expectedAccount = null;
+    if (new URL(url).hostname === 'meet.google.com') {
+      setStatus({ state:'selecting_account', auth:{ state:'selecting_account', accountHint:accountHint(config.profileDir), identityVerified:false } });
+      expectedAccount = await selectMeetingAccount(page, { url, timeoutMs:config.loginTimeoutMs, shouldStop:stopRequested });
+      meetingUrl = bindAccountUrl(url, expectedAccount);
+      setStatus({ url:meetingUrl, auth:{ state:'checking_identity', expectedAccount, identityVerified:false } });
+    }
     setStatus({ state: 'joining' });
     const { admittedAfterMs } = await joinMeeting(page, {
-      url,
+      url:meetingUrl,
+      beforeJoin: expectedAccount ? async () => {
+        setStatus({ auth:{ state:'checking_identity', expectedAccount, identityVerified:false } });
+        try {
+          const identity = await verifyMeetingAccount(page, expectedAccount, {shouldStop:stopRequested});
+          setStatus({ auth:{ state:'verified', expectedAccount, ...identity } });
+        } catch(error) { setStatus({ auth:{ state:'failed', expectedAccount, identityVerified:false, message:error.message } }); throw error; }
+      } : undefined,
       displayName,
       lobbyTimeoutMs: config.lobbyTimeoutMs,
       pollMs,
@@ -668,6 +684,12 @@ export async function runSession(opts) {
       screenshot,
       shouldStop: stopRequested,
       onState: (s) => setStatus({ state: s }),
+      onSignin: async () => {
+        setStatus({ auth:{ state:'waiting_login', message:'請在專用視窗自行登入；完成後會自動接續本場會議，不必關閉視窗。' } });
+        try { await waitForGoogleLogin(page, { url:meetingUrl, timeoutMs:config.loginTimeoutMs, shouldStop:stopRequested }); }
+        catch (error) { setStatus({ auth:{ state:error.code === 'aborted' ? 'cancelled' : 'failed', message:error.message } }); throw error; }
+        setStatus({ auth:{ state:'returned_to_meet', accountHint:accountHint(config.profileDir), identityVerified:false } });
+      },
     });
     joinedAtMs = Date.now();
     noTracksSince = joinedAtMs; // until audio capture reports a remote track

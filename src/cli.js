@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { getConfig } from './config.js';
+import { accountHint } from './meet/login.js';
 import { parseMeetUrl } from './url.js';
 import {
   createMeetingDir, isProcessAlive, listMeetings, newMeetingId, readStatus, resolveMeeting, writeStatus,
@@ -51,6 +52,8 @@ const STATE_TEXT = {
   starting: '準備啟動機器人…',
   launching: '正在啟動機器人的 Chrome…',
   joining: '正在加入會議…',
+  selecting_account: '請在 Google 原生頁面選擇記錄帳號／登入；尚未送出入會請求。',
+  waiting_login: '請在專用 Chrome 視窗登入 Google；登入後自動接續同一場會議，不必關閉視窗。',
   waiting_admission: '正在等待主持人允許加入（請在 Meet 裡按「允許」；若出現「潛在風險」提示，請用 ⋮ → 允許 (Admit)）…',
   in_call: '機器人已進入會議，正在記錄字幕。',
   leaving: '正在離開會議並整理逐字稿…',
@@ -60,7 +63,7 @@ const STATE_TEXT = {
 };
 
 const ERROR_TEXT = {
-  signin_required: '需要登入 Google：請執行 login，由你自己在視窗中登入機器人專用帳號',
+  signin_required: 'Google 登入或身分核對未完成；請查看這場錯誤原因後再重試',
   not_found: '找不到這場會議（連結錯誤或已過期）',
   blocked: 'Google 拒絕加入（原因未確認）',
   denied: '加入請求被拒絕（請主持人用 ⋮ → 允許）',
@@ -814,6 +817,10 @@ async function cmdJoin(ctx, pos, flags) {
       ...(teamsUrl ? {source:'teams',audioOverrides,teamsBrowserEnabled:!flags['no-open']} : {}),
   });
 
+  if (!teamsUrl) {
+    out(`GOOGLE_ACCOUNT_HINT=${JSON.stringify(accountHint(config.profileDir))}`);
+    out('專用設定檔帳號資料只是提示；請先在 Google 原生頁面選擇帳號，核對 Meet 身分後才會送出加入請求。需要登入時保持視窗開啟。');
+  }
   if (flags.foreground) {
     out(`MEETING_ID=${id}`);
     out(`MEETING_DIR=${dir}`);
@@ -879,8 +886,8 @@ async function cmdJoin(ctx, pos, flags) {
     out('背景雙路收音正在啟動；用 status 確認 in_call、captureDevices 與 audioHealth。告知與會者正在記錄；結束時執行 leave。');
   } else {
     out(`DISPLAY_NAME=${displayName}`);
-    out(`機器人「${displayName}」正在另一個 Chrome 視窗加入會議 ${parsed.code}。`);
-    out('請在 Meet 裡允許它加入（若出現「潛在風險」的加入請求，請按 ⋮ → 允許 (Admit)，不要按「拒絕」），並告知與會者會議正在被記錄。');
+    out(`機器人「${displayName}」將開啟專用 Chrome，等待你選擇記錄帳號（會議 ${parsed.code}，尚未送出加入請求）。`);
+    out('選擇帳號並核對 Meet 身分後才會請求加入；必要時請主持人按「允許」放行，並告知與會者正在記錄。');
   }
   out(`等待會議結束：openmeeting wait ${id}`);
   return 0;

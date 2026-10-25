@@ -1,0 +1,58 @@
+{
+  "scope": "Native Google account selection, authenticated landing and prejoin identity checks",
+  "customAccountPageRemoved": true,
+  "runs": [
+    {
+      "group": "unit-qa",
+      "exitCode": 0,
+      "log": "docs/qa/reports/native-account-unit-qa.txt",
+      "tests": 593,
+      "pass": 577,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "group": "incall",
+      "exitCode": 0,
+      "log": "docs/qa/reports/native-account-incall.txt",
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "group": "session",
+      "exitCode": 0,
+      "log": "docs/qa/reports/native-account-session.txt",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "group": "install-integrity",
+      "exitCode": 0,
+      "log": "docs/qa/reports/native-account-install-integrity.txt",
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "controlledNativeCases": 14,
+  "controlledNativeBrowserCases": 13,
+  "controlledNativeConsoleErrors": 0,
+  "realGoogleReadOnly": {
+    "nativeGoogleChoice": true,
+    "selectedMatchesPreviousUserChoice": true,
+    "actualMeetPrejoinIdentityVerified": true,
+    "joinButtonClicks": 0,
+    "joinedMeeting": false,
+    "credentialsRead": false
+  },
+  "limits": [
+    "Existing signed-in profile only for actual Google verification",
+    "Actual Google password/2FA and admission/recording not validated in this change",
+    "16 existing BUG-004 acceptance skips are not passes"
+  ]
+}

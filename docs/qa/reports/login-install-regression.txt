@@ -1,0 +1,23 @@
+✔ QA-01 production content matches the audit baseline plus explicitly authorized fixes (20.3369ms)
+✔ QA-01 authored browser tests contain no hard sleeps CSS-class or XPath locator calls (1.4959ms)
+✔ QA-01 shared guard fails on both console errors and uncaught page exceptions (3.9335ms)
+✔ setup options reject missing, unknown or incompatible targets (2.7061ms)
+✔ Codex-only installs portable source plus data-only local paths without Claude (25.2941ms)
+✔ dry-run has no filesystem or Claude side effects (11.3533ms)
+✔ default setup prepares audio; skip and dry-run do not; failed preparation leaves integrations untouched (55.969ms)
+✔ managed reinstallation repairs known files and supports moving the checkout (55.5807ms)
+✔ unmanaged skills require explicit force; unrelated files are preserved (17.6593ms)
+✔ missing Claude fails before modifying either integration and explains target selection (10.1319ms)
+✔ both and Claude-only use the legacy plugin updater and enable the plugin (24.6441ms)
+✔ already-enabled Claude succeeds despite enable exit code; disabled state fails verification (20.0438ms)
+✔ custom skill directory and CODEX_HOME resolve without depending on cwd (14.081ms)
+✔ Windows bridge forwards metacharacters and CLI exit codes from another cwd (647.595ms)
+✔ linked skill files are rejected even with force (17.0829ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1076.4333

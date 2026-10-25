@@ -1,0 +1,62 @@
+{
+  "started": "2026-10-25T17:49:52.181Z",
+  "output": "local ignored QA output",
+  "repetitions": 1,
+  "reproduce": false,
+  "supplement": false,
+  "groups": [
+    {
+      "name": "round-1-legacy-unit",
+      "code": 0,
+      "log": "docs/qa/reports/native-release-round-1-legacy-unit.txt",
+      "tests": 510,
+      "pass": 510,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "round-1-controlled-integration",
+      "code": 0,
+      "log": "docs/qa/reports/native-release-round-1-controlled-integration.txt",
+      "tests": 81,
+      "pass": 76,
+      "fail": 0,
+      "skipped": 5
+    },
+    {
+      "name": "round-1-strict-qa",
+      "code": 0,
+      "log": "docs/qa/reports/native-release-round-1-strict-qa.txt",
+      "tests": 83,
+      "pass": 67,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "name": "round-1-python",
+      "code": 0,
+      "log": "docs/qa/reports/native-release-round-1-python.txt",
+      "tests": 25,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 2
+    },
+    {
+      "name": "browser-coverage-audit",
+      "code": 0,
+      "log": "docs/qa/reports/native-release-browser-coverage-audit.txt",
+      "tests": 0,
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "finished": "2026-10-25T18:00:21.518Z",
+  "success": true,
+  "totals": {
+    "tests": 699,
+    "pass": 676,
+    "fail": 0,
+    "skipped": 23
+  }
+}

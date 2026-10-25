@@ -1,0 +1,42 @@
+{
+  "scope": "Explicit account choice, account binding and prejoin identity verification; controlled local browser/server tests only",
+  "realGoogleLoginValidated": false,
+  "realMeetingJoined": false,
+  "runs": [
+    {
+      "group": "initial-regression",
+      "log": "docs/qa/reports/account-binding-initial-regression.txt",
+      "tests": 591,
+      "pass": 573,
+      "fail": 2,
+      "skipped": 16
+    },
+    {
+      "group": "final-unit-qa",
+      "log": "docs/qa/reports/account-binding-final-unit-qa.txt",
+      "tests": 591,
+      "pass": 575,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "group": "incall",
+      "log": "docs/qa/reports/account-binding-incall.txt",
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "group": "session",
+      "log": "docs/qa/reports/account-binding-session.txt",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "initialFailureClassification": "Two legacy CLI copy assertions required the actual Meet button name 允許. Restored that useful prompt and reran the complete unit/QA suite without weakening assertions.",
+  "accepted": "final-unit-qa, incall, session",
+  "existingAcceptanceSkips": 16
+}

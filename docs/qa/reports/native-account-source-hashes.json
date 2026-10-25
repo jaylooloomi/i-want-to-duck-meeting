@@ -1,0 +1,15 @@
+{
+  "codex/skills/openmeeting/SKILL.md": "43991fde909fac4fadd4ff5bb76cab05bb825179e0575b48228e25ce10006189",
+  "plugin/skills/meet/SKILL.md.tmpl": "0207e76645c60e83b328151e3b17af074323537f937478d257a6c67bcad4078d",
+  "scripts/install.js": "6ac4201893275859366a3855ec1ca7e2c6bb44bf352bce52fce14551823898c3",
+  "src/cli.js": "fe75dc241c3374c64d7a7a4da5381408e5c8f6bc0509a059038b78925a1a97fd",
+  "src/config.js": "cc0775aced5e3cb9b9f11727cba0ae56414550a16778706aa9cb260ba64fbccd",
+  "src/live-server.js": "8b3ea040c81a2d2198296d924abf075f5230b9c39f39989590d42d692ec90f23",
+  "src/live/app.js": "103a8120077307c463700857aed2e4b0acbf36f1621aa2aaa9f19e87a4a05f56",
+  "src/live/microphone.js": "bf900a80d0b65d357b1bf9059cc3a64fe68ba44dd620827b1a420a5336f8d345",
+  "src/meet/account.js": "fc6abfb9b06bbd10a9c39195ff71440dc1ea39cab8399aa35207d69615b58c5d",
+  "src/meet/failure-guidance.js": "8e0616876c09ad64f57fdc36199eda8def86cd840f3f04d51fec03a6ee03b026",
+  "src/meet/join.js": "20f8a44aa276e330d765fa4588bacba8278e420cf03491560ea70c8b51dbd83c",
+  "src/meet/login.js": "a24e35ca621053b6ac3771ed84b734a0b9b9e8c7d12f0f868f3874247cee7459",
+  "src/session.js": "18628c835cc04cf6227c2b7c5058b199869852ac618a6c84285feb5fd8834d37"
+}

@@ -51,6 +51,18 @@ Check `teamsBrowser.state`, `nativeCaptions` and `audioHealth` independently. `-
 
 Controlled Chrome tests pass; real Teams acceptance is pending. Private platform event formats may change. Audio capture starting does not prove membership, successful captions, or recorded speech. See [implementation and acceptance notes](docs/teams-native-captions.md).
 
+## Google Meet native account selection
+
+Paste the link; the dedicated Chrome window opens **Google's own account chooser/sign-in page**, even with existing signed-in accounts. Pick your account or use another account and complete verification yourself. Keep the window open. There is no custom localhost account form.
+
+The worker first verifies the authenticated account on Google's Meet home page, binds that email to the original meeting, and checks the actual prejoin identity again before requesting admission. Meet's native switch-account header is supported alongside its Google Account control. A different, missing or ambiguous identity stops the flow; profile order, URL parameters and chat text do not count as proof. A default-account redirect without an explicit choice or login is rejected.
+
+Account choice and host admission are detected automatically; you do not need to reply “selected” or “admitted” to keep the recording worker moving. AI notifications depend on the host; automatic continuation does not by itself guarantee a proactive chat notification.
+
+`selecting_account` means waiting on the native Google page. Waiting defaults to ten minutes (`OPENMEETING_LOGIN_TIMEOUT_MS`); `leave <ID>` cancels. Recording still requires actual admission and separate audio/caption checks. [Flow and validation](docs/meet-login-flow.md).
+
+On October 26, 2026, a user-operated Google Meet test verified the chosen account, host admission, and 121.7 seconds of recording. Both native captions and decoded audio contained **1357**. “Google Meet” and “Arthur” still had recognition errors, so exact-sentence acceptance remains incomplete. [Evidence scope and limits](docs/meet-login-flow.md); private recordings and account data are not committed.
+
 ## Use cases
 
 | Situation | Ask your AI | What you keep |

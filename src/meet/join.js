@@ -265,7 +265,7 @@ export async function humanType(page, text) {
  * @returns {Promise<'continue'|'dismiss'|'cta'|'devices_on'|null>} 'devices_on': the microphone
  *   or camera could not be turned off, so the join button was NOT clicked
  */
-async function prejoinStep(page, { displayName, log }) {
+async function prejoinStep(page, { displayName, log, beforeJoin }) {
   if (await dismissDevicePrompt(page, { log })) return 'dismiss';
   if (await clickElement(page, { texts: TEXT.continueWithoutDevices }, { log, label: 'continue without devices' })) {
     log.info('join: clicked "continue without microphone and camera"');
@@ -323,6 +323,9 @@ async function prejoinStep(page, { displayName, log }) {
     log.warn('join: this Google account is already in the call on another device; joining as an extra device ("Join here too"), never "Switch here"');
   }
 
+  // Verify the live account immediately before any join CTA.
+  if (beforeJoin) await beforeJoin();
+
   // the join button, first visible one in TEXT.joinCtas order
   if (await clickElement(page, { texts: TEXT.joinCtas }, { log, label: 'join CTA' })) return 'cta';
   return null;
@@ -357,7 +360,7 @@ async function isShown(page, spec) {
  *   onState?: (state: string) => void, log?: any, screenshot?: (name: string) => Promise<unknown>,
  *   meetingOrigin?: string, prejoinTimeoutMs?: number, blockedBackoffMs?: number, maxAttempts?: number,
  *   blankRetryMs?: number, unknownScreenshotMs?: number, inCallPolls?: number,
- *   shouldStop?: () => (string|null|undefined),
+ *   shouldStop?: () => (string|null|undefined), onSignin?: () => Promise<void>, beforeJoin?: () => Promise<void>,
  * }} opts
  * @returns {Promise<{ admittedAfterMs: number }>}
  * @throws {JoinError}
@@ -378,6 +381,8 @@ export async function joinMeeting(page, {
   unknownScreenshotMs = 15_000,
   inCallPolls = 3,
   shouldStop = () => null,
+  onSignin,
+  beforeJoin,
 }) {
   const L = toLog(log);
   const origin = meetingOrigin || new URL(url).origin;
@@ -395,6 +400,8 @@ export async function joinMeeting(page, {
   let lastState = '';
   let waitingReported = false;
   let prejoinIssue = '';
+  let loginAttempted = false;
+  let accountCheckedBeforeCta = false;
 
   const shot = async (name) => {
     try {
@@ -443,7 +450,7 @@ export async function joinMeeting(page, {
     blankSince = null;
     unknownSince = null;
     unknownShot = false;
-    inCallStreak = 0;
+    inCallStreak = 0; accountCheckedBeforeCta = false;
   };
 
   const retryOrFail = async (why) => {
@@ -491,6 +498,16 @@ export async function joinMeeting(page, {
 
     switch (state) {
       case STATES.SIGNIN_REQUIRED:
+        if (onSignin && !loginAttempted) {
+          loginAttempted = true;
+          onState('waiting_login');
+          await onSignin();
+          checkStop();
+          onState('joining');
+          phaseStart = Date.now(); firstCtaAt = ctaAt = askedAt = lobbySince = blankSince = unknownSince = null;
+          unknownShot = false; inCallStreak = 0; lastState = ''; waitingReported = false;
+          continue;
+        }
         await fail('signin_required', `Google asks to sign in (${matched})`);
         break;
       case STATES.NOT_FOUND:
@@ -519,6 +536,7 @@ export async function joinMeeting(page, {
         inCallStreak += 1;
         lobbySince = null;
         if (inCallStreak >= inCallPolls) {
+          if (beforeJoin && !accountCheckedBeforeCta) await beforeJoin();
           const admittedAfterMs = firstCtaAt === null ? 0 : now - firstCtaAt;
           L.info(`join: in the call (admitted ${Math.round(admittedAfterMs / 1000)} s after asking)`);
           return { admittedAfterMs };
@@ -537,7 +555,7 @@ export async function joinMeeting(page, {
         break;
       case STATES.PREJOIN: {
         askedAt = null;
-        const did = await prejoinStep(page, { displayName, log: L });
+        const did = await prejoinStep(page, { displayName, log: L, beforeJoin: beforeJoin ? async () => { await beforeJoin(); accountCheckedBeforeCta = true; } : undefined });
         if (did === 'cta') {
           ctaAt = Date.now();
           firstCtaAt ??= ctaAt;

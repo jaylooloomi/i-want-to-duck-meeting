@@ -1,0 +1,16 @@
+[
+  {
+    "file": "src/live/microphone.js",
+    "kind": "Chrome precise JS, nonblank lines with any executed character",
+    "covered": 134,
+    "lines": 136,
+    "percent": 98.53
+  },
+  {
+    "file": "src/live/app.js",
+    "kind": "Chrome precise JS, nonblank lines with any executed character",
+    "covered": 73,
+    "lines": 77,
+    "percent": 94.81
+  }
+]

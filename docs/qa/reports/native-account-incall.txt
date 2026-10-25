@@ -1,0 +1,22 @@
+✔ device invitation: closes only the microphone prompt without enabling devices (1313.3592ms)
+✔ ensureCaptions: a visible caption region means "on" — c is never pressed (it would toggle them off) (291.857ms)
+✔ ensureCaptions: captions known off and no button → presses c once (267.3374ms)
+✔ ensureCaptions: a "Turn on captions" button that does not work → the retry uses Escape + c (1413.7341ms)
+✔ joinMeeting: never clicks the join button while the microphone cannot be turned off (3392.3511ms)
+✔ joinMeeting: with "Switch here" and "Join here too", joins as an extra device and never switches (1410.5649ms)
+✔ setCaptionLanguage: picks the language in the caption-bar combobox with real clicks (no Settings needed) (1105.5946ms)
+✔ setCaptionLanguage: a listbox someone already opened is used as is (not toggled closed by a second click) (778.7268ms)
+✔ setCaptionLanguage: already selected → true without opening the picker (298.0729ms)
+✔ getCaptionLanguage: selected option of the hidden listbox (also as a portal), else the combobox label, else null (879.0437ms)
+✔ getCaptionLanguage: a selected data-value that is not a language code is not taken for one (267.9678ms)
+✔ setCaptionLanguage: a combobox pick that does not stick → Escape, then Settings > Captions with real clicks (6650.6429ms)
+✔ setCaptionLanguage: Settings path clicks the hidden list item from page script only as the last resort (5797.139ms)
+✔ setCaptionLanguage: language offered nowhere → false, picker and dialog closed (8692.5669ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33638.4298

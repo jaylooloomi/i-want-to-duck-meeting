@@ -959,3 +959,12 @@ test('waitForWorkerStart: a worker that failed fast but reported in counts as st
   const dead = await waitForWorkerStart(dir2, deadPid(), { timeoutMs: 5000, pollMs: 20 });
   assert.deepEqual([dead.ok, dead.exited], [false, true]);
 });
+
+
+test('join reports dedicated profile account hints without claiming verified identity',async()=>{
+  const home=newHome();fs.mkdirSync(path.join(home,'chrome-profile','Default'),{recursive:true});
+  fs.writeFileSync(path.join(home,'chrome-profile','Default','Preferences'),JSON.stringify({account_info:[{email:'qa@example.invalid',full_name:'QA recorder'}]}));
+  const result=await run(['join','https://meet.google.com/abc-defg-hij'],{home,spawnWorker:()=>process.pid});
+  assert.equal(result.code,0);assert.deepEqual(JSON.parse(kv(result.out).GOOGLE_ACCOUNT_HINT),[{name:'QA recorder',email:'qa@example.invalid'}]);
+  assert.match(result.text,/資料只是提示/);assert.match(result.text,/保持視窗開啟/);
+});
