@@ -1,0 +1,9 @@
+{
+  "os": "Windows-10-10.0.19045-SP0",
+  "node": "v24.13.0",
+  "python": "3.12.13",
+  "playwrightCore": "1.63.0",
+  "productBaseline": "821005108e382c3a652988cc30daa3bd5f48bd07",
+  "protectedFiles": 68,
+  "chrome": "155.0.8059.85"
+}

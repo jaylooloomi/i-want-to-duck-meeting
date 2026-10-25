@@ -1,0 +1,64 @@
+{
+  "tests": 25,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "kind": "stdlib trace executable-line coverage; no branch metric",
+  "files": [
+    {
+      "file": "stt\\build_speaker_validation.py",
+      "executableLines": 44,
+      "coveredLines": 0
+    },
+    {
+      "file": "stt\\build_teams_validation.py",
+      "executableLines": 35,
+      "coveredLines": 0
+    },
+    {
+      "file": "stt\\live.py",
+      "executableLines": 260,
+      "coveredLines": 136
+    },
+    {
+      "file": "stt\\paraformer.py",
+      "executableLines": 23,
+      "coveredLines": 17
+    },
+    {
+      "file": "stt\\play_dual_fixture.py",
+      "executableLines": 50,
+      "coveredLines": 0
+    },
+    {
+      "file": "stt\\replay_live.py",
+      "executableLines": 47,
+      "coveredLines": 10
+    },
+    {
+      "file": "stt\\setup_live.py",
+      "executableLines": 40,
+      "coveredLines": 0
+    },
+    {
+      "file": "stt\\transcribe.py",
+      "executableLines": 123,
+      "coveredLines": 34
+    },
+    {
+      "file": "stt\\verify_audio.py",
+      "executableLines": 61,
+      "coveredLines": 50
+    },
+    {
+      "file": "stt\\verify_speaker_capture.py",
+      "executableLines": 82,
+      "coveredLines": 0
+    },
+    {
+      "file": "stt\\windows_audio.py",
+      "executableLines": 142,
+      "coveredLines": 0
+    }
+  ]
+}

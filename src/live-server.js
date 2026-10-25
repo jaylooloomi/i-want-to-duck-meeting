@@ -61,6 +61,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         if (req.headers.origin !== origin) { res.writeHead(403).end(); return; }
         if (url.pathname === '/api/microphone/start' && req.headers['content-type'] === 'application/json') {
           const options = JSON.parse((await body(req)).toString() || '{}');
+          if (!options || typeof options !== 'object' || Array.isArray(options)) throw new Error('收音設定必須為 JSON 物件');
           // Worker-owned identity and lifetime are internal; HTTP callers may only
           // choose the capture mode and device IDs, never filesystem paths or leases.
           const { mode, input, output } = options;

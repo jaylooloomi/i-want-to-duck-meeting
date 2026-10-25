@@ -1,0 +1,8 @@
+AssertionError [ERR_ASSERTION]: No device must not be presented as ready
+
+true !== false
+
+    at spec.component (file:///D:/git/openmeeting/test/qa/frontend.test.js:54:10)
+    at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+    at async Test.run (node:internal/test_runner/test:1113:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

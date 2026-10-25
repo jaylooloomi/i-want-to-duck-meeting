@@ -1,0 +1,11 @@
+{
+  "tests": 59,
+  "pass": 32,
+  "fail": 27,
+  "cancelled": 0,
+  "skipped": 0,
+  "mode": "QA_REPRODUCE_BUGS=1",
+  "expectedFailures": 27,
+  "unexpectedFailures": 0,
+  "note": "7 product issues plus strict-resource-console acceptance constraint; parameterized failures are not separate defects"
+}

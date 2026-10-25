@@ -1,0 +1,12 @@
+{
+  "input": "true",
+  "status": 200,
+  "response": {
+    "id": "qa-capture",
+    "token": "qa-only-token",
+    "sequence": 0
+  },
+  "startCalls": [
+    {}
+  ]
+}

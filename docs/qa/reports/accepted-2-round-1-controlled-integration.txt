@@ -1,0 +1,131 @@
+▶ launchChrome + connectChrome (real Chrome, headless)
+  ✔ launch, connect, navigate, no webdriver flag, close kills everything (2606.6911ms)
+  ✔ second launch on a profile that is in use rejects fast with chrome_launch_failed (2288.611ms)
+  ✔ a process that exits before the DevTools endpoint answers -> chrome_launch_failed, fast (265.6405ms)
+  ✔ close() falls back to killing the process tree when CDP Browser.close is unavailable (3392.5432ms)
+  ✔ close() after Chrome already exited on its own resolves quickly (1789.6596ms)
+  ✔ a stale lockfile from a crashed Chrome does not block the launch (942.4208ms)
+  ✔ a missing chromePath rejects with chrome_not_found (1.4025ms)
+✔ launchChrome + connectChrome (real Chrome, headless) (11290.5401ms)
+✔ join (detached worker) → wait exits 0 with RESULT=done (14941.6402ms)
+✔ join (meeting never ends) → leave latest → done/user_stop, wait exits 0 (15583.6771ms)
+✔ join not-a-link exits 1 (169.1231ms)
+✔ device invitation: closes only the microphone prompt without enabling devices (1291.8366ms)
+✔ ensureCaptions: a visible caption region means "on" — c is never pressed (it would toggle them off) (340.1562ms)
+✔ ensureCaptions: captions known off and no button → presses c once (328.934ms)
+✔ ensureCaptions: a "Turn on captions" button that does not work → the retry uses Escape + c (1622.64ms)
+✔ joinMeeting: never clicks the join button while the microphone cannot be turned off (2805.5223ms)
+✔ joinMeeting: with "Switch here" and "Join here too", joins as an extra device and never switches (1370.6565ms)
+✔ setCaptionLanguage: picks the language in the caption-bar combobox with real clicks (no Settings needed) (1112.1572ms)
+✔ setCaptionLanguage: a listbox someone already opened is used as is (not toggled closed by a second click) (683.5227ms)
+✔ setCaptionLanguage: already selected → true without opening the picker (351.226ms)
+✔ getCaptionLanguage: selected option of the hidden listbox (also as a portal), else the combobox label, else null (959.9518ms)
+✔ getCaptionLanguage: a selected data-value that is not a language code is not taken for one (273.4383ms)
+✔ setCaptionLanguage: a combobox pick that does not stick → Escape, then Settings > Captions with real clicks (6422.7119ms)
+✔ setCaptionLanguage: Settings path clicks the hidden list item from page script only as the last resort (5944.7516ms)
+✔ setCaptionLanguage: language offered nowhere → false, picker and dialog closed (8823.999ms)
+✔ join (default WMI launcher) → worker under WmiPrvSE.exe, settings via worker-env.json; wait → done (16451.0306ms)
+✔ OPENMEETING_LAUNCHER=spawn → classic detached spawn (child of join); wait → done (17203.2875ms)
+✔ a WMI-launched worker survives the termination of the job object that ran join (17324.093ms)
+✔ contrast: a spawn-launched worker dies with the job object that ran join (why WMI is the default) (853.2088ms)
+﹣ two people remain stable through the browser microphone, gain/noise changes and a short turn (1.8107ms) # SKIP
+﹣ an interrupted recognizer preserves failed status, an error and a closed WAV (1.8067ms) # SKIP
+﹣ local microphone PCM reaches real VAD, speaker embeddings, Whisper and the live viewer (0.2437ms) # SKIP
+✔ server: routes, content types, 404/405/400 (436.3673ms)
+✔ server: urlFor builds meeting URLs with hl=en first (2.2661ms)
+✔ timeline: well-formed and covers revision, code-switching, rolling, rerender, trimming (0.7207ms)
+✔ timeline: a spec-conformant assembler reproduces HAPPY_EXPECTED (every step and throttled) (5.2004ms)
+✔ timeline: a new block never looks like a re-render of an earlier block of the same speaker (0.3811ms)
+✔ happy: prejoin → lobby → in call → Chinese captions → end screen (19206.5018ms)
+✔ prejoin: the CTA is ignored while the name is empty (929.1774ms)
+✔ signedin=1: no name input, "Join now" goes through to the call (780.4227ms)
+✔ continue_dialog: dialog blocks the CTA until "Continue without microphone and camera" (1452.8741ms)
+✔ denied: lobby → denied screen, "Ask to join again" re-enters the lobby (1247.7258ms)
+✔ lobby_timeout: nobody responds (939.9389ms)
+✔ blocked: no prejoin UI, only the block message (324.0345ms)
+✔ notfound: "Check your meeting code" with a working "Return to home screen" (397.8756ms)
+✔ signin: redirected to the sign-in page (335.249ms)
+✔ removed: captions without a language switch are English gibberish, then removed (1627.2305ms)
+✔ alone: everyone else leaves, avatar count 1, and the call never ends (2898.9896ms)
+✔ in call: "c" toggles captions, timeline pauses while off, huge endAfterMs never ends, Leave call (3521.804ms)
+✔ caption bar: the "Meeting language" combobox opens a listbox and switches the caption language (1900.8954ms)
+✔ langpicker=settings: the caption bar shows a plain language button (no combobox); Settings still works (1425.5588ms)
+✔ langpicker=combobox: Settings > Captions has no language list, only the caption bar can switch it (1292.0645ms)
+✔ langlist=missing / nodatavalue also shape the caption-bar listbox (2169.3024ms)
+✔ langResetAtMs: after the timeline the caption language switches back to English (captions on screen keep their text) (2026.3991ms)
+✔ langResets=3: the reset comes back after each switch away from English, three times in all (3269.2405ms)
+✔ noaudio=1: the call has no remote audio element (1245.4099ms)
+✔ happy: joins silently, records the exact transcript, audio and stats (24457.3539ms)
+✔ langpicker=settings: no caption-bar combobox → the Settings fallback sets the caption language (14270.3124ms)
+✔ a mid-call switch of the caption language back to English is detected and corrected (21708.9323ms)
+✔ a caption language that keeps being switched away is set back twice, then left alone (no fight) (26175.665ms)
+✔ no remote audio track: one warning after OPENMEETING_NO_AUDIO_WARN_MS and stats.audioTracks = 0 (12090.6831ms)
+✔ signedin=1 (no name input, "Join now") joins and records; OPENMEETING_TRACK_MIRROR=1 installs the track mirror (11188.4216ms)
+✔ continue_dialog: dismisses the devices dialog, then joins (6730.2658ms)
+✔ denied → failed/denied (5368.4105ms)
+✔ lobby_timeout → failed/lobby_timeout (5057.0119ms)
+✔ blocked → retried, then failed/blocked (2445.271ms)
+✔ notfound → failed/not_found (1624.4847ms)
+✔ signin → failed/signin_required (1876.2081ms)
+✔ removed → done/removed (7656.6166ms)
+✔ alone → done/alone after OPENMEETING_ALONE_TIMEOUT_MS (11458.8693ms)
+✔ a chat toast quoting an end-screen phrase does not end the recording (12655.603ms)
+✔ an unrecognized end screen (no call controls) ends the session after OPENMEETING_UNKNOWN_END_MS (15338.129ms)
+✔ alone without a readable participant count: falls back to the tiles (5 × aloneTimeout) (17840.9ms)
+✔ alone without a readable participant count: the "only one here" hint is enough (14249.6931ms)
+✔ caption language item without data-value is found by its label (12367.5309ms)
+✔ caption language that cannot be set: still recorded, transcript.md warns about it (21628.6852ms)
+✔ STOP file while in the call → done/user_stop (10291.4646ms)
+✔ test\integration\stt.test.js (158.6003ms)
+﹣ Teams link starts a real detached worker without a browser lease and stops at its duration limit (1.7525ms) # SKIP
+﹣ Teams browser controls capture two actual WASAPI lanes with stable local/remote speakers (1.7869ms) # SKIP
+✔ real Chrome receives local/remote channel captions and V2 events without breaking originals (2042.2419ms)
+✔ real Chrome configures joining, mute, captions and language on controlled Teams UI (1770.6837ms)
+ℹ tests 81
+ℹ suites 1
+ℹ pass 76
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 5
+ℹ todo 0
+ℹ duration_ms 448015.6187
+ℹ start of coverage report
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                    | line % | branch % | funcs % | uncovered lines
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ src                     |        |          |         |
+ℹ  audio-settings.js      |  38.78 |    25.00 |   14.29 | 9-12 14-24 26-30 32-36 38-41 48
+ℹ  audio                  |        |          |         |
+ℹ   multi-track-writer.js |  27.50 |   100.00 |    0.00 | 8-13 15-32 35-39
+ℹ   wav-writer.js         |  95.20 |    54.55 |   87.50 | 72-74 76-78
+ℹ  captions               |        |          |         |
+ℹ   assembler.js          |  82.70 |    71.29 |   70.97 | 77-101 111-121 139-141 143 178-184 206 220-238 326 417-434
+ℹ  chrome.js              |  95.37 |    75.53 |   85.71 | 65 129 202-203 254-256 271-274 319-321 323
+ℹ  cli.js                 |  68.54 |    44.85 |   67.65 | 142-144 176-180 183-185 224-226 228-231 240-241 285-288 299-303 305-306 308-316 441-445 531-533 535-540 555-563 570-571 631-634 642-646 648-653 679-686 695-700 703-720 723-731 757-760 775-788 795 800-805 818-832 840-841 843-847 854-867 878-879 915-921 932-934 943-945 966-970 984-987 1003 1010-1011 1016-1018 1022-1055 1058-1102 1105-1123 1126-1159 1173-1175 1177-1179 1182-1185 1192-1204 1207-1209 1212-1227 1238-1240 1243-1245
+ℹ  config.js              |  99.20 |    72.22 |  100.00 | 66
+ℹ  live-server.js         |  13.27 |   100.00 |    0.00 | 11-19 21-23 26-45 48-113
+ℹ  log.js                 |  77.78 |    64.71 |  100.00 | 31-36 43-50 68-69 92-93 98-99 102-107
+ℹ  meet                   |        |          |         |
+ℹ   failure-guidance.js   |  55.56 |    33.33 |  100.00 | 5-6 8-9 11-12 14-15
+ℹ   incall.js             |  76.48 |    85.71 |   60.00 | 50-127 136-169 178-191 254-255 273-274 327-328 365-369 464 479-480 487-488 573-574 591 622-623
+ℹ   join.js               |  79.10 |    80.99 |   64.29 | 71 98-163 211-212 232-233 240-244 275-277 296 328 403-404 414-417 436-438 452 475-478 506-507 512-517 550-565 572-573
+ℹ   selectors.js          | 100.00 |    80.00 |  100.00 |
+ℹ   state.js              |  98.97 |    64.06 |  100.00 | 179-180
+ℹ  microphone.js          |  15.00 |   100.00 |    0.00 | 16-18 23-25 28-127 130-144 147-159 162-164 167-199
+ℹ  page                   |        |          |         |
+ℹ   audio-capture.js      |  13.60 |   100.00 |    0.00 | 17-59 93-374 388-456
+ℹ   caption-observer.js   |  17.45 |   100.00 |    0.00 | 38-212
+ℹ   snapshot.js           |  16.94 |   100.00 |    0.00 | 32-183
+ℹ  session.js             |  81.36 |    70.83 |   74.29 | 137-138 149-154 162-172 227-228 238-239 266-267 273-274 306-307 310-312 314-316 359-362 383-388 394-395 400-401 421-427 454-456 462-464 486-487 490-492 497-503 531-533 539-540 543-552 565-572 613-614 643-644 646-654 656-657 683-684 693-694 715-716 728-729 739-740 745-746 750-756 773-774 776-790 802-804
+ℹ  status.js              |  90.67 |    68.89 |   89.47 | 12-14 94-98 135-146 195
+ℹ  stt.js                 |  47.10 |    53.33 |   35.00 | 43-51 78-84 114-118 126-135 143-150 153-156 159-181 187-211 214-222 224-234 246-264 277-310
+ℹ  teams-browser.js       |  62.37 |    70.59 |   26.67 | 35-38 47 61-64 68-93
+ℹ  teams-captions.js      |  12.61 |   100.00 |    0.00 | 8-10 12-28 30-33 35-47 53-119
+ℹ  transcript             |        |          |         |
+ℹ   store.js              |  89.83 |    60.66 |   86.36 | 95-100 113-114 153-172 284-285
+ℹ  url.js                 |  78.20 |    33.33 |   54.55 | 25-26 39-40 42 50-52 64-74 106-107 114-121
+ℹ  worker.js              |  58.40 |    16.67 |   30.00 | 58-71 80-106 124-126 131-138 141-151 157-162 168-173 179-182 187-190 192-196 202-203 211-215 218-221 236-240
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files               |  66.83 |    66.59 |   65.12 |
+ℹ -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report

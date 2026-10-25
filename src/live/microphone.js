@@ -4,28 +4,40 @@
   const mode = byId('audio-mode');
   const message = (text) => { byId('mic-status').textContent = text; };
   let stream, context, node, source, analyser, session, upload = Promise.resolve(), queued = 0, sequence = 0, stopping = false, meterFrame, flushResolve, heartbeatTimer;
+  let deviceGeneration = 0, teamsReady = false, starting = false;
+  function updateStart() { start.disabled = starting || !!session || stopping || (mode.value === 'teams' && !teamsReady); }
   async function post(url, body) {
     const response = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) });
     const data = await response.json(); if (!response.ok) throw new Error(data.error || '操作失敗'); return data;
   }
   async function devices() {
+    const generation = ++deviceGeneration, captureMode = mode.value;
+    const current = () => generation === deviceGeneration && mode.value === captureMode;
+    if (captureMode === 'teams') { teamsReady = false; updateStart(); }
+    else if (!starting && !session) message('尚未收音；按開始後會要求麥克風權限。');
     try {
       if (mode.value === 'teams') {
         message('正在讀取 Windows 播放裝置與麥克風…');
         const response = await fetch('/api/audio-devices'); const data = await response.json();
+        if (!current()) return;
         if (!response.ok) throw new Error(data.error || '無法列出 Windows 裝置');
+        if (!Array.isArray(data.inputs) || !Array.isArray(data.outputs)) throw new Error('Windows 裝置資料格式錯誤');
         for (const [id, entries, defaultId] of [['teams-input', data.inputs, data.defaultInput], ['teams-output', data.outputs, data.defaultOutput]]) {
           const select = byId(id), previous = select.value;
           select.replaceChildren(...entries.map((d) => new Option(d.name, String(d.id))));
           select.value = entries.some((d) => String(d.id) === previous) ? previous : String(defaultId);
         }
+        teamsReady = !!byId('teams-input').value && !!byId('teams-output').value;
+        if (!teamsReady) { message('找不到可用的 Windows 播放裝置與麥克風，請連接裝置後重新整理。'); return; }
         message('Windows 雙路收音已就緒；請選擇與 Teams 相同的裝置。'); return;
       }
       const selected = device.value;
       const inputs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+      if (!current()) return;
       device.replaceChildren(new Option('系統預設麥克風', ''), ...inputs.filter((d) => d.deviceId && d.deviceId !== 'default').map((d, i) => new Option(d.label || `麥克風 ${i + 1}`, d.deviceId)));
       if ([...device.options].some((o) => o.value === selected)) device.value = selected;
-    } catch (error) { message('無法列出麥克風：' + error.message); }
+    } catch (error) { if (current()) message('無法列出麥克風：' + error.message); }
+    finally { if (current()) updateStart(); }
   }
   function meter() {
     if (!analyser) return;
@@ -63,10 +75,11 @@
       if (session) await post('/api/microphone/stop', { token:session.token });
       if (!reason) message('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');
     } catch (error) { message('收音已停止；收尾失敗：' + error.message); }
-    finally { session = null; start.disabled = false; device.disabled = false; mode.disabled = false; byId('teams-input').disabled = false; byId('teams-output').disabled = false; byId('teams-mic-level').value = 0; byId('teams-system-level').value = 0; stopping = false; }
+    finally { session = null; starting = false; device.disabled = false; mode.disabled = false; byId('teams-input').disabled = false; byId('teams-output').disabled = false; byId('teams-mic-level').value = 0; byId('teams-system-level').value = 0; stopping = false; updateStart(); }
   }
   start.addEventListener('click', async () => {
-    start.disabled = true; device.disabled = true; mode.disabled = true; byId('teams-input').disabled = true; byId('teams-output').disabled = true; stopping = false; sequence = 0; queued = 0; upload = Promise.resolve();
+    if (start.disabled || starting || session || stopping) return;
+    starting = true; start.disabled = true; device.disabled = true; mode.disabled = true; byId('teams-input').disabled = true; byId('teams-output').disabled = true; stopping = false; sequence = 0; queued = 0; upload = Promise.resolve();
     try {
       if (mode.value === 'teams') {
         if (!byId('teams-input').value || !byId('teams-output').value) throw new Error('尚未選擇 Windows 播放裝置與麥克風');
@@ -93,8 +106,8 @@
       stream.getTracks().forEach((track) => track.addEventListener('ended', () => finish('麥克風已中斷，正在收尾。')));
     } catch (error) {
       message('無法開始收音：' + error.message);
-      if (session) await finish('無法開始收音：' + error.message); else { await release(); start.disabled = false; device.disabled = false; mode.disabled = false; byId('teams-input').disabled = false; byId('teams-output').disabled = false; }
-    }
+      if (session) await finish('無法開始收音：' + error.message); else { await release(); device.disabled = false; mode.disabled = false; byId('teams-input').disabled = false; byId('teams-output').disabled = false; }
+    } finally { starting = false; updateStart(); }
   });
   stop.addEventListener('click', () => finish());
   document.addEventListener('meeting-status', ({ detail }) => {

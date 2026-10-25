@@ -1,0 +1,66 @@
+{
+  "label": "accepted round 1, grouped execution after fixture correction",
+  "sourceAttempts": [
+    "test\\.tmp\\qa\\regression-2026-10-24T19-03-48-958Z",
+    "test\\.tmp\\qa\\regression-2026-10-24T19-10-59-583Z"
+  ],
+  "groups": [
+    {
+      "name": "round-2-legacy-unit",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-03-48-958Z\\round-2-legacy-unit.log",
+      "tests": 509,
+      "pass": 509,
+      "fail": 0,
+      "skipped": 0,
+      "persistedLog": "docs/qa/reports/accepted-1-round-2-legacy-unit.txt"
+    },
+    {
+      "name": "round-2-controlled-integration",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-03-48-958Z\\round-2-controlled-integration.log",
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0,
+      "persistedLog": "docs/qa/reports/accepted-1-round-2-controlled-integration.txt"
+    },
+    {
+      "name": "round-2-strict-qa",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-03-48-958Z\\round-2-strict-qa.log",
+      "tests": 62,
+      "pass": 35,
+      "fail": 0,
+      "skipped": 27,
+      "persistedLog": "docs/qa/reports/accepted-1-round-2-strict-qa.txt"
+    },
+    {
+      "name": "round-2-python",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-03-48-958Z\\round-2-python.log",
+      "tests": 25,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 2,
+      "persistedLog": "docs/qa/reports/accepted-1-round-2-python.txt"
+    },
+    {
+      "name": "round-2-additional-integration",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-10-59-583Z\\round-2-additional-integration.log",
+      "tests": 41,
+      "pass": 36,
+      "fail": 0,
+      "skipped": 5,
+      "persistedLog": "docs/qa/reports/accepted-1-round-2-additional-integration.txt"
+    }
+  ],
+  "totals": {
+    "tests": 677,
+    "pass": 643,
+    "fail": 0,
+    "skipped": 34
+  },
+  "allGroupsSuccessful": true
+}

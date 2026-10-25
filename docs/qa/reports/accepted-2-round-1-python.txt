@@ -1,0 +1,6 @@
+.........s...........sOutput already exists; choose a new path
+...
+----------------------------------------------------------------------
+Ran 25 tests in 0.738s
+
+OK (skipped=2)

@@ -1,0 +1,783 @@
+✔ BE-01 assets MIME security headers methods and 404 (108.9856ms)
+✔ BE-02 hostile Origin Host and missing Origin cannot mutate capture (35.4424ms)
+✔ BE-03 empty list and public list excludes sensitive status fields (18.196ms)
+✔ BE-04 malformed partial JSON sorted transcript and terminal pending suppression (16.0648ms)
+✔ BE-05 traversal unknown IDs and extreme query never read outside meeting root (17.5791ms)
+✔ BE-06 start strips worker-owned filesystem and managed properties (11.9389ms)
+✔ BE-07 invalid body MIME excessive size and unknown actions recover (32.708ms)
+✖ BE-07 reject non-object start body [] (11.0893ms)
+✖ BE-07 reject non-object start body "text" (10.5517ms)
+✖ BE-07 reject non-object start body 123 (9.9185ms)
+✖ BE-07 reject non-object start body true (9.3996ms)
+✔ BE-08 real service rejects invalid and duplicate starts before spawning (2.311ms)
+✔ BE-09 real audio rejects token sequence format lane and backpressure without mutation (1.1738ms)
+✔ BE-10 real ordered PCM heartbeat and idempotent stop (1.1835ms)
+✔ BE-11 missing Windows device dependency returns JSON error and server survives (23.9851ms)
+✔ E2E-01 live HTTP transcript update finalization and meeting selection (3324.7478ms)
+✔ E2E-02 extreme transcript and missing speaker render as text (1183.328ms)
+✔ E2E-03 empty initial state and final pending removal (2885.297ms)
+✖ E2E-03 deleting the last meeting removes private content from the viewer (2268.5476ms)
+✖ E2E-04 poll HTTP 400 visible error and strict console (1560.287ms)
+✖ E2E-04 poll HTTP 401 visible error and strict console (1448.6403ms)
+✖ E2E-04 poll HTTP 403 visible error and strict console (1679.0481ms)
+✖ E2E-04 poll HTTP 500 visible error and strict console (1450.4521ms)
+✖ E2E-05 unknown deep link cannot silently display latest under a stale URL (1392.4722ms)
+✔ E2E-06 transcript viewport 1920 semantic controls and overflow (1383.0703ms)
+✔ E2E-06 transcript viewport 390 semantic controls and overflow (1540.4644ms)
+✔ E2E-07 real browser AudioWorklet PCM to HTTP and graceful stop (3191.2585ms)
+✔ E2E-08 denied microphone never creates a backend session (1350.8365ms)
+✔ E2E-09 in-flight start is disabled and stop issues one request (1468.5294ms)
+✖ E2E-10 start HTTP 400 recovers controls with strict console (1659.8982ms)
+✖ E2E-10 start HTTP 401 recovers controls with strict console (1551.3946ms)
+✖ E2E-10 start HTTP 403 recovers controls with strict console (1479.9321ms)
+✖ E2E-10 start HTTP 500 recovers controls with strict console (1588.0151ms)
+✖ E2E-10 stop failure restores start controls and reports incomplete finalization (1597.7803ms)
+✖ E2E-10 upload failure stops capture and shows the packet error (2454.838ms)
+✔ E2E-11 pagehide sends stop beacon and reload has no active capture claim (1880.7001ms)
+✔ E2E-12 microphone controls actionable viewport 1920 (1630.7664ms)
+✔ E2E-12 microphone controls actionable viewport 390 (1668.8027ms)
+✔ E2E-13 Teams device IDs start heartbeat levels and stop (3461.6177ms)
+✔ E2E-14 absent Teams devices block start with a readable message (1228.526ms)
+✖ E2E-15 pending Teams device request blocks unsafe start and shows loading (1338.1722ms)
+✖ E2E-16 Teams device API failure has visible feedback and zero console (1574.2196ms)
+✖ E2E-17 Teams mode query survives start stop and reload (1613.8059ms)
+✔ E2E-18 long Teams device labels viewport 1920 (1257.4709ms)
+✔ E2E-18 long Teams device labels viewport 390 (1186.1463ms)
+✔ E2E-19 root query routes browser back forward and 404 (1551.6521ms)
+✔ FE-01 transcript component revisions drafts state and speakers (2093.2803ms)
+✔ FE-02 transcript component hostile text and unsafe meeting link (1348.1128ms)
+✖ FE-03 empty list clears previously displayed private transcript (2349.4257ms)
+✖ FE-04 HTTP 400 recovery and strict console (2101.935ms)
+✖ FE-04 HTTP 401 recovery and strict console (2053.5321ms)
+✖ FE-04 HTTP 403 recovery and strict console (2075.9266ms)
+✖ FE-04 HTTP 500 recovery and strict console (2287.3055ms)
+✖ FE-04 network abort recovers with visible feedback and zero console (2045.5844ms)
+✔ FE-05 microphone component permission denial restores controls (1258.9551ms)
+✖ FE-06 empty Teams devices do not claim capture readiness (1348.5284ms)
+✔ FE-06 malformed device response shows an error instead of throwing (1078.6603ms)
+✔ FE-07 delayed start prevents duplicate submit and then stops (1308.0903ms)
+✖ FE-08 outdated Teams response cannot overwrite current microphone feedback (1429.6189ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 32
+ℹ fail 27
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 80556.1998
+
+✖ failing tests:
+
+test at test\qa\backend.test.js:67:48
+✖ BE-07 reject non-object start body [] (11.0893ms)
+  AssertionError [ERR_ASSERTION]: A scalar or array must not start capture
+
+  200 !== 400
+
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/qa/backend.test.js:73:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\backend.test.js:67:48
+✖ BE-07 reject non-object start body "text" (10.5517ms)
+  AssertionError [ERR_ASSERTION]: A scalar or array must not start capture
+
+  200 !== 400
+
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/qa/backend.test.js:73:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\backend.test.js:67:48
+✖ BE-07 reject non-object start body 123 (9.9185ms)
+  AssertionError [ERR_ASSERTION]: A scalar or array must not start capture
+
+  200 !== 400
+
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/qa/backend.test.js:73:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\backend.test.js:67:48
+✖ BE-07 reject non-object start body true (9.3996ms)
+  AssertionError [ERR_ASSERTION]: A scalar or array must not start capture
+
+  200 !== 400
+
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/qa/backend.test.js:73:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-03 deleting the last meeting removes private content from the viewer (2268.5476ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 0
+
+      at spec.bug (file:///D:/git/openmeeting/test/qa/e2e.test.js:31:10)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-04 poll HTTP 400 visible error and strict console (1560.287ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57225/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-04 poll HTTP 401 visible error and strict console (1448.6403ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57250/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-04 poll HTTP 403 visible error and strict console (1679.0481ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57277/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-04 poll HTTP 500 visible error and strict console (1450.4521ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57310/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-05 unknown deep link cannot silently display latest under a stale URL (1392.4722ms)
+  AssertionError [ERR_ASSERTION]: Fallback must synchronize the URL or show a not-found state
+  + actual - expected
+
+  + 'missing'
+  - 'latest'
+
+      at spec.bug (file:///D:/git/openmeeting/test/qa/e2e.test.js:40:10)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'missing',
+    expected: 'latest',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-10 start HTTP 400 recovers controls with strict console (1659.8982ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57559/api/microphone/start'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-10 start HTTP 401 recovers controls with strict console (1551.3946ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57584/api/microphone/start'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-10 start HTTP 403 recovers controls with strict console (1479.9321ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57599/api/microphone/start'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-10 start HTTP 500 recovers controls with strict console (1588.0151ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57629/api/microphone/start'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-10 stop failure restores start controls and reports incomplete finalization (1597.7803ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57643/api/microphone/stop'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-10 upload failure stops capture and shows the packet error (2454.838ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57667/api/microphone/audio'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-15 pending Teams device request blocks unsafe start and shows loading (1338.1722ms)
+  AssertionError [ERR_ASSERTION]: Start must be disabled until required devices are known
+
+  false !== true
+
+      at spec.bug (file:///D:/git/openmeeting/test/qa/e2e.test.js:118:54)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-16 Teams device API failure has visible feedback and zero console (1574.2196ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57783/api/audio-devices'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ E2E-17 Teams mode query survives start stop and reload (1613.8059ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'microphone'
+  - 'teams'
+
+      at spec.bug (file:///D:/git/openmeeting/test/qa/e2e.test.js:129:30)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'microphone',
+    expected: 'teams',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-03 empty list clears previously displayed private transcript (2349.4257ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 0
+
+      at spec.component (file:///D:/git/openmeeting/test/qa/frontend.test.js:27:32)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-04 HTTP 400 recovery and strict console (2101.935ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57900/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-04 HTTP 401 recovery and strict console (2053.5321ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57912/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-04 HTTP 403 recovery and strict console (2075.9266ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57927/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-04 HTTP 500 recovery and strict console (2287.3055ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57942/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-04 network abort recovers with visible feedback and zero console (2045.5844ms)
+  AssertionError [ERR_ASSERTION]: Zero console/page errors required
+  + actual - expected
+
+  + [
+  +   {
+  +     kind: 'console.error',
+  +     location: {
+  +       column: 0,
+  +       columnNumber: 0,
+  +       line: 0,
+  +       lineNumber: 0,
+  +       url: 'http://127.0.0.1:57955/api/meetings'
+  +     },
+  +     text: 'Failed to load resource: net::ERR_TIMED_OUT'
+  +   }
+  + ]
+  - []
+
+      at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+      at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { kind: 'console.error', text: 'Failed to load resource: net::ERR_TIMED_OUT', location: [Object] } ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-06 empty Teams devices do not claim capture readiness (1348.5284ms)
+  AssertionError [ERR_ASSERTION]: No device must not be presented as ready
+
+  true !== false
+
+      at spec.component (file:///D:/git/openmeeting/test/qa/frontend.test.js:54:10)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test\qa\harness.js:98:3
+✖ FE-08 outdated Teams response cannot overwrite current microphone feedback (1429.6189ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at spec.component (file:///D:/git/openmeeting/test/qa/frontend.test.js:82:10)
+      at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

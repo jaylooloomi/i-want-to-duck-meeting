@@ -1,0 +1,281 @@
+{
+  "exitCode": 1,
+  "tests": 16,
+  "failures": 16,
+  "unexpectedFailureKinds": 0,
+  "classification": "BUG-004 strict console acceptance limitation; all functional assertions completed before guard failure",
+  "cases": [
+    {
+      "case": "E2E-04_poll_HTTP_400_visible_error_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "location": {
+            "url": "http://127.0.0.1:53483/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53483/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)"
+    },
+    {
+      "case": "E2E-04_poll_HTTP_401_visible_error_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://127.0.0.1:53493/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53493/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-04_poll_HTTP_403_visible_error_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+          "location": {
+            "url": "http://127.0.0.1:53504/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53504/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-04_poll_HTTP_500_visible_error_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://127.0.0.1:53517/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53517/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-10_start_HTTP_400_recovers_controls_with_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "location": {
+            "url": "http://127.0.0.1:53530/api/microphone/start",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53530/api/microphone/start'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-10_start_HTTP_401_recovers_controls_with_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://127.0.0.1:53546/api/microphone/start",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53546/api/microphone/start'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-10_start_HTTP_403_recovers_controls_with_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+          "location": {
+            "url": "http://127.0.0.1:53558/api/microphone/start",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53558/api/microphone/start'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-10_start_HTTP_500_recovers_controls_with_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://127.0.0.1:53574/api/microphone/start",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53574/api/microphone/start'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-10_stop_failure_restores_start_controls_and_reports_incomplete_finalization",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://127.0.0.1:53591/api/microphone/stop",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53591/api/microphone/stop'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-10_upload_failure_stops_capture_and_shows_the_packet_error",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://127.0.0.1:53604/api/microphone/audio",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53604/api/microphone/audio'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "E2E-16_Teams_device_API_failure_has_visible_feedback_and_zero_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://127.0.0.1:53617/api/audio-devices",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53617/api/audio-devices'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "FE-04_HTTP_400_recovery_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "location": {
+            "url": "http://127.0.0.1:53633/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53633/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 400 (Bad Request)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)"
+    },
+    {
+      "case": "FE-04_HTTP_401_recovery_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://127.0.0.1:53647/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53647/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 401 (Unauthorized)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "FE-04_HTTP_403_recovery_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 403 (Forbidden)",
+          "location": {
+            "url": "http://127.0.0.1:53661/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53661/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 403 (Forbidden)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "FE-04_HTTP_500_recovery_and_strict_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+          "location": {
+            "url": "http://127.0.0.1:53686/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53686/api/meetings'\n+     },\n+     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    },
+    {
+      "case": "FE-04_network_abort_recovers_with_visible_feedback_and_zero_console",
+      "console": [
+        {
+          "kind": "console.error",
+          "text": "Failed to load resource: net::ERR_TIMED_OUT",
+          "location": {
+            "url": "http://127.0.0.1:53696/api/meetings",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "failure": "AssertionError [ERR_ASSERTION]: Zero console/page errors required\n+ actual - expected\n\n+ [\n+   {\n+     kind: 'console.error',\n+     location: {\n+       column: 0,\n+       columnNumber: 0,\n+       line: 0,\n+       lineNumber: 0,\n+       url: 'http://127.0.0.1:53696/api/meetings'\n+     },\n+     text: 'Failed to load resource: net::ERR_TIMED_OUT'\n+   }\n+ ]\n- []\n\n    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)\n    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)\n    at async Test.run (node:internal/test_runner/test:1113:7)\n    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)"
+    }
+  ]
+}

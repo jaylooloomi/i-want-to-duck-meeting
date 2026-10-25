@@ -1,0 +1,140 @@
+# 缺陷與驗收限制報告
+
+初始 QA 稽核時產品唯讀；其後使用者明確授權修復七項產品問題。本報告保留修復前的真 HTTP／Headless Chrome 證據。未確認的RWD疑慮（暫稱BUG-007）已在390/1920實測排除，不列缺陷。
+
+7個產品問題：P1×1、P2×5、P3×1。另有1個故障注入下的零console驗收限制，與未捕獲Runtime Error分開。七項產品問題的測試已取消 skip 並啟用。只有 BUG-004 的 16 個故障注入案例仍因嚴格零 console 驗收限制保留 skip；QA_REPRODUCE_BUGS=1 會啟用它們，預期因瀏覽器資源錯誤而非零退出。跳過不等於通過。
+
+## 執行與證據
+
+- 首輪探索含測試定位／等待問題，已修正測試：label包含option文字改用語義role；延遲請求先註冊事件；reload的beacon改由真HTTP finish事件核對。這些不是產品缺陷，也沒有修改產品。
+- Chrome trace.zip、DOM與原始console在test/.tmp/qa下；下方精選截圖與錯誤已複製到docs/qa/evidence持久保存，全部是合成QA文字，無私人會議資料。
+- 完整重現：PowerShell先設定 `$env:QA_REPRODUCE_BUGS='1'`、`$env:QA_OUTPUT='test/.tmp/qa/reproduce'`，再執行 `node --test --test-concurrency=1 test/qa/backend.test.js test/qa/frontend.test.js test/qa/e2e.test.js`。已知缺陷存在時退出碼1是預期的規格失敗，不能稱全綠。
+
+## BUG-001 — 無會議狀態仍顯示已刪除逐字稿與舊計數
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** 空清單分支清除逐字稿、計數、Meet href 與同步時間，並重設內容簽章，讓同一份內容重新出現時可再次渲染。FE-03、E2E-03 已啟用。
+
+- 嚴重度：P1；案例：FE-03、E2E-03。
+- 修復前原始碼定位（歷史證據）：`src/live/app.js:40-43`。
+- 重現：載入包含一段逐字稿的會議；刪除測試會議目錄或令/api/meetings回傳[]；等待UI顯示「尚無會議」。
+- 預期：清空舊逐字稿／計數／進入Meet連結，顯示空態。
+- 實際：標頭已是尚無會議，但仍顯示DELETED_PRIVATE_TEXT與1段發言。空清單分支提早return，沒有清除既有畫面。
+- Console／Page Error：[]；無Runtime Error。這是資料／隱私呈現缺陷。
+- [失敗截圖](docs/qa/evidence/BUG-001/failure.png)、[assertion](docs/qa/evidence/BUG-001/failure.txt)、[console完整內容](docs/qa/evidence/BUG-001/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/E2E-03_deleting_the_last_meeting_removes_private_content_from_the_viewer/trace.zip`。
+
+## BUG-002 — 無效深層連結默默改顯示另一場會議，URL仍指向不存在ID
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** 不存在的 id 回退 latest 時同步網址，保留其餘 query 參數。E2E-05 已啟用。
+
+- 嚴重度：P2；案例：E2E-05。
+- 修復前原始碼定位（歷史證據）：`src/live/app.js:35-37`。
+- 重現：先建立qa-first；開啟/?id=missing。
+- 預期：顯示找不到會議，或明確fallback並同步URL為latest。
+- 實際：UI顯示UNRELATED_LATEST，URL仍?id=missing；分享／重新整理時目標與畫面不一致。
+- Console／Page Error：[]；無Runtime Error。
+- [失敗截圖](docs/qa/evidence/BUG-002/failure.png)、[assertion](docs/qa/evidence/BUG-002/failure.txt)、[console完整內容](docs/qa/evidence/BUG-002/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/E2E-05_unknown_deep_link_cannot_silently_display_latest_under_a_stale_URL/trace.zip`。
+
+## BUG-003 — 開始Teams收音會移除source=teams，重新整理回到麥克風模式
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** 使用 URL.searchParams 更新 id，不覆蓋 source=teams 或其他 query。E2E-17 已啟用。
+
+- 嚴重度：P2；案例：E2E-17。
+- 修復前原始碼定位（歷史證據）：`src/live/app.js:5-7；src/live/microphone.js:120`。
+- 重現：開啟/?source=teams；選擇裝置並開始；結束；重新整理。
+- 預期：模式保持Teams，且會議ID與來源query並存。
+- 實際：microphone-started以?id=...取代所有query；reload後來源值為microphone而非teams。
+- Console／Page Error：[]；無Runtime Error。
+- [失敗截圖](docs/qa/evidence/BUG-003/failure.png)、[assertion](docs/qa/evidence/BUG-003/failure.txt)、[console完整內容](docs/qa/evidence/BUG-003/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/E2E-17_Teams_mode_query_survives_start_stop_and_reload/trace.zip`。
+
+## BUG-004 — 故障注入與字面零console規則衝突
+
+- 嚴重度：驗收限制／非已證實Runtime缺陷；案例：FE-04、E2E-04、E2E-10、E2E-16。
+- 修復前原始碼定位（歷史證據）：`src/live/app.js:29,67；src/live/microphone.js:7-9,15,49-50`。
+- 重現：Playwright route對API回傳400/401/403/500，或abort timedout；同時監聽所有console.error與pageerror。
+- 預期：依本次字面規則：即使UI有錯誤提示，也不得存在任何console.error。
+- 實際：UI確實顯示錯誤且恢復案例會恢復；Chromium自己輸出Failed to load resource，strict guard按要求判Failed。沒有發現未捕獲JS Runtime Error或framework error，不能把這些資源錯誤謊稱產品崩潰。
+- Console／Page Error：Failed to load resource: the server responded with a status of 500 (Internal Server Error)；斷線為net::ERR_TIMED_OUT。
+- [失敗截圖](docs/qa/evidence/BUG-004/failure.png)、[assertion](docs/qa/evidence/BUG-004/failure.txt)、[console完整內容](docs/qa/evidence/BUG-004/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/E2E-04_poll_HTTP_500_visible_error_and_strict_console/trace.zip`。
+
+## BUG-005 — 沒有任何Teams裝置仍宣稱雙路收音已就緒
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** 缺少任一必要裝置時顯示明確提示，禁止開始；錯誤或格式不符的裝置回應也不會被當成就緒。FE-06、E2E-14 已啟用。
+
+- 嚴重度：P2；案例：FE-06。
+- 修復前原始碼定位（歷史證據）：`src/live/microphone.js:17-22`。
+- 重現：裝置API回傳inputs=[]、outputs=[]、defaultInput/defaultOutput=null；開啟Teams來源。
+- 預期：明確顯示沒有可用裝置，不宣稱可以開始雙路收音。
+- 實際：兩個select都空，但訊息仍為Windows雙路收音已就緒。點開始後另外擋下，未送出start；錯誤在就緒提示不是後端裝置驗證。
+- Console／Page Error：[]；無Runtime Error。
+- [失敗截圖](docs/qa/evidence/BUG-005/failure.png)、[assertion](docs/qa/evidence/BUG-005/failure.txt)、[console完整內容](docs/qa/evidence/BUG-005/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/FE-06_empty_Teams_devices_do_not_claim_capture_readiness/trace.zip`。
+
+## BUG-006 — Teams裝置請求的過期回應覆寫麥克風模式提示
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** 裝置查詢綁定遞增 generation 與來源模式，忽略過期成功／失敗回應，切回麥克風恢復對應提示。FE-08 已啟用。
+
+- 嚴重度：P2；案例：FE-08。
+- 修復前原始碼定位（歷史證據）：`src/live/microphone.js:11-22,110-114`。
+- 重現：進入麥克風模式；切Teams並延遲裝置回應；切回microphone；放行舊Teams回應。
+- 預期：過期回應不得覆寫新來源狀態。
+- 實際：來源已為microphone，仍顯示Windows雙路收音已就緒；devices await後沒有檢查請求世代或當前mode。
+- Console／Page Error：[]；無Runtime Error。
+- [失敗截圖](docs/qa/evidence/BUG-006/failure.png)、[assertion](docs/qa/evidence/BUG-006/failure.txt)、[console完整內容](docs/qa/evidence/BUG-006/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/FE-08_outdated_Teams_response_cannot_overwrite_current_microphone_feedback/trace.zip`。
+
+## BUG-008 — Teams必要裝置載入期間開始按鈕仍可點擊
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** Teams 裝置讀取中禁用開始；完成後僅在必要裝置齊全且未啟動／錄製／停止中才允許開始。E2E-15 已啟用。
+
+- 嚴重度：P3；案例：E2E-15。
+- 修復前原始碼定位（歷史證據）：`src/live/microphone.js:11-15,110-114；src/live/index.html:16`。
+- 重現：延遲/api/audio-devices回應；開啟/?source=teams；在裝置仍載入時觀察開始按鈕。
+- 預期：載入必要裝置期間開始按鈕disabled，待裝置有效才啟用。
+- 實際：有正在讀取提示，但開始按鈕enabled；點擊只會得到尚未選擇裝置錯誤。不是重複提交或後端安全漏洞。
+- Console／Page Error：[]；無Runtime Error。
+- [失敗截圖](docs/qa/evidence/BUG-008/failure.png)、[assertion](docs/qa/evidence/BUG-008/failure.txt)、[console完整內容](docs/qa/evidence/BUG-008/console.json)。
+- 原始trace：`D:/git/openmeeting/test/.tmp/qa/confirmed-bugs/E2E-15_pending_Teams_device_request_blocks_unsafe_start_and_shows_loading/trace.zip`。
+
+## 修復與驗收建議（未實作）
+
+先處理BUG-001的舊資料殘留，再處理query真實性／模式保留及裝置請求世代管理。BUG-004需釐清是否只禁止未捕獲JS／framework錯誤，允許故障注入必然產生的Chromium資源錯誤；本輪沒有自行放寬guard，沒有建議把HTTP錯誤偽裝成200來湊零console。
+
+未驗證外部Meet/Teams真人、新帳號／MFA、跨組織與多小時語音品質；這些是測試範圍限制，不列為通過，也不擅自標成程式Bug。
+
+## BUG-009 — start API接受非物件JSON並建立預設工作
+
+**修復狀態：已修復，對應案例已通過針對性驗證。** start body 必須為非 null、非陣列 JSON 物件；不合法時回傳 400，且不得呼叫 capture service。保留 mode/input/output 白名單。BE-07 四個型別案例已啟用。
+
+- 嚴重度P2；案例BE-07。原始碼：src/live-server.js:64-69（JSON.parse後直接destructure，未檢查plain object）。
+- 同源POST `/api/microphone/start`，application/json，分別送 `[]`、`"text"`、`123`、`true`。
+- 預期400且不呼叫start；實際4個隔離案例均200並呼叫預設收音。這不是跨Origin繞過；現有Origin防護仍通過。
+- 這是後端契約缺陷，無前端截圖或Console；[完整assertion](docs/qa/evidence/BUG-009/failure.txt)，各body的JSON回應在同目錄invalid-start-*.json。
+- 測試使用隔離service，沒有實際啟動麥克風／ASR或存取私人錄音。產品保持未修改，規格測試skip標記BUG-009，重現模式會失敗。
+
+## 最終重現核對
+
+修正測試自身定位／替身後，最終重現59個案例：32通過、27個預期規格失敗、0取消、0 skip。27個失敗均對應上述已知問題，沒有新增未知失敗；原始輸出見docs/qa/reports/confirmed-bugs.txt。最新精選截圖與console已更新為同一次confirmed-bugs執行。
+
+## 本次修復與驗收界線
+
+只修改 src/live-server.js、src/live/app.js、src/live/microphone.js，未加依賴或 data-testid。原始唯讀基準保留於 docs/qa/production-baseline.json；本次授權變更的三個檔案雜湊另列 docs/qa/authorized-fixes.json，完整性測試仍檢查其餘檔案不變。
+
+BUG-004 保持開放為驗收限制：Chromium 在 HTTP 400/401/403/500 或連線中斷時產生 Failed to load resource console.error。不能藉由忽略 console、把 API 一律改成 200、或冒稱未捕獲 JS 崩潰來消除此限制。既有故障恢復斷言仍可重跑；本次未將這 16 個案例計為通過。離線回歸不證明真人雙端聲音、模型辨識正確率、WASAPI 實體裝置或外部平台相容性。
+
+### 修復後定位
+
+- BUG-001：`src/live/app.js:46`。
+- BUG-002：`src/live/app.js:41`。
+- BUG-003：`src/live/app.js:5`。
+- BUG-005：`src/live/microphone.js:30`。
+- BUG-006：`src/live/microphone.js:15`。
+- BUG-008：`src/live/microphone.js:8`。
+- BUG-009：`src/live-server.js:64`。
+
+## 修復後故障注入複核
+
+另外啟用 16 個 BUG-004 案例實跑，16 個均在功能斷言完成後由嚴格 console guard 判定失敗（退出 1）；所有錯誤都是 Chromium `Failed to load resource`，沒有 pageerror 或其他錯誤種類。這是預期限制重現，不與兩輪正常回歸的成功混算。[當次分類與完整診斷](docs/qa/reports/repaired-fault-confirmation.json)、[原始 log](docs/qa/reports/repaired-fault-confirmation.txt)。

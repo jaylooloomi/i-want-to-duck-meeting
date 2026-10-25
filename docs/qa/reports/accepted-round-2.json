@@ -1,0 +1,53 @@
+{
+  "label": "accepted round 2, unified offline entrypoint",
+  "sourceAttempt": "test\\.tmp\\qa\\regression-2026-10-24T19-20-22-115Z",
+  "groups": [
+    {
+      "name": "round-1-legacy-unit",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-20-22-115Z\\round-1-legacy-unit.log",
+      "tests": 509,
+      "pass": 509,
+      "fail": 0,
+      "skipped": 0,
+      "persistedLog": "docs/qa/reports/accepted-2-round-1-legacy-unit.txt"
+    },
+    {
+      "name": "round-1-controlled-integration",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-20-22-115Z\\round-1-controlled-integration.log",
+      "tests": 81,
+      "pass": 76,
+      "fail": 0,
+      "skipped": 5,
+      "persistedLog": "docs/qa/reports/accepted-2-round-1-controlled-integration.txt"
+    },
+    {
+      "name": "round-1-strict-qa",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-20-22-115Z\\round-1-strict-qa.log",
+      "tests": 62,
+      "pass": 35,
+      "fail": 0,
+      "skipped": 27,
+      "persistedLog": "docs/qa/reports/accepted-2-round-1-strict-qa.txt"
+    },
+    {
+      "name": "round-1-python",
+      "code": 0,
+      "log": "D:\\git\\openmeeting\\test\\.tmp\\qa\\regression-2026-10-24T19-20-22-115Z\\round-1-python.log",
+      "tests": 25,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 2,
+      "persistedLog": "docs/qa/reports/accepted-2-round-1-python.txt"
+    }
+  ],
+  "totals": {
+    "tests": 677,
+    "pass": 643,
+    "fail": 0,
+    "skipped": 34
+  },
+  "allGroupsSuccessful": true
+}

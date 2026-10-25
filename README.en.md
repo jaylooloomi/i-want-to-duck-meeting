@@ -305,6 +305,12 @@ Inform participants before recording. Do not commit `meetings/`, `chrome-profile
 
 This project is not an official Google or Microsoft service.
 
+## Local viewer readiness and QA
+
+The viewer clears old transcripts, counts, and Meet links when no meetings remain. Unknown meeting IDs fall back to `latest` with a synchronized URL; selecting or starting a meeting preserves other query parameters, including `source=teams`. Teams capture stays disabled while devices load or either required device is unavailable. Connect devices and use **更新裝置** to retry; stale responses after switching modes are ignored. Starting still requires browser microphone permission when applicable.
+
+Run `node test/qa/run.mjs` for two complete offline regression rounds. See [test matrix](TEST_MATRIX.md), [quality report](TEST_SUMMARY.md), and [defects and acceptance limits](BUG_REPORT.md). This verifies local behavior and synthetic fixtures, not live meeting accuracy. Sixteen HTTP/network fault-injection cases remain acceptance-limited because Chromium itself emits resource console errors under the strict zero-console rule; they are not counted as passes.
+
 ## Development and tests
 
 ```powershell
@@ -316,7 +322,7 @@ npm run test:all
 
 Tests requiring private audio, public fixtures, or physical devices are opt-in and skipped without those inputs. A skip is not a pass. Integration tests using local simulated meeting pages do not establish that a real meeting was joined.
 
-As of October 24, 2026, the latest full Node unit run passed 481 tests. The Python run passed 21 tests and skipped one optional fixture test, including the private saved-audio regression in the passing set. These figures describe that run, not a guarantee for every environment.
+Current offline QA totals, coverage, skipped cases, and acceptance limits are recorded in [TEST_SUMMARY.md](TEST_SUMMARY.md). Historical live/replay results above have a different scope.
 
 Application code is in `src/`, audio tools in `stt/`, the Codex skill in `codex/skills/openmeeting/`, and the Claude plugin in `plugin/`. The unified installer is `scripts/install.js`.
 

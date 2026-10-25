@@ -1,0 +1,92 @@
+✔ BE-01 assets MIME security headers methods and 404 (121.4484ms)
+✔ BE-02 hostile Origin Host and missing Origin cannot mutate capture (31.6864ms)
+✔ BE-03 empty list and public list excludes sensitive status fields (19.0117ms)
+✔ BE-04 malformed partial JSON sorted transcript and terminal pending suppression (16.3588ms)
+✔ BE-05 traversal unknown IDs and extreme query never read outside meeting root (18.4505ms)
+✔ BE-06 start strips worker-owned filesystem and managed properties (10.8511ms)
+✔ BE-07 invalid body MIME excessive size and unknown actions recover (30.6576ms)
+﹣ BE-07 reject non-object start body [] (0.1877ms) # BUG-009
+﹣ BE-07 reject non-object start body "text" (0.1456ms) # BUG-009
+﹣ BE-07 reject non-object start body 123 (0.1582ms) # BUG-009
+﹣ BE-07 reject non-object start body true (0.0949ms) # BUG-009
+✔ BE-08 real service rejects invalid and duplicate starts before spawning (2.2054ms)
+✔ BE-09 real audio rejects token sequence format lane and backpressure without mutation (1.2565ms)
+✔ BE-10 real ordered PCM heartbeat and idempotent stop (1.3501ms)
+✔ BE-11 missing Windows device dependency returns JSON error and server survives (21.3855ms)
+✔ E2E-01 live HTTP transcript update finalization and meeting selection (3144.8024ms)
+✔ E2E-02 extreme transcript and missing speaker render as text (1347.9988ms)
+✔ E2E-03 empty initial state and final pending removal (2931.3173ms)
+﹣ E2E-03 deleting the last meeting removes private content from the viewer (0.677ms) # BUG-001
+﹣ E2E-04 poll HTTP 400 visible error and strict console (0.2253ms) # BUG-004
+﹣ E2E-04 poll HTTP 401 visible error and strict console (0.2386ms) # BUG-004
+﹣ E2E-04 poll HTTP 403 visible error and strict console (0.224ms) # BUG-004
+﹣ E2E-04 poll HTTP 500 visible error and strict console (0.1863ms) # BUG-004
+﹣ E2E-05 unknown deep link cannot silently display latest under a stale URL (0.2698ms) # BUG-002
+✔ E2E-06 transcript viewport 1920 semantic controls and overflow (1389.7796ms)
+✔ E2E-06 transcript viewport 390 semantic controls and overflow (1458.7024ms)
+✔ E2E-07 real browser AudioWorklet PCM to HTTP and graceful stop (3238.5681ms)
+✔ E2E-08 denied microphone never creates a backend session (1383.5781ms)
+✔ E2E-09 in-flight start is disabled and stop issues one request (1392.3456ms)
+﹣ E2E-10 start HTTP 400 recovers controls with strict console (0.2302ms) # BUG-004
+﹣ E2E-10 start HTTP 401 recovers controls with strict console (0.1362ms) # BUG-004
+﹣ E2E-10 start HTTP 403 recovers controls with strict console (0.101ms) # BUG-004
+﹣ E2E-10 start HTTP 500 recovers controls with strict console (0.1006ms) # BUG-004
+﹣ E2E-10 stop failure restores start controls and reports incomplete finalization (0.0974ms) # BUG-004
+﹣ E2E-10 upload failure stops capture and shows the packet error (0.0966ms) # BUG-004
+✔ E2E-11 pagehide sends stop beacon and reload has no active capture claim (1911.0656ms)
+✔ E2E-12 microphone controls actionable viewport 1920 (1592.1235ms)
+✔ E2E-12 microphone controls actionable viewport 390 (2299.0019ms)
+✔ E2E-13 Teams device IDs start heartbeat levels and stop (3436.4087ms)
+✔ E2E-14 absent Teams devices block start with a readable message (1269.6392ms)
+﹣ E2E-15 pending Teams device request blocks unsafe start and shows loading (0.2243ms) # BUG-008
+﹣ E2E-16 Teams device API failure has visible feedback and zero console (0.1009ms) # BUG-004
+﹣ E2E-17 Teams mode query survives start stop and reload (0.09ms) # BUG-003
+✔ E2E-18 long Teams device labels viewport 1920 (1277.293ms)
+✔ E2E-18 long Teams device labels viewport 390 (1309.6323ms)
+✔ E2E-19 root query routes browser back forward and 404 (1655.5025ms)
+✔ FE-01 transcript component revisions drafts state and speakers (2099.4105ms)
+✔ FE-02 transcript component hostile text and unsafe meeting link (1194.6016ms)
+﹣ FE-03 empty list clears previously displayed private transcript (0.3867ms) # BUG-001
+﹣ FE-04 HTTP 400 recovery and strict console (0.1356ms) # BUG-004
+﹣ FE-04 HTTP 401 recovery and strict console (0.1167ms) # BUG-004
+﹣ FE-04 HTTP 403 recovery and strict console (0.1111ms) # BUG-004
+﹣ FE-04 HTTP 500 recovery and strict console (0.1337ms) # BUG-004
+﹣ FE-04 network abort recovers with visible feedback and zero console (0.158ms) # BUG-004
+✔ FE-05 microphone component permission denial restores controls (1415.7423ms)
+﹣ FE-06 empty Teams devices do not claim capture readiness (0.4262ms) # BUG-005
+✔ FE-06 malformed device response shows an error instead of throwing (1154.6ms)
+✔ FE-07 delayed start prevents duplicate submit and then stops (1510.8339ms)
+﹣ FE-08 outdated Teams response cannot overwrite current microphone feedback (0.2359ms) # BUG-006
+✔ QA-01 production content remains byte-for-byte identical to the audit baseline (14.7009ms)
+✔ QA-01 authored browser tests contain no hard sleeps CSS-class or XPath locator calls (1.4658ms)
+✔ QA-01 shared guard fails on both console errors and uncaught page exceptions (6.006ms)
+ℹ tests 62
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 27
+ℹ todo 0
+ℹ duration_ms 44265.9941
+ℹ start of coverage report
+ℹ -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                    | line % | branch % | funcs % | uncovered lines
+ℹ -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ src                     |        |          |         |
+ℹ  audio-settings.js      |  28.57 |   100.00 |    0.00 | 9-12 14-24 26-30 32-36 38-41 44-49
+ℹ  audio                  |        |          |         |
+ℹ   multi-track-writer.js |  27.50 |   100.00 |    0.00 | 8-13 15-32 35-39
+ℹ   wav-writer.js         |  38.40 |   100.00 |    0.00 | 20-36 46-59 67-91 95-96 100-101 105-114 118-124
+ℹ  captions               |        |          |         |
+ℹ   assembler.js          |  47.48 |   100.00 |    0.00 | 45-50 77-101 111-121 136-144 167-185 196-207 220-238 272-282 291-346 354-363 371-376 380-386 390-391 399-407 417-434 445-461 468-485 489-491 495-497
+ℹ  live-server.js         | 100.00 |    92.50 |  100.00 |
+ℹ  microphone.js          |  40.00 |    75.56 |   23.81 | 16-18 32 46-113 115-126 153-155 167-199
+ℹ  status.js              |  76.89 |    55.26 |   66.67 | 12-14 27-31 40-43 57-61 86-89 94-98 119 135-146 156-158 170-171 218-225
+ℹ  stt.js                 |  42.90 |    50.00 |   18.75 | 43-51 75-85 95-103 114-118 126-135 143-150 153-156 159-181 187-211 214-222 224-234 246-264 277-310
+ℹ  teams-captions.js      |  12.61 |   100.00 |    0.00 | 8-10 12-28 30-33 35-47 53-119
+ℹ  transcript             |        |          |         |
+ℹ   store.js              |  36.95 |   100.00 |    0.00 | 36-42 45-47 56-68 77-91 95-100 103-104 108-109 113-114 123-137 141-143 151-173 179-214 237-295
+ℹ -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files               |  47.24 |    78.53 |   26.15 |
+ℹ -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report

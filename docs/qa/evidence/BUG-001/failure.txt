@@ -1,0 +1,8 @@
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+1 !== 0
+
+    at spec.bug (file:///D:/git/openmeeting/test/qa/e2e.test.js:31:10)
+    at async browserCase (file:///D:/git/openmeeting/test/qa/harness.js:72:5)
+    at async Test.run (node:internal/test_runner/test:1113:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

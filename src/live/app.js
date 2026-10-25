@@ -2,9 +2,13 @@ const $ = (id) => document.getElementById(id);
 const selector = $('meeting');
 let selected = new URLSearchParams(location.search).get('id') || 'latest';
 let signature = '';
+function syncSelection() {
+  const url = new URL(location.href); url.searchParams.set('id', selected);
+  history.replaceState(null, '', url);
+}
 document.addEventListener('microphone-started', ({ detail }) => {
   selected = detail.id; signature = ''; selector.dataset.signature = '';
-  history.replaceState(null, '', '?id=' + encodeURIComponent(selected));
+  syncSelection();
 });
 const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', failed:'記錄失敗' };
 const clock = (value) => { const date = new Date(value); return Number.isNaN(+date) ? '' : date.toLocaleTimeString('zh-TW', { hour12:false }); };
@@ -24,7 +28,7 @@ function row(record, pending) {
 }
 selector.addEventListener('change', () => {
   selected = selector.value; signature = '';
-  history.replaceState(null, '', '?id=' + encodeURIComponent(selected));
+  syncSelection();
 });
 async function get(url) { const response = await fetch(url); if (!response.ok) throw new Error('讀取失敗'); return response.json(); }
 async function poll() {
@@ -34,11 +38,14 @@ async function poll() {
     if (selector.dataset.signature !== optionSignature) {
       const options = [new Option('自動跟隨最新會議', 'latest'), ...meetings.map((m) => new Option(m.id + ' · ' + (states[m.state] || '未知'), m.id))];
       selector.replaceChildren(...options); selector.value = selected;
-      if (!selector.value) { selected = 'latest'; selector.value = selected; }
+      if (!selector.value) { selected = 'latest'; selector.value = selected; syncSelection(); }
       selector.dataset.signature = optionSignature;
     }
     if (!meetings.length) {
       $('state').textContent = '尚無會議'; $('speaking').textContent = '加入會議後將自動顯示';
+      $('transcript').replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無字幕，開始發言後會自動顯示。' }));
+      $('count').textContent = '0 段發言'; $('meet').hidden = true; $('meet').removeAttribute('href');
+      $('updated').textContent = ''; signature = '';
       $('connection').textContent = '● 已連線'; return;
     }
     const data = await get('/api/transcript?id=' + encodeURIComponent(selected));

@@ -1,0 +1,5 @@
+{
+  "src/live/app.js": "3fd0eb98da17c11f831be7b6bf566544c12016e5fecd814d8690417cc5544960",
+  "src/live/microphone.js": "bf900a80d0b65d357b1bf9059cc3a64fe68ba44dd620827b1a420a5336f8d345",
+  "src/live-server.js": "8b3ea040c81a2d2198296d924abf075f5230b9c39f39989590d42d692ec90f23"
+}

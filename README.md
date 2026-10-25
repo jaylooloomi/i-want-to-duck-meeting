@@ -307,6 +307,12 @@ node bin/openmeeting.js leave <會議ID>
 
 本專案不是 Google 或 Microsoft 官方服務。
 
+## 本機檢視器就緒狀態與 QA
+
+沒有會議時，檢視器會清除舊逐字稿、計數與 Meet 連結。無效會議 ID 會回到 latest 並同步網址；切換或開始會議會保留 source=teams 等其他參數。Teams 裝置載入中或缺少任一路裝置時，開始按鈕會禁用並顯示提示；連接裝置後可按「更新裝置」重試。切換來源後，過期裝置回應不會覆寫目前畫面。首次使用麥克風仍須授予瀏覽器權限。
+
+執行 `node test/qa/run.mjs` 可跑兩輪完整離線回歸。詳見[測試矩陣](TEST_MATRIX.md)、[品質報告](TEST_SUMMARY.md)、[缺陷與驗收限制](BUG_REPORT.md)。這驗證本機行為與合成資料，不代表真人會議辨識正確率。16 個 HTTP／網路故障注入案例因 Chromium 自身資源 console error 與嚴格零 console 規則衝突而保留驗收限制，不計為通過。
+
 ## 開發與測試
 
 ```powershell
@@ -318,7 +324,7 @@ npm run test:all
 
 需要真人音軌、公開樣本或實體裝置的測試採 opt-in，未提供時會略過；不要把略過當成通過。整合測試操作本機模擬會議頁面，也不等於已加入真人會議。
 
-截至 2026-10-24，最近一次完整 Node 單元測試為 481 項通過；Python 測試為 21 項通過、1 項選用樣本測試略過，包含本機私人錄音回歸。這是該次驗證紀錄，不是所有環境的保證。
+最新離線 QA 數量、覆蓋率、略過案例與驗收限制統一記錄於 [TEST_SUMMARY.md](TEST_SUMMARY.md)；上方真人／重播紀錄屬不同驗證範圍。
 
 主要實作位於 `src/`，語音工具位於 `stt/`；Codex 技能在 `codex/skills/openmeeting/`，Claude 外掛在 `plugin/`，統一安裝入口是 `scripts/install.js`。
 

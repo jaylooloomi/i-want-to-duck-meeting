@@ -1,0 +1,22 @@
+AssertionError [ERR_ASSERTION]: Zero console/page errors required
++ actual - expected
+
++ [
++   {
++     kind: 'console.error',
++     location: {
++       column: 0,
++       columnNumber: 0,
++       line: 0,
++       lineNumber: 0,
++       url: 'http://127.0.0.1:57310/api/meetings'
++     },
++     text: 'Failed to load resource: the server responded with a status of 500 (Internal Server Error)'
++   }
++ ]
+- []
+
+    at Object.assertClean (file:///D:/git/openmeeting/test/qa/harness.js:53:41)
+    at browserCase (file:///D:/git/openmeeting/test/qa/harness.js:73:11)
+    at async Test.run (node:internal/test_runner/test:1113:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

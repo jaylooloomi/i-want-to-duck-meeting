@@ -1,0 +1,19 @@
+{
+  "applicationPages": [
+    "/"
+  ],
+  "coveredPages": [
+    "/"
+  ],
+  "pageCoveragePercent": 100,
+  "queryVariants": [
+    "/?id=qa-first",
+    "/?id=qa-second",
+    "/?source=teams"
+  ],
+  "unknownPath": "/not-a-page",
+  "unknownPathResult": 404,
+  "apiEntriesCovered": 7,
+  "apiEntriesTotal": 7,
+  "authGuard": "N/A: no account-authenticated UI routes; Host/Origin and capture token tested"
+}
