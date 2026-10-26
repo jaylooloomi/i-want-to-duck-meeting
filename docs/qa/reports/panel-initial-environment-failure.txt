@@ -1,0 +1,314 @@
+▶ launchChrome + connectChrome (real Chrome, headless)
+  ✖ launch, connect, navigate, no webdriver flag, close kills everything (963.0516ms)
+  ✖ second launch on a profile that is in use rejects fast with chrome_launch_failed (767.9209ms)
+  ✔ a process that exits before the DevTools endpoint answers -> chrome_launch_failed, fast (270.7902ms)
+  ✖ close() falls back to killing the process tree when CDP Browser.close is unavailable (2603.1857ms)
+  ✔ close() after Chrome already exited on its own resolves quickly (2525.2749ms)
+  ✔ a stale lockfile from a crashed Chrome does not block the launch (733.6007ms)
+  ✔ a missing chromePath rejects with chrome_not_found (0.9373ms)
+✖ launchChrome + connectChrome (real Chrome, headless) (7868.0393ms)
+✖ join (detached worker) → wait exits 0 with RESULT=done (1.1961ms)
+✖ join (meeting never ends) → leave latest → done/user_stop, wait exits 0 (0.1251ms)
+✖ join not-a-link exits 1 (0.1163ms)
+✖ D:\git\openmeeting\test\integration\cli.test.js (1800.9982ms)
+✔ device invitation: closes only the microphone prompt without enabling devices (1171.3902ms)
+✔ ensureCaptions: a visible caption region means "on" — c is never pressed (it would toggle them off) (285.0397ms)
+✔ ensureCaptions: captions known off and no button → presses c once (260.5217ms)
+✔ ensureCaptions: a "Turn on captions" button that does not work → the retry uses Escape + c (1485.7218ms)
+✔ joinMeeting: never clicks the join button while the microphone cannot be turned off (3212.4947ms)
+✔ joinMeeting: with "Switch here" and "Join here too", joins as an extra device and never switches (1461.8884ms)
+✔ setCaptionLanguage: picks the language in the caption-bar combobox with real clicks (no Settings needed) (1293.9607ms)
+✔ setCaptionLanguage: a listbox someone already opened is used as is (not toggled closed by a second click) (725.1236ms)
+✔ setCaptionLanguage: already selected → true without opening the picker (295.0157ms)
+✔ getCaptionLanguage: selected option of the hidden listbox (also as a portal), else the combobox label, else null (860.0592ms)
+✔ getCaptionLanguage: a selected data-value that is not a language code is not taken for one (253.4504ms)
+✔ setCaptionLanguage: a combobox pick that does not stick → Escape, then Settings > Captions with real clicks (6805.0411ms)
+✔ setCaptionLanguage: Settings path clicks the hidden list item from page script only as the last resort (5964.679ms)
+✔ setCaptionLanguage: language offered nowhere → false, picker and dialog closed (8745.6572ms)
+✔ join (default WMI launcher) → worker under WmiPrvSE.exe, settings via worker-env.json; wait → done (16540.426ms)
+✔ OPENMEETING_LAUNCHER=spawn → classic detached spawn (child of join); wait → done (17252.6446ms)
+✔ a WMI-launched worker survives the termination of the job object that ran join (16775.6883ms)
+✔ contrast: a spawn-launched worker dies with the job object that ran join (why WMI is the default) (909.4674ms)
+﹣ two people remain stable through the browser microphone, gain/noise changes and a short turn (1.8723ms) # SKIP
+﹣ an interrupted recognizer preserves failed status, an error and a closed WAV (1.8381ms) # SKIP
+﹣ local microphone PCM reaches real VAD, speaker embeddings, Whisper and the live viewer (0.2216ms) # SKIP
+✔ server: routes, content types, 404/405/400 (468.0311ms)
+✔ server: urlFor builds meeting URLs with hl=en first (2.2165ms)
+✔ timeline: well-formed and covers revision, code-switching, rolling, rerender, trimming (0.6968ms)
+✔ timeline: a spec-conformant assembler reproduces HAPPY_EXPECTED (every step and throttled) (5.7136ms)
+✔ timeline: a new block never looks like a re-render of an earlier block of the same speaker (0.3837ms)
+✔ happy: prejoin → lobby → in call → Chinese captions → end screen (19191.8318ms)
+✔ prejoin: the CTA is ignored while the name is empty (916.2996ms)
+✔ signedin=1: no name input, "Join now" goes through to the call (771.3949ms)
+✔ continue_dialog: dialog blocks the CTA until "Continue without microphone and camera" (1551.4235ms)
+✔ denied: lobby → denied screen, "Ask to join again" re-enters the lobby (1247.6304ms)
+✔ lobby_timeout: nobody responds (929.4949ms)
+✔ blocked: no prejoin UI, only the block message (340.6654ms)
+✔ notfound: "Check your meeting code" with a working "Return to home screen" (476.5851ms)
+✔ signin: redirected to the sign-in page (393.3424ms)
+✔ removed: captions without a language switch are English gibberish, then removed (1472.9558ms)
+✔ alone: everyone else leaves, avatar count 1, and the call never ends (2952.5836ms)
+✔ in call: "c" toggles captions, timeline pauses while off, huge endAfterMs never ends, Leave call (3240.211ms)
+✔ caption bar: the "Meeting language" combobox opens a listbox and switches the caption language (1853.4079ms)
+✔ langpicker=settings: the caption bar shows a plain language button (no combobox); Settings still works (1350.8747ms)
+✔ langpicker=combobox: Settings > Captions has no language list, only the caption bar can switch it (1238.5987ms)
+✔ langlist=missing / nodatavalue also shape the caption-bar listbox (2055.0881ms)
+✔ langResetAtMs: after the timeline the caption language switches back to English (captions on screen keep their text) (1887.0518ms)
+✔ langResets=3: the reset comes back after each switch away from English, three times in all (3204.5694ms)
+✔ noaudio=1: the call has no remote audio element (1171.7731ms)
+✔ happy: joins silently, records the exact transcript, audio and stats (24836.4999ms)
+✔ langpicker=settings: no caption-bar combobox → the Settings fallback sets the caption language (14700.0585ms)
+✔ a mid-call switch of the caption language back to English is detected and corrected (21684.5531ms)
+✔ a caption language that keeps being switched away is set back twice, then left alone (no fight) (26240.8127ms)
+✔ no remote audio track: one warning after OPENMEETING_NO_AUDIO_WARN_MS and stats.audioTracks = 0 (11283.5289ms)
+✔ signedin=1 (no name input, "Join now") joins and records; OPENMEETING_TRACK_MIRROR=1 installs the track mirror (10573.9217ms)
+✔ continue_dialog: dismisses the devices dialog, then joins (7208.6575ms)
+✔ denied → failed/denied (4588.7266ms)
+✔ lobby_timeout → failed/lobby_timeout (5358.8979ms)
+✔ blocked → retried, then failed/blocked (2319.7021ms)
+✔ notfound → failed/not_found (1462.753ms)
+✔ signin → failed/signin_required (1289.3393ms)
+✔ removed → done/removed (6878.4962ms)
+✔ alone → done/alone after OPENMEETING_ALONE_TIMEOUT_MS (11344.2814ms)
+✔ a chat toast quoting an end-screen phrase does not end the recording (12299.4457ms)
+✔ an unrecognized end screen (no call controls) ends the session after OPENMEETING_UNKNOWN_END_MS (13605.3622ms)
+✔ alone without a readable participant count: falls back to the tiles (5 × aloneTimeout) (16994.2307ms)
+✔ alone without a readable participant count: the "only one here" hint is enough (13288.3302ms)
+✔ caption language item without data-value is found by its label (12455.0349ms)
+✔ caption language that cannot be set: still recorded, transcript.md warns about it (21683.0887ms)
+✔ STOP file while in the call → done/user_stop (10371.1322ms)
+✔ test\integration\stt.test.js (178.7573ms)
+﹣ Teams link starts a real detached worker without a browser lease and stops at its duration limit (2.5221ms) # SKIP
+﹣ Teams browser controls capture two actual WASAPI lanes with stable local/remote speakers (1.9077ms) # SKIP
+✔ real Chrome receives local/remote channel captions and V2 events without breaking originals (2034.8731ms)
+✔ real Chrome configures joining, mute, captions and language on controlled Teams UI (1827.3838ms)
+ℹ tests 82
+ℹ suites 1
+ℹ pass 70
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 5
+ℹ todo 0
+ℹ duration_ms 408743.6381
+ℹ start of coverage report
+ℹ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ file                    | line % | branch % | funcs % | uncovered lines
+ℹ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ src                     |        |          |         |
+ℹ  audio-settings.js      |  38.78 |    22.22 |   14.29 | 9-12 14-24 26-30 32-36 38-41 48
+ℹ  audio                  |        |          |         |
+ℹ   multi-track-writer.js |  27.50 |   100.00 |    0.00 | 8-13 15-32 35-39
+ℹ   wav-writer.js         |  95.20 |    54.55 |   87.50 | 72-74 76-78
+ℹ  captions               |        |          |         |
+ℹ   assembler.js          |  82.70 |    71.29 |   70.97 | 77-101 111-121 139-141 143 178-184 206 220-238 326 417-434
+ℹ  chrome.js              |  95.37 |    75.53 |   85.71 | 65 129 202-203 254-256 271-274 319-321 323
+ℹ  cli.js                 |  62.12 |    42.94 |   55.56 | 149-151 183-187 190-192 231-233 235-238 247-248 292-295 306-310 312-313 315-323 448-452 538-540 542-547 562-570 577-578 638-641 649-653 655-660 686-693 702-707 710-727 730-738 764-767 773-777 782-795 800-804 807-812 829-843 851-852 854-858 865-878 889-890 926-932 938-948 951-967 970-1001 1004-1030 1033-1066 1069-1113 1116-1134 1137-1170 1184-1186 1188-1190 1193-1196 1203-1215 1218-1220 1223-1238 1249-1256 1258-1265 1267-1269 1272-1274
+ℹ  config.js              |  99.21 |    72.22 |  100.00 | 67
+ℹ  live-server.js         |  13.16 |   100.00 |    0.00 | 11-19 21-23 26-45 48-114
+ℹ  log.js                 |  77.78 |    64.71 |  100.00 | 31-36 43-50 68-69 92-93 98-99 102-107
+ℹ  meet                   |        |          |         |
+ℹ   account.js            |  14.52 |   100.00 |    0.00 | 7-10 12-17 21-41 43-47 50-78 83-118 120-124
+ℹ   failure-guidance.js   |  55.56 |    33.33 |  100.00 | 5-6 8-9 11-12 14-15
+ℹ   incall.js             |  76.48 |    85.71 |   60.00 | 50-127 136-169 178-191 254-255 273-274 327-328 365-369 464 479-480 487-488 573-574 591 622-623
+ℹ   join.js               |  79.73 |    77.52 |   62.79 | 71 98-163 211-212 232-233 240-244 275-277 296 331 410-411 421-424 443-445 459 482-485 523-524 529-534 568-583 590-591
+ℹ   login.js              |  44.44 |    42.86 |   25.00 | 20-44
+ℹ   selectors.js          | 100.00 |    80.00 |  100.00 |
+ℹ   state.js              |  98.97 |    64.06 |  100.00 | 179-180
+ℹ  microphone.js          |  15.00 |   100.00 |    0.00 | 16-18 23-25 28-127 130-144 147-159 162-164 167-199
+ℹ  page                   |        |          |         |
+ℹ   audio-capture.js      |  13.60 |   100.00 |    0.00 | 17-59 93-374 388-456
+ℹ   caption-observer.js   |  17.45 |   100.00 |    0.00 | 38-212
+ℹ   snapshot.js           |  16.94 |   100.00 |    0.00 | 32-183
+ℹ  session.js             |  80.53 |    69.51 |   72.97 | 139-140 151-156 164-174 229-230 240-241 268-269 275-276 308-309 312-314 316-318 361-364 385-390 396-397 402-403 423-429 456-458 464-466 488-489 492-494 499-505 533-535 541-542 545-554 567-574 615-616 645-646 648-656 658-659 663-667 672-676 691 705-706 715-716 737-738 750-751 761-762 767-768 772-778 795-796 798-812 824-826
+ℹ  status.js              |  90.67 |    67.39 |   89.47 | 12-14 94-98 135-146 195
+ℹ  stt.js                 |  47.10 |    53.33 |   35.00 | 43-51 78-84 114-118 126-135 143-150 153-156 159-181 187-211 214-222 224-234 246-264 277-310
+ℹ  teams-browser.js       |  62.37 |    70.59 |   26.67 | 35-38 47 61-64 68-93
+ℹ  teams-captions.js      |  12.61 |   100.00 |    0.00 | 8-10 12-28 30-33 35-47 53-119
+ℹ  transcript             |        |          |         |
+ℹ   alignment.js          |  13.92 |   100.00 |    0.00 | 5-15 17-22 24-29 32-61 65-79
+ℹ   crosscheck.js         |  17.81 |   100.00 |    0.00 | 10-35 38-58 61-73
+ℹ   minutes.js            |  18.09 |   100.00 |    0.00 | 11-13 17-48 51-82 85-94
+ℹ   store.js              |  89.83 |    60.66 |   86.36 | 95-100 113-114 153-172 284-285
+ℹ  url.js                 |  75.94 |    27.27 |   45.45 | 11-13 25-26 39-40 42 50-52 64-74 106-107 114-121
+ℹ  worker.js              |  58.40 |    16.67 |   30.00 | 58-71 80-106 124-126 131-138 141-151 157-162 168-173 179-182 187-190 192-196 202-203 211-215 218-221 236-240
+ℹ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ all files               |  63.31 |    66.12 |   58.28 |
+ℹ ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
+
+✖ failing tests:
+
+test at test\integration\chrome-launch.test.js:57:3
+✖ launch, connect, navigate, no webdriver flag, close kills everything (963.0516ms)
+  Error: spawnSync powershell.exe ENOENT
+      at Object.spawnSync (node:internal/child_process:1120:20)
+      at spawnSync (node:child_process:911:24)
+      at execFileSync (node:child_process:954:15)
+      at chromeProcsForProfile (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:44:15)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:91:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1518:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    errno: -4058,
+    code: 'ENOENT',
+    syscall: 'spawnSync powershell.exe',
+    path: 'powershell.exe',
+    spawnargs: [ '-NoProfile', '-NonInteractive', '-Command', `@(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*profile-a*' }).Count` ],
+    error: Error: spawnSync powershell.exe ENOENT
+        at Object.spawnSync (node:internal/child_process:1120:20)
+        at spawnSync (node:child_process:911:24)
+        at execFileSync (node:child_process:954:15)
+        at chromeProcsForProfile (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:44:15)
+        at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:91:20)
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Promise.all (index 0)
+        at async Suite.run (node:internal/test_runner/test:1518:7)
+        at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3),
+    status: null,
+    signal: null,
+    output: null,
+    pid: 0,
+    stdout: undefined,
+    stderr: undefined
+  }
+
+test at test\integration\chrome-launch.test.js:99:3
+✖ second launch on a profile that is in use rejects fast with chrome_launch_failed (767.9209ms)
+  Error: spawnSync powershell.exe ENOENT
+      at Object.spawnSync (node:internal/child_process:1120:20)
+      at spawnSync (node:child_process:911:24)
+      at execFileSync (node:child_process:954:15)
+      at chromeProcsForProfile (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:44:15)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:127:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    errno: -4058,
+    code: 'ENOENT',
+    syscall: 'spawnSync powershell.exe',
+    path: 'powershell.exe',
+    spawnargs: [ '-NoProfile', '-NonInteractive', '-Command', `@(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*profile-b*' }).Count` ],
+    error: Error: spawnSync powershell.exe ENOENT
+        at Object.spawnSync (node:internal/child_process:1120:20)
+        at spawnSync (node:child_process:911:24)
+        at execFileSync (node:child_process:954:15)
+        at chromeProcsForProfile (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:44:15)
+        at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:127:20)
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7),
+    status: null,
+    signal: null,
+    output: null,
+    pid: 0,
+    stdout: undefined,
+    stderr: undefined
+  }
+
+test at test\integration\chrome-launch.test.js:146:3
+✖ close() falls back to killing the process tree when CDP Browser.close is unavailable (2603.1857ms)
+  Error: spawnSync powershell.exe ENOENT
+      at Object.spawnSync (node:internal/child_process:1120:20)
+      at spawnSync (node:child_process:911:24)
+      at execFileSync (node:child_process:954:15)
+      at chromeProcsForProfile (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:44:15)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:165:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    errno: -4058,
+    code: 'ENOENT',
+    syscall: 'spawnSync powershell.exe',
+    path: 'powershell.exe',
+    spawnargs: [ '-NoProfile', '-NonInteractive', '-Command', `@(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*profile-kill*' }).Count` ],
+    error: Error: spawnSync powershell.exe ENOENT
+        at Object.spawnSync (node:internal/child_process:1120:20)
+        at spawnSync (node:child_process:911:24)
+        at execFileSync (node:child_process:954:15)
+        at chromeProcsForProfile (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:44:15)
+        at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/chrome-launch.test.js:165:20)
+        at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Suite.processPendingSubtests (node:internal/test_runner/test:788:7),
+    status: null,
+    signal: null,
+    output: null,
+    pid: 0,
+    stdout: undefined,
+    stderr: undefined
+  }
+
+test at test\integration\cli.test.js:99:1
+✖ join (detached worker) → wait exits 0 with RESULT=done (1.1961ms)
+  Error: EPERM, Permission denied: \\?\D:\git\openmeeting\test\.tmp\integ-cli '\\?\D:\git\openmeeting\test\.tmp\integ-cli'
+      at Object.rmSync (node:fs:1235:18)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/cli.test.js:35:6)
+      at TestHook.runInAsyncScope (node:async_hooks:214:14)
+      at TestHook.run (node:internal/test_runner/test:1106:25)
+      at TestHook.run (node:internal/test_runner/test:1427:18)
+      at TestHook.run (node:internal/util:585:20)
+      at Test.createHook (node:internal/test_runner/test:930:33)
+      at node:internal/test_runner/harness:397:12
+      at file:///D:/git/openmeeting/test/integration/cli.test.js:34:1
+      at ModuleJob.run (node:internal/modules/esm/module_job:413:25) {
+    errno: 1,
+    code: 'EPERM',
+    path: '\\\\?\\D:\\git\\openmeeting\\test\\.tmp\\integ-cli',
+    syscall: 'rm'
+  }
+
+test at test\integration\cli.test.js:143:1
+✖ join (meeting never ends) → leave latest → done/user_stop, wait exits 0 (0.1251ms)
+  Error: EPERM, Permission denied: \\?\D:\git\openmeeting\test\.tmp\integ-cli '\\?\D:\git\openmeeting\test\.tmp\integ-cli'
+      at Object.rmSync (node:fs:1235:18)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/cli.test.js:35:6)
+      at TestHook.runInAsyncScope (node:async_hooks:214:14)
+      at TestHook.run (node:internal/test_runner/test:1106:25)
+      at TestHook.run (node:internal/test_runner/test:1427:18)
+      at TestHook.run (node:internal/util:585:20)
+      at Test.createHook (node:internal/test_runner/test:930:33)
+      at node:internal/test_runner/harness:397:12
+      at file:///D:/git/openmeeting/test/integration/cli.test.js:34:1
+      at ModuleJob.run (node:internal/modules/esm/module_job:413:25) {
+    errno: 1,
+    code: 'EPERM',
+    path: '\\\\?\\D:\\git\\openmeeting\\test\\.tmp\\integ-cli',
+    syscall: 'rm'
+  }
+
+test at test\integration\cli.test.js:165:1
+✖ join not-a-link exits 1 (0.1163ms)
+  Error: EPERM, Permission denied: \\?\D:\git\openmeeting\test\.tmp\integ-cli '\\?\D:\git\openmeeting\test\.tmp\integ-cli'
+      at Object.rmSync (node:fs:1235:18)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/cli.test.js:35:6)
+      at TestHook.runInAsyncScope (node:async_hooks:214:14)
+      at TestHook.run (node:internal/test_runner/test:1106:25)
+      at TestHook.run (node:internal/test_runner/test:1427:18)
+      at TestHook.run (node:internal/util:585:20)
+      at Test.createHook (node:internal/test_runner/test:930:33)
+      at node:internal/test_runner/harness:397:12
+      at file:///D:/git/openmeeting/test/integration/cli.test.js:34:1
+      at ModuleJob.run (node:internal/modules/esm/module_job:413:25) {
+    errno: 1,
+    code: 'EPERM',
+    path: '\\\\?\\D:\\git\\openmeeting\\test\\.tmp\\integ-cli',
+    syscall: 'rm'
+  }
+
+test at test\integration\cli.test.js:40:1
+✖ D:\git\openmeeting\test\integration\cli.test.js (1800.9982ms)
+  Error: EPERM, Permission denied: \\?\D:\git\openmeeting\test\.tmp\integ-cli '\\?\D:\git\openmeeting\test\.tmp\integ-cli'
+      at Object.rmSync (node:fs:1235:18)
+      at TestContext.<anonymous> (file:///D:/git/openmeeting/test/integration/cli.test.js:54:52)
+      at async TestHook.run (node:internal/test_runner/test:1113:7)
+      at async Test.runHook (node:internal/test_runner/test:1024:9)
+      at async after (node:internal/test_runner/test:1064:9)
+      at async Test.run (node:internal/test_runner/test:1132:7) {
+    errno: 1,
+    code: 'EPERM',
+    path: '\\\\?\\D:\\git\\openmeeting\\test\\.tmp\\integ-cli',
+    syscall: 'rm'
+  }

@@ -274,7 +274,7 @@ export async function setupStt(config, { log, uv = 'uv', uvPrefixArgs = [] } = {
  *                 `transcribe_failed: exit code N\n<stderr tail>` on failure
  */
 export async function runTranscribe({
-  config, wavPath, outDir, model = DEFAULT_MODEL, threads = DEFAULT_THREADS, lang = DEFAULT_LANG, log, python, script,
+  config, wavPath, outDir, model = DEFAULT_MODEL, threads = DEFAULT_THREADS, lang = DEFAULT_LANG, log, python, script, offline = false,
 }) {
   const L = toLogger(log);
   const interpreter = python || sttPython(config);
@@ -287,7 +287,7 @@ export async function runTranscribe({
   let res;
   try {
     res = await runChild(interpreter, args, {
-      env: childEnv(),
+      env: childEnv(offline ? {HF_HUB_OFFLINE:'1'} : {}),
       onLine: (l) => { if (!/^SEGMENTS=\d+$/.test(l)) L.info(`[stt] ${l}`); },
     });
   } catch (err) {

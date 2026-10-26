@@ -343,3 +343,27 @@ Application code is in `src/`, audio tools in `stt/`, the Codex skill in `codex/
 README structure and octopus illustration direction were inspired by [i-want-to-sleep](https://github.com/jaylooloomi/i-want-to-sleep). The two new illustrations were generated with built-in imagegen; see [prompts and sources](docs/readme-assets.md). Paraformer model selection was informed by [SpeakSlow](https://github.com/Jeffrey0117/SpeakSlow).
 
 Code is licensed under [MIT](LICENSE). Third-party packages and models retain their respective licenses.
+
+### Google Meet: aligned cross-check and evidence-backed minutes
+
+When asked to end and summarize a meeting, the Codex/Claude skill compares native captions with local recording ASR and prepares fixed-format minutes. The recording worker does not call a cloud LLM; agent summarization requires the host to keep executing the turn.
+
+```powershell
+node bin/openmeeting.js transcribe <id>
+node bin/openmeeting.js crosscheck <id>
+node bin/openmeeting.js report <id>
+# After the agent fills a separate reviewed-minutes.json from actual evidence
+node bin/openmeeting.js report <id> '<absolute-path-to-reviewed-minutes.json>'
+```
+
+Cross-check uses monotonic text alignment (1:1, 2:1, 1:2, 3:1, 1:3), preserving unmatched material. Similarity is not correctness or acoustic timing; caption timestamps remain reception times. Numeric, negation, date/deadline, English-term and decision/ownership differences are prioritized. Optional meeting-terms.json contains an array of glossary strings for review only, never ASR answer injection.
+
+Outputs: transcript-crosscheck.md/json, meeting-report.draft.md/json, and—after reviewing input and validating exact source quotations—meeting-report.md/json. Draft blanks mean unreviewed, not “nothing discussed.” Original audio/transcripts and summary.md remain unchanged. Quotes do not prove that the conclusions follow; proposals and confirmed decisions remain separate.
+
+Fixed sections cover metadata, participants, summary, topics, decisions, proposals, actions (owner/deadline/completion criteria), risks, open questions, follow-up and recording quality/attachments. Unknown owners/deadlines remain null. Unresolved differences remain visible; no speaker identity or verbatim-accuracy guarantee. Local ASR/model installation is required for transcribe. See [workflow and limits](docs/transcript-review.md) and [review-input schema](docs/meeting-minutes.schema.json).
+
+### In-meeting controls in the dedicated browser
+
+Join automatically injects a meeting AI panel into the dedicated Meet/Teams window, not everyday Chrome or sign-in pages. No browser extension installation is needed. It shows admission, recording signal and live/pending transcript text. Meet keeps automatic recording by default and supports pause/resume; OPENMEETING_MANUAL_START=1 enables manual Meet start. Paused PCM is replaced by silence to preserve the timeline; delayed CC revisions are not precise acoustic cut points. Teams retains automatic two-lane capture without pause/manual start.
+
+“End and organize” stops this recorder and leaves the call, then opens a separate dedicated results window. It generates offline transcription when available, aligned cross-checks, a fixed-format draft and source-backed verbatim excerpts. Excerpts are not an LLM summary: Codex/Claude still review decisions and tasks. No hidden cloud-agent invocation or automatic AI wake-up is claimed. Missing inputs remain partial; failures remain visible. See [panel workflow and verification limits](docs/meeting-panel.md).

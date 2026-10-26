@@ -1,0 +1,17 @@
+{
+  "scope": "Synthetic local fixture only, not a live external meeting",
+  "desktop": [
+    1920,
+    1080
+  ],
+  "mobile": [
+    390,
+    844
+  ],
+  "consoleErrors": 0,
+  "pageErrors": 0,
+  "mobileScreenshotVisuallyInspected": true,
+  "desktopScreenshot": "docs/qa/evidence/meeting-panel-desktop.png",
+  "mobileScreenshot": "docs/qa/evidence/meeting-panel-mobile.png",
+  "privateContentIncluded": false
+}

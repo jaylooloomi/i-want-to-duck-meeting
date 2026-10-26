@@ -21,6 +21,8 @@ import { CaptionAssembler } from './captions/assembler.js';
 import { TranscriptStore } from './transcript/store.js';
 import { WavWriter } from './audio/wav-writer.js';
 import { runTranscribe, sttAvailable } from './stt.js';
+import {attachMeetingPanel,requestPanelStop} from './meeting-panel.js';
+import {finishPanelRecording} from './panel-finish.js';
 
 /** Terminal status states. */
 export const TERMINAL_STATES = Object.freeze(['done', 'failed']);
@@ -184,6 +186,8 @@ export async function runSession(opts) {
   /** @type {TranscriptStore|null} */ let store = null;
   /** @type {CaptionAssembler|null} */ let assembler = null;
   let captionsOpen = false;
+  let recordingEnabled = !config.manualStart;
+  let panel = null;
   let pageGone = false;
   /** @type {number|null} */ let joinedAtMs = null;
   /** @type {string|null} */ let endReason = null;
@@ -255,7 +259,7 @@ export async function runSession(opts) {
     } catch (err) { L.warn(`live transcript write failed: ${err.message}`); }
   };
   const onCaptions = (/** @type {any} */ p) => {
-    if (!captionsOpen || !assembler) return;
+    if (!captionsOpen || !assembler || !recordingEnabled) return;
     try {
       const blocks = p && Array.isArray(p.blocks) ? p.blocks : null;
       if (blocks && blocks.length) {
@@ -270,7 +274,10 @@ export async function runSession(opts) {
   };
   const onAudio = (/** @type {string} */ b64) => {
     try {
-      if (wav && typeof b64 === 'string' && b64) wav.write(Buffer.from(b64, 'base64'));
+      if (wav && typeof b64 === 'string' && b64) {
+        const pcm=Buffer.from(b64,'base64');
+        wav.write(recordingEnabled ? pcm : Buffer.alloc(pcm.length));
+      }
     } catch (err) {
       L.warn(`audio write failed: ${err && err.message}`);
     }
@@ -609,6 +616,17 @@ export async function runSession(opts) {
     const conn = await connectChrome(chrome.cdpUrl);
     browser = conn.browser;
     page = conn.page;
+    if(hooks.onPage)await hooks.onPage(page);
+    setStatus({recordingControl:{enabled:recordingEnabled,ending:false,intervals:[{enabled:recordingEnabled,at:new Date().toISOString()}]}});
+    panel = await attachMeetingPanel(page,{dir,origins:[meetingOrigin],canPause:true,onAction:async action=>{
+      if(action==='stop'){requestPanelStop(dir);return;}
+      if(stopRequested() || readStatus(dir)?.state!=='in_call')throw new Error('meeting_not_ready');
+      if(action==='pause' && recordingEnabled){if(assembler)emit(assembler.flush(mono(Date.now())));assembler=new CaptionAssembler();}
+      recordingEnabled=action==='start';
+      const prior=readStatus(dir)?.recordingControl;
+      setStatus({recordingControl:{enabled:recordingEnabled,ending:false,intervals:[...(prior?.intervals || []),{enabled:recordingEnabled,at:new Date().toISOString()}]}});
+      publishLive();writeStats(true);
+    }});
     browser.on('disconnected', () => { pageGone = true; });
     page.on('close', () => { pageGone = true; });
     page.on('crash', () => {
@@ -716,6 +734,8 @@ export async function runSession(opts) {
     }
     writeStats(true);
 
+    if(hooks.afterReady)await hooks.afterReady(page);
+
     endReason = await mainLoop();
     L.info(`meeting over: ${endReason}`);
   } catch (err) {
@@ -812,6 +832,7 @@ export async function runSession(opts) {
     }
   }
   clearInterval(heartbeat);
+  panel?.dispose();
 
   /** @type {Record<string, any>} */
   const final = failure
@@ -828,5 +849,6 @@ export async function runSession(opts) {
 
   for (const s of signals) process.off(s, onSignal);
   process.off('exit', onExit);
+  if(readStatus(dir)?.panelFinishRequested)await finishPanelRecording({config,dir,log:sub('panel')});
   return result;
 }

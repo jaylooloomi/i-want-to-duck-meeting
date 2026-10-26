@@ -21,6 +21,8 @@ import { runTranscribe, setupStt, sttAvailable, sttPython } from './stt.js';
 import { WORKER_ENV_KEY } from './worker.js';
 import { parseTeamsUrl, audioDevices, saveAudioSettings } from './audio-settings.js';
 import { meetingFailureGuidance } from './meet/failure-guidance.js';
+import { writeCrosscheck } from './transcript/crosscheck.js';
+import { writeMinutes } from './transcript/minutes.js';
 
 const TERMINAL = ['done', 'failed'];
 const LOGIN_URL = 'https://accounts.google.com/';
@@ -102,7 +104,9 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   setup-audio                                             自動準備 Teams／本機收音套件與模型
   audio-devices                                           列出本機收音裝置
   audio-confirm <id>                                      確認雙方內容後保存該場成功裝置
-  transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
+  transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav
+  crosscheck <id|latest>                                 比對原生字幕與既有錄音轉錄，產生核對材料
+  report <id|latest> [審閱JSON路徑]                       產生固定格式紀錄草稿，或驗證引文後輸出審閱稿`;
 
 /**
  * @typedef {object} Io
@@ -1241,6 +1245,24 @@ export async function main(argv, io = {}) {
       case 'doctor': return await cmdDoctor(ctx);
       case 'setup-stt': return await cmdSetupStt(ctx);
       case 'transcribe': return await cmdTranscribe(ctx, positionals, flags);
+      case 'crosscheck': {
+        const meeting = findMeeting(ctx, positionals[0]);
+        if (!meeting) return 1;
+        const {mdPath, jsonPath} = writeCrosscheck(meeting.dir);
+        out(`TRANSCRIPT_CROSSCHECK=${mdPath}`);
+        out(`CROSSCHECK_JSON=${jsonPath}`);
+        out('已產生交叉核對材料；差異需檢查，不能視為已校正定稿。');
+        return 0;
+      }
+      case 'report': {
+        const meeting = findMeeting(ctx, positionals[0]);
+        if (!meeting) return 1;
+        const input = positionals[1] ? JSON.parse(fs.readFileSync(positionals[1], 'utf8')) : undefined;
+        const {mdPath, jsonPath} = writeMinutes(meeting.dir, input);
+        out(`MEETING_REPORT=${mdPath}`); out(`MEETING_REPORT_JSON=${jsonPath}`);
+        out(input ? '審閱稿已通過引文存在性驗證；請另確認語意及重要差異。' : '固定格式草稿已產生；請依證據填寫，不能把空白當成沒有討論。');
+        return 0;
+      }
       default:
         err(`未知的指令：${command}`);
         out(USAGE);

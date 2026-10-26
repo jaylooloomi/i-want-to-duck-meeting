@@ -1,9 +1,9 @@
 {
-  "codex/skills/openmeeting/SKILL.md": "39bf987ca808df14bca16e2918a6219dd35b8d963e7e129b6a382f66707bf5bf",
-  "plugin/skills/meet/SKILL.md.tmpl": "782b2994f307f7cbdb023eba7d59a38dbdd6acd220aaaf019e7b5a1986d72af2",
+  "codex/skills/openmeeting/SKILL.md": "5239df49e55450a95732218fdca7c45f977c4b0b47cde6b74fac510678b505db",
+  "plugin/skills/meet/SKILL.md.tmpl": "84281ac7c160939336f4c747572b597b66e30185b055e6ea1018191cb00c2989",
   "scripts/install.js": "6ac4201893275859366a3855ec1ca7e2c6bb44bf352bce52fce14551823898c3",
-  "src/cli.js": "fe75dc241c3374c64d7a7a4da5381408e5c8f6bc0509a059038b78925a1a97fd",
-  "src/config.js": "cc0775aced5e3cb9b9f11727cba0ae56414550a16778706aa9cb260ba64fbccd",
+  "src/cli.js": "d26d886ba895479ec1e17d16300be83e70082b33a67a3042d2245e061d222d2d",
+  "src/config.js": "c70d3c6109f71c7819ed081cf16cf3628d86af2eb9d2e84f5bea61d577a33a25",
   "src/live-server.js": "8b3ea040c81a2d2198296d924abf075f5230b9c39f39989590d42d692ec90f23",
   "src/live/app.js": "103a8120077307c463700857aed2e4b0acbf36f1621aa2aaa9f19e87a4a05f56",
   "src/live/microphone.js": "bf900a80d0b65d357b1bf9059cc3a64fe68ba44dd620827b1a420a5336f8d345",
@@ -11,5 +11,14 @@
   "src/meet/failure-guidance.js": "8e0616876c09ad64f57fdc36199eda8def86cd840f3f04d51fec03a6ee03b026",
   "src/meet/join.js": "20f8a44aa276e330d765fa4588bacba8278e420cf03491560ea70c8b51dbd83c",
   "src/meet/login.js": "a24e35ca621053b6ac3771ed84b734a0b9b9e8c7d12f0f868f3874247cee7459",
-  "src/session.js": "18628c835cc04cf6227c2b7c5058b199869852ac618a6c84285feb5fd8834d37"
+  "src/session.js": "5124276f90c01165eeec54d48c8d9c6ce21587c400359f975b79f1f0c26ee3c0",
+  "src/transcript/alignment.js": "04d2aa8253ff6c4fa3ebee9a9b7b639446cfefc1218753cd6cf00fb7145d8552",
+  "src/transcript/crosscheck.js": "28b64c7177adadbdc588dd7820429c6d646b14e5f82b73cefc09c3c99ca34dc6",
+  "src/transcript/minutes.js": "4441cf968350f495215d4d163bf09fad536170323d1969ca747e1c64573e900c",
+  "src/meeting-panel.js": "a4698eb8464713d35ddf4248673eb84635311b5fc53a1367ca182595f0bd7f8e",
+  "src/page/meeting-panel.js": "d32a8918085b1a17b1f20ebbb8371647456b0aa1088f4273895249261ba2eb69",
+  "src/panel-finish.js": "b99045700874dfabe5d75889bd6994f977b3797befcda52f649bf7625282bdd3",
+  "src/teams-browser.js": "a80b7708110c5b7691a98f37067761d650d16388ba8a2dd05b6a4adbc658f335",
+  "src/teams-recording.js": "003a49a2689f8cd78acdc90213fce9c2b3d8c82aed409ec718f5bcf793af391d",
+  "src/stt.js": "1eee390cfcaafeb7ab02fd3dc9ea317a3b860e45610b93b1f7489e0c06f1e737"
 }

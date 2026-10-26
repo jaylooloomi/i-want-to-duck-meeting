@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-26",
+  "scope": "Offline comparison of existing local recording transcriptions and captions; no new external calls, no new human speech",
+  "fixtures": [
+    {
+      "fixture": "current-short-test",
+      "audioSeconds": 84.1,
+      "captionRecords": 1,
+      "recordingRecords": 4,
+      "alignmentBlocks": 6,
+      "importantReviewBlocks": 4,
+      "statuses": {
+        "different": 4,
+        "recording-only": 2
+      },
+      "shared1357": true,
+      "draftGenerated": true,
+      "reviewedReportGenerated": true
+    },
+    {
+      "fixture": "earlier-account-flow-test",
+      "audioSeconds": 121.7,
+      "captionRecords": 1,
+      "recordingRecords": 1,
+      "alignmentBlocks": 3,
+      "importantReviewBlocks": 2,
+      "statuses": {
+        "wording-agrees": 1,
+        "different": 1,
+        "recording-only": 1
+      },
+      "shared1357": true,
+      "draftGenerated": true,
+      "reviewedReportGenerated": false
+    }
+  ],
+  "currentOriginalFilesUnchanged": true,
+  "audioReDecodedInThisRun": false,
+  "recordingTranscriptionsAlreadyProducedLocally": true,
+  "alignmentIsTextualNotAcoustic": true,
+  "exactTranscriptAccuracyClaimed": false,
+  "unresolvedDifferencesRetained": true,
+  "privateAudioAndTranscriptsCommitted": false
+}

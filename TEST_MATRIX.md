@@ -129,3 +129,37 @@ Phase 2建立時間：任何新測試程式撰寫之前。判定依使用者合�
 | [x] NATIVE-12 | FE-E2E | 未登入時在原生登入頁按 Enter 可接續，不讀取欄位值 |
 
 證據分開保存：早期 Google 唯讀檢查為零加入點擊；2026-10-26 後續使用者實際選帳號、主持人放行與約 121.7 秒錄音成功，字幕及錄音轉錄均含 1357。Google Meet／Arthur 仍有錯字，完整測試句未通過。見 [去識別真人結果](docs/qa/reports/native-account-live-validation.json)，不得把受控案例數當真人測試數。
+
+## 字幕／錄音交叉核對（離線整理）
+
+- [x] CROSS-01 / Backend：忽略標點大小寫比措辭，但不宣稱驗真或聲紋對齊。
+- [x] CROSS-02 / Backend：不同專有名詞與 1357／13570 數字差異保留兩來源待核對。
+- [x] CROSS-03 / Backend：不跨字幕段拼造一致，不把非 captions 辨識當原生字幕。
+- [x] CROSS-04 / Backend：空來源如實呈現，非法型別及時間契約拒絕。
+- [x] CROSS-05 / Integration：獨立輸出可重跑、原始檔不變；缺轉錄／毀損 JSON 明確失敗。
+- [x] CROSS-06 / CLI：不存在會議、缺錄音轉錄拒絕；成功輸出核對路徑及數字證據。
+
+## 段落對齊與固定格式會議紀錄
+
+- [x] ALIGN-01 / Backend：1:1、2:1、1:2、3:1、1:3 順序配對；重複句不重用來源，單來源內容保留。
+- [x] ALIGN-02 / Backend：同一數字在不同段出現不得宣稱一致；數字／日期／否定詞／術語／責任差異有提示。
+- [x] ALIGN-03 / Backend：長無標點文字不丟內容，超過 DP 資源上限明確失敗，空來源如實顯示。
+- [x] MINUTES-01 / Backend：固定章節草稿不憑空生成決議、待辦或參與者；空欄標記待審閱。
+- [x] MINUTES-02 / Backend：提案與決議分開，負責人／期限／完成條件未指定用 null；每項有原始引文。
+- [x] MINUTES-03 / Backend：拒絕不存在引文、越界段號、未知欄位、錯會議 ID 與錄音 ASR 推測姓名。
+- [x] MINUTES-04 / Integration：進行中會議拒絕報告；原始檔與 summary 不覆寫，草稿／審閱稿分檔。
+- [x] MINUTES-05 / CLI：生成草稿、依合法引文產出報告、偽造引文明確失敗。
+
+以上為離線工具，沒有新增 UI 頁面；不把文字相似度當正確率、不宣稱聲學對齊。私人現有錄音驗證另存去識別計數，不混入自動測試分母。
+
+## 專用瀏覽器控制面板
+
+- [x] PANEL-01 / FE-E2E：1920×1080／390×844 的開始、暫停、結束、收合及安全即時文字；零 console/pageerror。
+- [x] PANEL-02 / FE-E2E：reload 後單一面板、pending 字幕即時顯示、原頁面按鈕保留。
+- [x] PANEL-03 / FE-E2E：非同步操作 disabled、錯誤提示及 busy 釋放；不重複送出。
+- [x] PANEL-04 / FE-E2E：非指定會議 origin 不注入（含登入頁的同類邊界）。
+- [x] PANEL-05 / FE-E2E：iframe／未知動作拒絕，不產生錄音控制副作用。
+- [x] PANEL-06 / Integration：真 runSession+mock Meet 手動起錄、暫停丟棄、恢復、逐字稿與頁內停止、結果頁草稿。
+- [x] PANEL-07 / Backend：原始檔保留、離線辨識、partial／failed 明示、原話摘錄不捏造決議與待辦。
+
+面板是專用瀏覽器注入區域，不是新的 HTTP 路由或日常 Chrome 擴充功能；不增加遠端控制 API。

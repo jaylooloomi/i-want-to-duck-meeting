@@ -1,0 +1,62 @@
+{
+  "started": "2026-10-26T13:17:47.557Z",
+  "output": "local ignored test output",
+  "repetitions": 1,
+  "reproduce": false,
+  "supplement": false,
+  "groups": [
+    {
+      "name": "round-1-legacy-unit",
+      "code": 0,
+      "log": "docs/qa/reports/panel-release-round-1-legacy-unit.txt",
+      "tests": 532,
+      "pass": 532,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "round-1-controlled-integration",
+      "code": 0,
+      "log": "docs/qa/reports/panel-release-round-1-controlled-integration.txt",
+      "tests": 82,
+      "pass": 77,
+      "fail": 0,
+      "skipped": 5
+    },
+    {
+      "name": "round-1-strict-qa",
+      "code": 0,
+      "log": "docs/qa/reports/panel-release-round-1-strict-qa.txt",
+      "tests": 89,
+      "pass": 73,
+      "fail": 0,
+      "skipped": 16
+    },
+    {
+      "name": "round-1-python",
+      "code": 0,
+      "log": "docs/qa/reports/panel-release-round-1-python.txt",
+      "tests": 25,
+      "pass": 23,
+      "fail": 0,
+      "skipped": 2
+    },
+    {
+      "name": "browser-coverage-audit",
+      "code": 0,
+      "log": "docs/qa/reports/panel-release-browser-coverage-audit.txt",
+      "tests": 0,
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "finished": "2026-10-26T13:29:00.325Z",
+  "success": true,
+  "totals": {
+    "tests": 728,
+    "pass": 705,
+    "fail": 0,
+    "skipped": 23
+  }
+}

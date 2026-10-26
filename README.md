@@ -345,3 +345,37 @@ npm run test:all
 README 編排與章魚插畫風格參考 [i-want-to-sleep](https://github.com/jaylooloomi/i-want-to-sleep)。本專案兩張新插畫以內建 imagegen 生成；[圖片提示詞與來源](docs/readme-assets.md)。Paraformer 模型選用參考 [SpeakSlow](https://github.com/Jeffrey0117/SpeakSlow)。
 
 程式採 [MIT](LICENSE) 授權；第三方套件與模型依各自授權條款使用。
+
+### Google Meet：雙來源核對與固定格式會議紀錄
+
+說「結束並整理會議」後，Codex／Claude 會依本機技能收尾，核對 Google CC 與錄音辨識，整理附來源的會議紀錄。背景錄音 worker 不會自行呼叫雲端 LLM；AI 整理需要宿主繼續執行該回合。
+
+```powershell
+node bin/openmeeting.js transcribe <會議ID>
+node bin/openmeeting.js crosscheck <會議ID>
+node bin/openmeeting.js report <會議ID>
+# AI 依來源填寫草稿並另存 reviewed-minutes.json 後
+node bin/openmeeting.js report <會議ID> '<reviewed-minutes.json完整路徑>'
+```
+
+- `crosscheck` 以文字順序配對 1:1、2:1、1:2、3:1、1:3 段落，保留單來源內容；相似度不是正確率，也不是聲學時間對齊。CC 時間仍為接收時間。
+- 優先標記數字、否定詞、日期／期限、英文名稱及決議／責任措辭差異。可在本場 `meeting-terms.json` 放術語字串陣列，例如 `["產品甲", "王小明"]`，只作差異檢查，不注入 ASR 答案。
+- 產生 `transcript-crosscheck.md/json`、`meeting-report.draft.md/json`。草稿空欄是待審閱，不能當成沒有討論。
+- 審閱 JSON 通過結構與原文引文檢查後，輸出 `meeting-report.md/json`；不覆寫原始錄音、CC、錄音 ASR 或 `summary.md`。引文存在不保證語意正確，不能把提案自動變成決議。
+- 固定欄位：基本資料、參與者、摘要、各議題、決議、提案／未決事項、待辦（負責人／期限／完成條件）、風險、待確認問題、下次追蹤、記錄品質與附件。缺負責人與期限填 null，不猜。
+- 重要歧義必要時回聽；未回聽就標示未回聽。工具不保證聽辨準確或推定姓名，也不修改即時 CC。
+
+[完整流程、限制與證據格式](docs/transcript-review.md) · [審閱 JSON schema](docs/meeting-minutes.schema.json)。ASR 需已安裝的本機模型；缺錄音轉錄先執行 transcribe，crosscheck 不下載模型。
+
+### 專用瀏覽器內的 meeting AI 面板
+
+貼連結 join 後，Meet／Teams 專用視窗會自動顯示面板，不需要安裝 Chrome 擴充功能，也不碰日常 Chrome。
+
+- 顯示選帳號、等待放行、入會狀態與即時逐字稿（包含尚未落盤的字幕）。
+- Google Meet：預設自動開始；可按「暫停記錄」及「開始記錄」恢復。需要手動起錄時，可用 OPENMEETING_MANUAL_START=1 啟動。暫停時音訊填靜音以維持時間軸，不保存新字幕；CC 修訂晚到不代表聲學精確切點。
+- Teams：沿用自動雙路記錄，提供即時字幕與結束，不提供暫停／手動開始。
+- 「結束並整理」只停止本工具並離會，不終止所有人的會議。接著開啟獨立專用結果視窗；原會議設定檔會釋放，結果視窗不阻擋下一場。
+- 結果包括逐字稿、錄音、段落對齊、固定格式草稿與附原文來源的自動摘錄。自動摘錄不是 LLM 摘要，正式決議／待辦仍需 Codex／Claude 審閱；工具不私下啟動另一個雲端 AI。
+- 未收到音訊／缺本機模型時顯示 partial，轉錄失敗顯示 failed，不偽造成功。面板只讀寫這場會議；不開麥克風。
+
+詳見 [面板使用與驗證範圍](docs/meeting-panel.md)。

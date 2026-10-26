@@ -1,0 +1,20 @@
+▶ launchChrome + connectChrome (real Chrome, headless)
+  ✔ launch, connect, navigate, no webdriver flag, close kills everything (3109.6965ms)
+  ✔ second launch on a profile that is in use rejects fast with chrome_launch_failed (2883.4868ms)
+  ✔ a process that exits before the DevTools endpoint answers -> chrome_launch_failed, fast (264.4726ms)
+  ✔ close() falls back to killing the process tree when CDP Browser.close is unavailable (4387.198ms)
+  ✔ close() after Chrome already exited on its own resolves quickly (2233.8145ms)
+  ✔ a stale lockfile from a crashed Chrome does not block the launch (724.0508ms)
+  ✔ a missing chromePath rejects with chrome_not_found (0.8117ms)
+✔ launchChrome + connectChrome (real Chrome, headless) (13606.172ms)
+✔ join (detached worker) → wait exits 0 with RESULT=done (13812.9235ms)
+✔ join (meeting never ends) → leave latest → done/user_stop, wait exits 0 (15503.2814ms)
+✔ join not-a-link exits 1 (157.5919ms)
+ℹ tests 10
+ℹ suites 1
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44395.5513

@@ -2,6 +2,7 @@ import { MicrophoneService } from './microphone.js';
 import { audioDevices, selectDevices, readAudioSettings } from './audio-settings.js';
 import { readStatus, writeStatus } from './status.js';
 import { startTeamsBrowser } from './teams-browser.js';
+import {finishPanelRecording} from './panel-finish.js';
 
 // The worker owns audio plus a dedicated native-caption browser; no assistant heartbeat.
 export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
@@ -18,7 +19,7 @@ export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
   let browser;
   const controller=new AbortController();
   // Audio is independent: failure/login in the browser must not discard recordings.
-  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config,url,signal:controller.signal,
+  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config,url,dir,signal:controller.signal,
     onCaption:event=>session.platformCaption?.(event),
     onState:state=>{if(service.current===session && !session.stopping)writeStatus(dir,{teamsBrowser:state});},
   }).then(result=>{browser=result;}).catch(error=>{
@@ -28,5 +29,5 @@ export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
   process.once('SIGINT',stop);process.once('SIGTERM',stop);
   const timeout=setTimeout(()=>{if(service.current && !session.stopping)service.stop(token,'max_duration');},config.maxDurationMs);
   try {await session.finished;return readStatus(dir);}
-  finally {clearTimeout(timeout);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);controller.abort();await browserTask;await browser?.close();}
+  finally {clearTimeout(timeout);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);controller.abort();await browserTask;await browser?.close();if(readStatus(dir)?.panelFinishRequested)await finishPanelRecording({config,dir});}
 }

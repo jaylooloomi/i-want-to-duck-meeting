@@ -1,6 +1,7 @@
 import path from 'node:path';
 import {launchChrome, connectChrome} from './chrome.js';
 import {installTeamsCaptionTap} from './teams-captions.js';
+import {attachMeetingPanel,requestPanelStop} from './meeting-panel.js';
 
 async function clickVisible(locator) {
   const first=locator.first();
@@ -64,7 +65,7 @@ export async function configureTeamsPage(page, {displayName, language='中文（
   return 'waiting_page';
 }
 
-export async function startTeamsBrowser({config,url,onCaption,onState,signal}) {
+export async function startTeamsBrowser({config,url,onCaption,onState,signal,dir}) {
   let chrome, browser, timer, stopped=false, running=false;
   const close=async()=>{stopped=true;clearInterval(timer);await browser?.close().catch(()=>{});await chrome?.close().catch(()=>{});};
   signal?.addEventListener('abort',()=>void close(),{once:true});
@@ -75,6 +76,10 @@ export async function startTeamsBrowser({config,url,onCaption,onState,signal}) {
     const connected=await connectChrome(chrome.cdpUrl);browser=connected.browser;
     if(signal?.aborted){await close();throw new Error('Teams browser cancelled');}
     const {context,page}=connected;
+    if(dir)await attachMeetingPanel(page,{dir,origins:['https://teams.live.com','https://teams.microsoft.com','https://teams.cloud.microsoft'],onAction:async action=>{
+      if(action==='stop')requestPanelStop(dir);
+      else throw new Error('Teams 使用自動雙路記錄，開始／暫停不適用');
+    }});
     await context.exposeBinding('__omTeamsCaption',(source,event)=>{
       const host=new URL(source.frame.url()).hostname;
       if(['teams.live.com','teams.microsoft.com','teams.cloud.microsoft'].includes(host)) onCaption(event);

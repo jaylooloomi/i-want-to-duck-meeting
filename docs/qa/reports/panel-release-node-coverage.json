@@ -1,0 +1,20 @@
+[
+  {
+    "group": "round-1-legacy-unit",
+    "linePercent": 67.06,
+    "branchPercent": 85.67,
+    "functionPercent": 79.32
+  },
+  {
+    "group": "round-1-controlled-integration",
+    "linePercent": 66.27,
+    "branchPercent": 65.37,
+    "functionPercent": 64.56
+  },
+  {
+    "group": "round-1-strict-qa",
+    "linePercent": 55.66,
+    "branchPercent": 73.27,
+    "functionPercent": 45.54
+  }
+]

@@ -1,0 +1,16 @@
+✔ panel controls the real session: manual start, pause, resume, live captions and finish draft (9471.0493ms)
+✔ PANEL-01 controls, safe live text and collapse 1920 (1704.0218ms)
+✔ PANEL-01 controls, safe live text and collapse 390 (1570.9747ms)
+✔ PANEL-02 reload restores one panel and pending captions without changing native page controls (1287.8382ms)
+✔ PANEL-03 rejected actions show feedback and always release busy controls (1356.3652ms)
+✔ panel state is bounded and does not report recording before admission (17.3292ms)
+✔ panel finishing uses local offline transcription, creates separate safe draft and leaves sources unchanged (23.7816ms)
+✔ missing ASR remains partial and failed ASR remains failed, never fakes a recording transcript (25.8776ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18040.5962

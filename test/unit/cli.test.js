@@ -17,6 +17,36 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const ROOT = path.join(REPO, 'test', '.tmp', 'cli-unit');
 let n = 0;
 
+test('report CLI produces a draft, validates reviewed evidence and rejects a fabricated quote', async () => {
+  const home = newHome();
+  const id = '20261026-000001-abc-defg-hij';
+  const dir = fakeMeeting(home, id, {state:'done'}, [['A','建議下週討論']]);
+  fs.writeFileSync(path.join(dir, 'transcript-whisper.json'),JSON.stringify({segments:[{text:'建議下週討論',start:1,end:2}]}));
+  const result = await run(['report', id],{home});
+  assert.equal(result.code,0);assert.match(result.text,/MEETING_REPORT=/);
+  const draftFile=path.join(dir,'meeting-report.draft.json');
+  const doc=JSON.parse(fs.readFileSync(draftFile,'utf8'));
+  doc.proposals=[{text:'建議下週再討論',evidence:[{source:'recording',recordId:1,quote:'建議下週討論'}]}];
+  const input=path.join(home,'review.json');fs.writeFileSync(input,JSON.stringify(doc));
+  assert.equal((await run(['report',id,input],{home})).code,0);
+  assert.ok(fs.existsSync(path.join(dir,'meeting-report.md')));
+  doc.proposals[0].evidence[0].quote='全體通過';fs.writeFileSync(input,JSON.stringify(doc));
+  assert.equal((await run(['report',id,input],{home})).code,1);
+});
+
+test('crosscheck CLI preserves sources and rejects missing meetings or recording transcripts', async () => {
+  const home = newHome();
+  assert.equal((await run(['crosscheck', 'missing'], {home})).code, 1);
+  const dir = fakeMeeting(home, '20261026-000000-abc-defg-hij', {state:'done'}, [['A','測試1357']]);
+  assert.equal((await run(['crosscheck', 'latest'], {home})).code, 1);
+  const original = fs.readFileSync(path.join(dir, 'transcript.jsonl'), 'utf8');
+  fs.writeFileSync(path.join(dir, 'transcript-whisper.json'), JSON.stringify({segments:[{text:'測試1357',start:1,end:2}]}));
+  const result = await run(['crosscheck', 'latest'], {home});
+  assert.equal(result.code, 0); assert.match(result.text, /TRANSCRIPT_CROSSCHECK=/);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir,'transcript-crosscheck.json'),'utf8')).sharedNumbers,['1357']);
+  assert.equal(fs.readFileSync(path.join(dir,'transcript.jsonl'),'utf8'),original);
+});
+
 before(() => {
   fs.rmSync(ROOT, { recursive: true, force: true });
   fs.mkdirSync(ROOT, { recursive: true });

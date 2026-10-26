@@ -115,3 +115,23 @@ selecting_account 是等待使用者在 Google 頁面操作，不是等待另一
 join 的背景程序會自動觀察原生選帳號結果與主持人放行，不要把聊天回覆「選好了」「已放行」當成繼續條件。等待時保持本回合觀察狀態，入會且字幕準備後再請使用者說測試句；只在登入／驗證／主持人操作或錯誤需要人介入時提示必要動作。
 
 不要把背景程序能自動接續等同於 AI 宿主能在回合結束後主動喚醒。使用者要求離開對話仍持續通知時，使用宿主正式背景追蹤能力並明示限制，不虛構已建立監控。
+
+## 雙來源核對與固定格式會議紀錄
+
+使用者要求整理 Google Meet 時，正常收尾後若本機 ASR 已安裝且錄音有訊號，執行 `CLI transcribe '<ID>'`；本場轉錄已存在可沿用。再執行 `CLI crosscheck '<ID>'` 與 `CLI report '<ID>'`。不自動為此安裝或下載模型，缺來源時明示限制。
+
+讀取 transcript-crosscheck.md/json、原始 CC、錄音轉錄與 meeting-report.draft.json。段落以文字順序估計配對，可一對多或多對一，並非聲學時間對齊；相似度不是正確率。數字、否定詞、日期／期限、英文名稱、責任與決議差異優先核對。可在本場 meeting-terms.json 放字串陣列，標出特定人名／術語差異；它只用來檢查，不注入 ASR 答案。
+
+另存 transcript-reviewed.md，標示來源、修訂理由與未確認詞，不覆寫原檔。重要差異需必要時回聽；若僅比對兩份文字，必須明示未回聽，不能當作已確認。錄音 ASR 沒有身分辨識，不直接歸給 CC 發言者；CC 時間為接收時間。
+
+依草稿填寫 reviewed-minutes.json（欄位見專案 docs/meeting-minutes.schema.json），執行 `CLI report '<ID>' '<本場reviewed-minutes.json完整路徑>'`，產生 meeting-report.md/json。每個摘要、議題、決議、提案、待辦、風險、問題或追蹤項需附 evidence，source 為 captions 或 recording、recordId 為該來源從 1 起的原始段號、quote 必須是原文子字串。不要引用對齊區塊號當 recordId。引用存在不代表結論正確；分開提案與已確認決議，待辦缺負責人／期限／完成條件用 null。參與者姓名只能依 CC 明確標記，不從聲音推定。
+
+報告固定含基本資料、參與者、重點摘要、議題、決議、提案／未決事項、待辦（負責人／期限／完成條件）、風險、待確認問題、下次追蹤、記錄品質與附件。空草稿是待審閱，不代表無討論。未解決的重要差異保留，不因輸出報告就自動解除。summary.md 如需維持舊入口，使用核對後的精簡摘要並連結 meeting-report.md。
+
+## 專用瀏覽器頁內面板
+
+join 自動注入 meeting AI 面板，只出現在專用 Meet／Teams 會議頁，不在 Google 登入頁、不安裝日常 Chrome 擴充功能。面板顯示開始／結束、錄音訊號狀態與即時逐字稿；Google Meet 支援暫停及恢復，Teams 維持自動雙路記錄，不提供暫停。預設仍入會自動記錄；OPENMEETING_MANUAL_START=1 僅對 Google Meet 延後保存直到按開始。
+
+使用者在面板按結束後，背景工作自行離會、離線轉錄（已有模型及非零音訊時）、產生對齊核對／固定草稿／本機原話摘錄，並開啟獨立專用結果視窗。此按鈕不會終止所有人的會議，也不會啟用麥克風。面板暫停不保存新字幕，錄音寫靜音維持時間軸；Google CC 的晚到修訂與恢復邊界不是聲學切點，不能保證精確逐字分界。
+
+status.panelReport 的 processing／draft_ready／partial／failed 與頂層 done 分開看。meeting-report.auto.md 是原話摘錄，不是 LLM 總結；正式摘要、決議、待辦仍由本技能依前節做證據審閱。結果頁不等於喚醒 AI 新回合；不虛構已自動驗真或主動通知。面板輪詢約 1 秒，錄音統計最長約 5 秒更新。

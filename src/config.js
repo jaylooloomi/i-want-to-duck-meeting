@@ -109,6 +109,7 @@ export function getConfig(env = process.env) {
     displayName: env.OPENMEETING_NAME || DEFAULT_DISPLAY_NAME,
     captionLang: env.OPENMEETING_CAPTION_LANG || DEFAULT_CAPTION_LANG,
     headless: env.OPENMEETING_HEADLESS === '1',
+    manualStart: env.OPENMEETING_MANUAL_START === '1',
     muteAudio: env.OPENMEETING_MUTE !== '0',
     allowAnyHost: env.OPENMEETING_ALLOW_ANY_HOST === '1',
     trackMirror: env.OPENMEETING_TRACK_MIRROR === '1',
