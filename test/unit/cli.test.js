@@ -196,6 +196,7 @@ test('join: creates the meeting dir + status, spawns the worker, prints MEETING_
   const o = kv(r.out);
   assert.match(o.MEETING_ID, /^\d{8}-\d{6}-abc-defg-hij$/);
   assert.equal(o.MEETING_DIR, path.join(home, 'meetings', o.MEETING_ID));
+  assert.equal(o.LIVE_URL, `http://127.0.0.1:8791/?id=${encodeURIComponent(o.MEETING_ID)}`);
   assert.equal(o.DISPLAY_NAME, 'Arthur Bot');
   assert.equal(calls.length, 1);
   assert.equal(calls[0].dir, o.MEETING_DIR);

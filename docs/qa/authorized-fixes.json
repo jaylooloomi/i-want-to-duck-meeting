@@ -1,9 +1,9 @@
 {
-  "codex/skills/openmeeting/SKILL.md": "39bf987ca808df14bca16e2918a6219dd35b8d963e7e129b6a382f66707bf5bf",
-  "plugin/skills/meet/SKILL.md.tmpl": "782b2994f307f7cbdb023eba7d59a38dbdd6acd220aaaf019e7b5a1986d72af2",
+  "codex/skills/openmeeting/SKILL.md": "f8178faa75a2d8878806f3946da82f94b60d3d6d17096f0d92078425d1d00319",
+  "plugin/skills/meet/SKILL.md.tmpl": "838120de6c68042c30e254ca4bf39919f4d3d67d9a92681f13a57000ac27d75d",
   "scripts/install.js": "6ac4201893275859366a3855ec1ca7e2c6bb44bf352bce52fce14551823898c3",
   "src/audio-settings.js": "541c2fc8de9dcb7202b3b567f798fb13f856fc3d260ceecfa988c5bb57cec493",
-  "src/cli.js": "fe75dc241c3374c64d7a7a4da5381408e5c8f6bc0509a059038b78925a1a97fd",
+  "src/cli.js": "6a82a0474ed1fa576ce3aa4740ef0ec2600ee84cd6a4a7faa04f0ac6159de5dd",
   "src/config.js": "3d6e6b09f1dab11503a263ee4f151ed611b7db92b1e818c846c2491aeb9dc569",
   "src/live-server.js": "506190caf737f67fc4dba7f885587ebd00b1a8ca197e35175ba891c3dd8f5009",
   "src/live/app.js": "e0d54b2f4f92396f36c665ca4901ac8c96e8ed2dff0a218ffd3054061b2e92cd",
@@ -15,5 +15,6 @@
   "src/meet/join.js": "20f8a44aa276e330d765fa4588bacba8278e420cf03491560ea70c8b51dbd83c",
   "src/meet/login.js": "a24e35ca621053b6ac3771ed84b734a0b9b9e8c7d12f0f868f3874247cee7459",
   "src/session.js": "18628c835cc04cf6227c2b7c5058b199869852ac618a6c84285feb5fd8834d37",
-  "src/teams-recording.js": "543d16b072d85038de0da20b19e4f2ea1516fa25327470efcf92155783378946"
+  "src/teams-recording.js": "543d16b072d85038de0da20b19e4f2ea1516fa25327470efcf92155783378946",
+  "src/worker.js": "8ba736f67815fddac852a03a17f84c06a8b512c5053338cb9f7c277cb4e5ed32"
 }

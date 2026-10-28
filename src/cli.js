@@ -879,14 +879,17 @@ async function cmdJoin(ctx, pos, flags) {
   if (launch.launcher) out(`LAUNCHER=${launch.launcher}`);
   if (launch.launcher === 'spawn-fallback') err(`WMI 啟動失敗，已改用一般方式啟動背景機器人（${launch.reason || '原因不明'}）。`);
 
+  const livePort = Number(ctx.env.OPENMEETING_LIVE_PORT) || 8791;
+  const liveUrl = `http://127.0.0.1:${livePort}/?id=${encodeURIComponent(id)}${teamsUrl ? '&source=teams' : ''}`;
   out(`MEETING_ID=${id}`);
   out(`MEETING_DIR=${dir}`);
+  out(`LIVE_URL=${liveUrl}`);
   if (teamsUrl) {
     out('SOURCE=teams');
-    out('背景雙路收音正在啟動；用 status 確認 in_call、captureDevices 與 audioHealth。告知與會者正在記錄；結束時執行 leave。');
+    out('背景雙路收音與即時網頁面板已自動啟動；用 status 確認 in_call、captureDevices 與 audioHealth。告知與會者正在記錄；結束時執行 leave。');
   } else {
     out(`DISPLAY_NAME=${displayName}`);
-    out(`機器人「${displayName}」將開啟專用 Chrome，等待你選擇記錄帳號（會議 ${parsed.code}，尚未送出加入請求）。`);
+    out(`機器人「${displayName}」將開啟專用 Chrome 與即時網頁面板，等待你選擇記錄帳號（會議 ${parsed.code}，尚未送出加入請求）。`);
     out('選擇帳號並核對 Meet 身分後才會請求加入；必要時請主持人按「允許」放行，並告知與會者正在記錄。');
   }
   out(`等待會議結束：openmeeting wait ${id}`);

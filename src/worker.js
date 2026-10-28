@@ -14,6 +14,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { getConfig } from './config.js';
 import { readStatus, writeStatus } from './status.js';
@@ -213,6 +214,27 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
     markCrashed(new Error(msg));
     return 1;
   }
+  let liveServer = null;
+  if (!config.headless && env.OPENMEETING_LIVE_PANEL !== '0') {
+    const port = Number(env.OPENMEETING_LIVE_PORT) || 8791;
+    let baseUrl = `http://127.0.0.1:${port}`;
+    try {
+      const { startLiveServer } = await import('./live-server.js');
+      liveServer = await startLiveServer({ meetingsDir: config.meetingsDir, port });
+      baseUrl = liveServer.url;
+    } catch {
+      /* EADDRINUSE: reuse existing live server on port */
+    }
+    const liveUrl = `${baseUrl}/?id=${encodeURIComponent(id)}${status.source === 'teams' ? '&source=teams' : ''}`;
+    try { writeStatus(dir, { liveUrl }); } catch { /* ignore */ }
+    if (env.OPENMEETING_NO_BROWSER !== '1' && status.teamsBrowserEnabled !== false) {
+      try {
+        if (process.platform === 'win32') {
+          spawn('cmd.exe', ['/d', '/s', '/c', 'start', '""', liveUrl], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+        }
+      } catch { /* ignore */ }
+    }
+  }
   try {
     if (status.source === 'teams') {
       const { runTeamsRecording } = await import('./teams-recording.js');
@@ -237,6 +259,8 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
     process.stderr.write(`${new Date().toISOString()} [worker] session threw: ${errText(err)}\n`);
     markCrashed(err);
     return 1;
+  } finally {
+    try { await liveServer?.shutdown(); } catch { /* ignore */ }
   }
 }
 

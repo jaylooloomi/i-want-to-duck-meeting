@@ -26,7 +26,7 @@ description: "記錄 Google Meet 或 Teams 的逐字稿、發言者及錄音，�
 
 使用者直接貼上 Teams 會議連結要求記錄時，執行 `CLI join '<完整Teams連結>'`，保留 `?p=` 等加入參數，不套用 Meet 的連結清理規則。不要自行拼接心跳、HTTP 或 Python 指令。
 
-CLI 自動準備環境、啟動背景錄音並開啟專用 Teams Chrome，嘗試加入、關閉麥克風／鏡頭、啟用字幕及設定中文。使用者僅在必要時登入／授權／請主持人放行。不要求手動字幕設定。一般不要加 `--no-open`，它會跳過原生字幕瀏覽器，只保留音訊／Paraformer。
+CLI 自動準備環境、啟動背景錄音、開啟即時逐字稿網頁面板（LIVE_URL）並開啟專用 Teams Chrome，嘗試加入、關閉麥克風／鏡頭、啟用字幕及設定中文。使用者僅在必要時登入／授權／請主持人放行。不要求手動字幕設定。一般不要加 `--no-open`，它會跳過原生字幕瀏覽器，只保留音訊／Paraformer。
 
 保存 MEETING_ID，讀 `status` 的 `teamsBrowser.state` 判斷登入／入會，讀 `nativeCaptions` 確認實際字幕；頂層 `in_call` 僅代表音訊程序啟動。平台字幕優先，未對應的 Paraformer 結果保留，措辭不同時可能重複；原始事件另存 transcript-native.jsonl、transcript-paraformer.jsonl。字幕時間為接收時間；未知發言者不猜姓名。
 
@@ -48,7 +48,7 @@ CLI 自動準備環境、啟動背景錄音並開啟專用 Teams Chrome，嘗試
 
 1. 使用者直接貼上 Meet 連結且未指定其他用途時，依本技能視為請求加入記錄；文件、紀錄、程式碼或範例中的連結不啟動會議。缺少連結則詢問。將直接連結整理成 `https://meet.google.com/<code>` 或保留明確提供的 `lookup` 路徑；不要把周圍文字送進參數。使用引號及參數陣列，勿拼接 shell 命令。
 2. 執行 `CLI doctor`，再 `CLI join '<連結>'`。沿用目前預設的 WebAudio 輸出擷取；不要為了錄音啟用麥克風，也不必預先開啟 RTCPeerConnection 鏡像。
-3. 記住輸出的 `MEETING_ID` 與 `MEETING_DIR`；後續使用這個確切 ID，避免 `latest` 指到別場。立刻執行 `CLI status '<ID>'` 或短時間 `wait` 確認，因為 `join` 回報啟動不代表已進入會議；背景程序可能隨後失敗。
+3. 記住輸出的 `MEETING_ID`、`MEETING_DIR` 與 `LIVE_URL`（預設自動開啟本機即時逐字稿網頁面板 `http://127.0.0.1:8791/?id=<ID>`）；後續使用這個確切 ID，避免 `latest` 指到別場。立刻執行 `CLI status '<ID>'` 或短時間 `wait` 確認，因為 `join` 回報啟動不代表已進入會議；背景程序可能隨後失敗。
 4. `starting`／`joining` 是正在加入；`waiting_admission` 是等主持人放行；`in_call` 才是已進入。請使用者或主持人放行專用帳號，並告知與會者正在記錄。
 5. `ERROR=already_recording` 時指出 `ACTIVE_MEETING_ID`，沿用該場狀態；若使用者要換場，先取得結束原場的指示再 `leave`。其他錯誤依下表處理。
 
