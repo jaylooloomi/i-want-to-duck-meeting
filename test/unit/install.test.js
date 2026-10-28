@@ -58,7 +58,7 @@ test('Codex-only installs portable source plus data-only local paths without Cla
   const config = JSON.parse(fs.readFileSync(path.join(f.dest, 'runtime.json'), 'utf8'));
   assert.deepEqual(config, { managedBy: MANAGED_BY, repoRoot: f.repo, nodePath: process.execPath });
   const skill = fs.readFileSync(path.join(f.dest, 'SKILL.md'), 'utf8');
-  assert.ok(skill.startsWith('---\nname: openmeeting\n'));
+  assert.match(skill, /^---\r?\nname: openmeeting\r?\n/);
   assert.ok(!skill.includes('C:/Users/User') && !skill.includes('D:/git/openmeeting'));
   assert.ok(fs.existsSync(path.join(f.dest, 'agents', 'openai.yaml')));
 });

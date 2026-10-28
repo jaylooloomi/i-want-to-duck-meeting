@@ -47,7 +47,7 @@ export const TIMEOUT_DEFAULTS = Object.freeze({
   noAudioWarnMs: 60_000,
 });
 
-export const DEFAULT_DISPLAY_NAME = 'Arthur 的會議記錄';
+export const DEFAULT_DISPLAY_NAME = 'Arthur Wang';
 export const DEFAULT_CAPTION_LANG = 'cmn-Hant-TW';
 
 /**

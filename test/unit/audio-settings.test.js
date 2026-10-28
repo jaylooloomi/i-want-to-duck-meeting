@@ -37,6 +37,8 @@ test('health distinguishes observation, silence and signal without claiming spee
 test('Teams URL keeps its join secret and rejects spoofed domains, non-HTTPS and unrelated pages',()=>{
   const valid='https://teams.live.com/meet/12345?p=secret&x=two';assert.equal(parseTeamsUrl(valid),valid);
   assert.ok(parseTeamsUrl('https://teams.microsoft.com/l/meetup-join/encoded?context=test'));
+  assert.equal(parseTeamsUrl('https://teams.microsoft.com/meet/455275640170525?p=9SE7nZO224G7lDLNWI'),'https://teams.microsoft.com/meet/455275640170525?p=9SE7nZO224G7lDLNWI');
+  assert.equal(parseTeamsUrl('https://teams.cloud.microsoft/meet/455275640170525?p=9SE7nZO224G7lDLNWI'),'https://teams.cloud.microsoft/meet/455275640170525?p=9SE7nZO224G7lDLNWI');
   for(const url of ['http://teams.live.com/meet/123','https://teams.live.com.evil/meet/123','https://teams.live.com/','https://user@teams.live.com/meet/123','https://teams.live.com:444/meet/123'])assert.equal(parseTeamsUrl(url),null);
 });
 test('Teams CLI routes to background worker, preserves URL and confirms only usable completed captures',async(t)=>{

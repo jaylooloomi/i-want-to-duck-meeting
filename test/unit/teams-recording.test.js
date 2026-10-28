@@ -13,8 +13,9 @@ test('managed worker selects devices, owns duration, preserves session identity 
   const before=process.listenerCount('SIGTERM');let finish,options,reason;
   const service={current:null,async start(input){options=input;this.current={stopping:false,finished:new Promise(r=>finish=r)};return {token:'local-test'};},stop(token,value){assert.equal(token,'local-test');reason=value;this.current.stopping=true;writeStatus(dir,{state:'done'});finish();}};
   const device={id:1,name:'mic',channels:1,sampleRate:16000};
-  let browserClosed=false;
-  const final=await runTeamsRecording({config,dir,id,url:'https://teams.live.com/meet/123',status:{}},{service,startBrowser:async()=>({close:async()=>{browserClosed=true;}}),list:async()=>({inputs:[device],outputs:[{...device,id:2,name:'speaker'}],defaultInput:1,defaultOutput:2})});
+  let browserClosed=false,browserConfig;
+  const final=await runTeamsRecording({config,dir,id,url:'https://teams.live.com/meet/123',status:{displayName:'Arthur Wang'}},{service,startBrowser:async({config:c})=>{browserConfig=c;return {close:async()=>{browserClosed=true;}};},list:async()=>({inputs:[device],outputs:[{...device,id:2,name:'speaker'}],defaultInput:1,defaultOutput:2})});
+  assert.equal(browserConfig.displayName,'Arthur Wang');
   assert.equal(options.managed,true);assert.equal(options.meetingId,id);assert.equal(options.meetingDir,dir);
   assert.equal(reason,'max_duration');assert.equal(final.state,'done');assert.equal(readStatus(dir).deviceSelection.teamsDeviceDetected,false);
   assert.equal(process.listenerCount('SIGTERM'),before);

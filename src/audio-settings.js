@@ -43,7 +43,7 @@ export function audioHealth(stats, seconds = 15) {
 export function parseTeamsUrl(input) {
   let url; try { url=new URL(input); } catch { return null; }
   if (url.protocol !== 'https:' || url.username || url.password || url.port) return null;
-  if (!((url.hostname==='teams.live.com' && /^\/meet\/\d+\/?$/.test(url.pathname))
+  if (!((['teams.live.com','teams.microsoft.com','teams.cloud.microsoft'].includes(url.hostname) && /^\/meet\/\d+\/?$/.test(url.pathname))
     || (['teams.microsoft.com','teams.cloud.microsoft'].includes(url.hostname) && /^\/l\/meetup-join\//.test(url.pathname)))) return null;
   url.hash=''; return url.href;
 }

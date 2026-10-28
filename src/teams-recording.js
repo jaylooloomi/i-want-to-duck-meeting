@@ -18,7 +18,7 @@ export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
   let browser;
   const controller=new AbortController();
   // Audio is independent: failure/login in the browser must not discard recordings.
-  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config,url,signal:controller.signal,
+  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config:{...config,displayName:status.displayName||config.displayName},url,signal:controller.signal,
     onCaption:event=>session.platformCaption?.(event),
     onState:state=>{if(service.current===session && !session.stopping)writeStatus(dir,{teamsBrowser:state});},
   }).then(result=>{browser=result;}).catch(error=>{

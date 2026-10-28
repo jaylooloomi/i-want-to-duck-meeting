@@ -67,7 +67,7 @@ async function poll() {
       const rows = [...data.records.map((r) => row(r, false)), ...data.pending.map((r) => row(r, true))];
       if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = '尚無字幕，開始發言後會自動顯示。'; rows.push(empty); }
       $('transcript').replaceChildren(...rows); signature = next;
-      if ($('follow').checked && data.status?.state === 'in_call' && data.records.length + data.pending.length > 0) rows.at(-1).scrollIntoView({ block:'end' });
+      if ($('follow').checked && data.status?.state === 'in_call' && data.records.length + data.pending.length > 0) { const box = $('transcript'); box.scrollTop = box.scrollHeight; rows.at(-1).scrollIntoView({ block:'nearest' }); }
     }
     $('connection').textContent = '● 已連線 · 自動更新';
     $('updated').textContent = '最後同步 ' + clock(Date.now());

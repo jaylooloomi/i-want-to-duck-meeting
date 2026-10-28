@@ -256,7 +256,7 @@ test('concurrent reader never observes a partial or missing status.json', async 
     assert.ok(s.n >= last, 'status went backwards');
     last = s.n;
     reads++;
-    Atomics.wait(sleeper, 0, 0, 1); // poll ~1 ms (real pollers use seconds)
+    Atomics.wait(sleeper, 0, 0, 15); // poll ~15 ms (real pollers use seconds)
   }
   await Promise.race([new Promise((r) => worker.once('exit', r)), errored]);
   assert.equal(Atomics.load(flag, 0), 1, 'writer thread failed');

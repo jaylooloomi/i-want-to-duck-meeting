@@ -217,7 +217,7 @@ test('join: default display name from config; same code twice in a second gets u
   const spawnWorker = () => pid;
   const a = kv((await run(['join', 'abc-defg-hij'], { home, spawnWorker })).out);
   const b = kv((await run(['join', 'abc-defg-hij'], { home, spawnWorker })).out);
-  assert.equal(a.DISPLAY_NAME, 'Arthur 的會議記錄');
+  assert.equal(a.DISPLAY_NAME, 'Arthur Wang');
   assert.notEqual(a.MEETING_ID, b.MEETING_ID);
 });
 
@@ -256,7 +256,7 @@ test('join: a WMI launch is verified — LAUNCHER=wmi once the worker writes its
   assert.equal(o.LAUNCHER, 'wmi');
   assert.match(o.MEETING_ID, /^\d{8}-\d{6}-abc-defg-hij$/);
   assert.ok(o.MEETING_DIR);
-  assert.equal(o.DISPLAY_NAME, 'Arthur 的會議記錄');
+  assert.equal(o.DISPLAY_NAME, 'Arthur Wang');
   assert.match(r.text, /允許/);
   assert.equal(readStatus(o.MEETING_DIR).pid, process.pid);
 });
@@ -741,7 +741,7 @@ test('quoteWinArg: node parses the quoted arguments back exactly', { skip: proce
   fs.writeFileSync(script, 'process.stdout.write(JSON.stringify(process.argv.slice(2)));');
   const args = ['plain', 'a b', 'C:\\x\\', 'say "hi"', 'a\\"b', WEIRD_DIR, `--dir=${WEIRD_DIR}`, ''];
   const line = [quoteWinArg(script), ...args.map((a) => quoteWinArg(a)), `--dir=${quoteWinArg(WEIRD_DIR)}`];
-  const r = spawnSync(process.execPath, line, { windowsVerbatimArguments: true, encoding: 'utf8' });
+  const r = spawnSync('cmd.exe', ['/d', '/s', '/c', `"${quoteWinArg(process.execPath)} ${line.join(' ')}"`], { windowsVerbatimArguments: true, encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(JSON.parse(r.stdout), [...args, `--dir=${WEIRD_DIR}`]);
 });

@@ -17,7 +17,7 @@ test('defaults with an empty env', () => {
   assert.equal(c.meetingsDir, path.join(REPO_ROOT, 'meetings'));
   assert.equal(c.profileDir, path.join(REPO_ROOT, 'chrome-profile'));
   assert.equal(c.chromePath, null);
-  assert.equal(c.displayName, 'Arthur 的會議記錄');
+  assert.equal(c.displayName, 'Arthur Wang');
   assert.equal(c.captionLang, 'cmn-Hant-TW');
   assert.equal(c.headless, false);
   assert.equal(c.muteAudio, true);
@@ -104,7 +104,7 @@ test('boolean flags only flip on their exact values', () => {
 test('empty-string env values fall back to defaults', () => {
   const c = getConfig({ OPENMEETING_HOME: '', OPENMEETING_NAME: '', CHROME_PATH: '', OPENMEETING_CAPTION_LANG: '' });
   assert.equal(c.home, REPO_ROOT);
-  assert.equal(c.displayName, 'Arthur 的會議記錄');
+  assert.equal(c.displayName, 'Arthur Wang');
   assert.equal(c.chromePath, null);
   assert.equal(c.captionLang, 'cmn-Hant-TW');
 });

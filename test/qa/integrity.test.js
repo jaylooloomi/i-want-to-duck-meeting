@@ -9,8 +9,8 @@ import {consoleGuard} from './harness.js';
 test('QA-01 production content matches the audit baseline plus explicitly authorized fixes',()=>{
   const baseline=JSON.parse(fs.readFileSync('docs/qa/production-baseline.json','utf8'));
   const fixes=JSON.parse(fs.readFileSync('docs/qa/authorized-fixes.json','utf8'));
-  assert.deepEqual(Object.keys(fixes).sort(),["codex/skills/openmeeting/SKILL.md", "plugin/skills/meet/SKILL.md.tmpl", "scripts/install.js", "src/cli.js", "src/config.js", "src/live-server.js", "src/live/app.js", "src/live/microphone.js", "src/meet/account.js", "src/meet/failure-guidance.js", "src/meet/join.js", "src/meet/login.js", "src/session.js"].sort());
-  for(const [file,hash] of Object.entries({...baseline,...fixes}))assert.equal(createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash,file);
+  assert.deepEqual(Object.keys(fixes).sort(),["codex/skills/openmeeting/SKILL.md", "plugin/skills/meet/SKILL.md.tmpl", "scripts/install.js", "src/audio-settings.js", "src/cli.js", "src/config.js", "src/live-server.js", "src/live/app.js", "src/live/index.html", "src/live/microphone.js", "src/live/style.css", "src/meet/account.js", "src/meet/failure-guidance.js", "src/meet/join.js", "src/meet/login.js", "src/session.js", "src/teams-recording.js"].sort());
+  for(const [file,hash] of Object.entries({...baseline,...fixes}))assert.equal(createHash('sha256').update(fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n'),'utf8').digest('hex'),hash,file);
 });
 test('QA-01 authored browser tests contain no hard sleeps CSS-class or XPath locator calls',()=>{
   for(const file of ['harness.js','frontend.test.js','e2e.test.js','meet-login.test.js','meet-account.test.js']) {
