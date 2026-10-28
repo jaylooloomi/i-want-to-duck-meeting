@@ -1,5 +1,6 @@
 {
   "codex/skills/openmeeting/SKILL.md": "7487459115fd79c6a60d77261aa1f41986b897b340324b7ff2408d0c38ae19f7",
+  "package.json": "9e1a6982875adbaf4a54041678a43ac0aa1a4e676859abede48b2b89e23f743c",
   "plugin/skills/meet/SKILL.md.tmpl": "76edb409a81127d8c593a32cd3f2542f593c1ba609c958dc4ad06633d785f823",
   "scripts/install.js": "6ac4201893275859366a3855ec1ca7e2c6bb44bf352bce52fce14551823898c3",
   "src/audio-settings.js": "541c2fc8de9dcb7202b3b567f798fb13f856fc3d260ceecfa988c5bb57cec493",

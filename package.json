@@ -22,5 +22,22 @@
   },
   "dependencies": {
     "playwright-core": "^1.63.0"
-  }
+  },
+  "keywords": [
+    "agent-skills",
+    "ai-agents",
+    "claude-code",
+    "claude-code-plugin",
+    "codex-plugin",
+    "codex-skill",
+    "google-meet",
+    "microsoft-teams",
+    "meeting-notes",
+    "speech-to-text",
+    "paraformer",
+    "whisper",
+    "transcription",
+    "developer-tools",
+    "productivity"
+  ]
 }
