@@ -4,7 +4,7 @@ const meetingList = $('meeting-list'), meetingTotal = $('meeting-total'), archiv
 const workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
 const summaryPanel = $('summary-panel'), summaryProgressWrap = $('summary-progress-wrap'), summaryBody = $('summary-body');
 const summaryStage = $('summary-stage'), summaryPercent = $('summary-percent'), summaryFill = $('summary-progress-fill');
-const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle'), summaryExport = $('summary-export');
+const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle'), summaryExport = $('summary-export'), summaryExportAi = $('summary-export-ai');
 const params = new URLSearchParams(location.search);
 let selected = params.get('id') || 'latest';
 if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
@@ -300,7 +300,35 @@ function exportMeeting(meetingId) {
   a.click();
   a.remove();
 }
+async function exportForCustomAi(meetingId) {
+  const targetId = meetingId === 'latest' ? activeMeetingId : meetingId;
+  if (!targetId) return;
+  const origText = summaryExportAi ? summaryExportAi.textContent : '';
+  try {
+    const res = await fetch('/api/export-prompt?id=' + encodeURIComponent(targetId));
+    if (!res.ok) return;
+    const data = await res.json();
+    let copied = false;
+    if (navigator.clipboard?.writeText && data.content) {
+      try { await navigator.clipboard.writeText(data.content); copied = true; } catch {}
+    }
+    const blob = new Blob([data.content || ''], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = data.filename || (targetId + '-ai-prompt.md');
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+    if (summaryExportAi) {
+      summaryExportAi.textContent = copied ? '✓ 已複製並匯出 AI 整理包！' : '✓ 已下載 AI 整理包！';
+      setTimeout(() => { summaryExportAi.textContent = origText; }, 2800);
+    }
+  } catch {}
+}
 summaryExport?.addEventListener('click', () => exportMeeting(selected));
+summaryExportAi?.addEventListener('click', () => { void exportForCustomAi(selected); });
 summaryRegen?.addEventListener('click', () => {
   summaryCollapsed = false;
   if (summaryToggle) summaryToggle.textContent = '收合';
@@ -337,6 +365,7 @@ function updateSummaryPanel(data) {
     return;
   }
   summaryRegen.disabled = !data.records?.length;
+  if (summaryExportAi) summaryExportAi.disabled = !data.records?.length;
   if (sum.state === 'ready' && sum.markdown) {
     summaryBadge.textContent = '已完成整理';
     summaryBadge.className = 'summary-badge ready';

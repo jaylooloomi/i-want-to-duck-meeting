@@ -233,7 +233,7 @@ function buildFallbackSummary(status, records) {
   return lines.join('\n') + '\n';
 }
 
-async function generateWithLlm(status, transcriptText) {
+export function buildAiPromptPackage(status, transcriptText) {
   const timeRange = formatTimeRange(status?.startedAt, status?.endedAt);
   const location = status?.url || (status?.source === 'teams' ? 'Microsoft Teams 線上會議' : status?.source === 'microphone' ? '現場會議（本機收音）' : 'Google Meet 線上會議');
   const recorder = status?.displayName || 'Arthur Wang';
@@ -279,6 +279,13 @@ async function generateWithLlm(status, transcriptText) {
 
 【會議逐字稿內容】
 ${transcriptText}`;
+
+  const combined = `${systemPrompt}\n\n---\n\n${userPrompt}\n`;
+  return { systemPrompt, userPrompt, combined };
+}
+
+async function generateWithLlm(status, transcriptText) {
+  const { systemPrompt, userPrompt } = buildAiPromptPackage(status, transcriptText);
 
   const models = [
     process.env.OPENMEETING_SUMMARY_MODEL,
@@ -576,6 +583,22 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         const meeting = resolveMeeting(meetingsDir, url.searchParams.get('id') || 'latest');
         if (!meeting) { json({ error: '找不到會議' }, 404); return; }
         streamMeetingZip(res, meeting.id, meeting.dir); return;
+      }
+      if (url.pathname === '/api/export-prompt') {
+        const meeting = resolveMeeting(meetingsDir, url.searchParams.get('id') || 'latest');
+        if (!meeting) { json({ error: '找不到會議' }, 404); return; }
+        const data = readLiveMeeting(meetingsDir, meeting.id);
+        const transcriptText = cleanTranscriptForPrompt(meeting.dir, data?.records || []);
+        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id }, transcriptText);
+        if (url.searchParams.get('download') === '1') {
+          res.writeHead(200, {
+            'Content-Type': 'text/markdown; charset=utf-8',
+            'Content-Disposition': `attachment; filename="${encodeURIComponent(meeting.id)}-ai-prompt.md"`,
+          });
+          res.end(combined);
+          return;
+        }
+        json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
       const routes = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const asset = routes[url.pathname];
