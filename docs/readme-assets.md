@@ -6,8 +6,8 @@
 
 | 文件 | 主視覺 | 散會成果 |
 |---|---|---|
-| `README.md`（繁體中文） | [meeting-hero-zh.png](images/meeting-hero-zh.png) | [meeting-review-zh.png](images/meeting-review-zh.png) |
-| `README.en.md`（English） | [meeting-hero-en.png](images/meeting-hero-en.png) | [meeting-review-en.png](images/meeting-review-en.png) |
+| `README.zh-TW.md`（繁體中文） | [meeting-hero-zh.png](images/meeting-hero-zh.png) | [meeting-review-zh.png](images/meeting-review-zh.png) |
+| `README.md`（English，GitHub 預設） | [meeting-hero-en.png](images/meeting-hero-en.png) | [meeting-review-en.png](images/meeting-review-en.png) |
 
 - 生成方式：內建 `image_gen`，未使用 CLI 或額外 API 金鑰。
 - 風格參考：[i-want-to-sleep 繁體中文 README](https://github.com/jaylooloomi/i-want-to-sleep/blob/main/README.zh-TW.md)。

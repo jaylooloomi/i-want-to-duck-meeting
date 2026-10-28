@@ -1,337 +1,329 @@
 <h1 align="center">i-want-to-duck-meeting 🎙️</h1>
 
 <p align="center">
-  <b>你專心開會，AI 幫你留下重點。</b><br>
-  貼上 Google Meet 或 Microsoft Teams 連結，記錄逐字稿與錄音。<br>
-  散會後說一句「整理這場會議」，再把決議和待辦帶走。
+  <b>Focus on the meeting. Let AI keep the notes.</b><br>
+  Paste a Google Meet or Microsoft Teams link to capture transcripts and audio.<br>
+  Afterward, ask “summarize this meeting” to turn the record into decisions and action items.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.1.0-informational" alt="版本 0.1.0">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/version-0.1.0-informational" alt="Version 0.1.0">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
-  <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
-  <img src="https://img.shields.io/badge/Codex-skill-black" alt="Codex 技能">
-  <a href="README.en.md"><img src="https://img.shields.io/badge/lang-English-green" alt="English"></a>
-  <a href="README.md"><img src="https://img.shields.io/badge/lang-繁體中文-brightgreen" alt="繁體中文"></a>
+  <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-skill-black" alt="Codex skill">
+  <a href="README.md"><img src="https://img.shields.io/badge/lang-English-brightgreen" alt="English"></a>
+  <a href="README.zh-TW.md"><img src="https://img.shields.io/badge/lang-繁體中文-green" alt="繁體中文"></a>
 </p>
 
-<p align="center"><img src="docs/images/meeting-hero-zh.png" alt="左側：參與者一邊開會一邊忙著寫筆記。右側：戴耳機的橘色章魚協助保存兩路音訊、逐字稿與待辦，讓參與者專心討論。" width="900"></p>
-<p align="center"><sub>功能情境插畫，非實際介面截圖。</sub></p>
+<p align="center"><img src="docs/images/meeting-hero-en.png" alt="Left: a participant struggles to take notes during a meeting. Right: an orange octopus with a headset helps preserve audio, transcripts, and action items. Labels: Focus on the meeting; Let AI take notes." width="900"></p>
+<p align="center"><sub>Illustrated use case, not a screenshot of the application.</sub></p>
 
-## 核心功能
+## Core features
 
-**一份 Windows 本機會議記錄工具，兩種 AI 入口：Codex 技能與 Claude Code 外掛。**
+**One local Windows meeting recorder, with a Codex skill and a Claude Code plugin as its two AI entry points.**
 
-| 功能 | 幫你做什麼 |
+| Feature | What it does |
 |---|---|
-| 🔗 **貼連結開始** | 在 AI 對話貼上 Meet／Teams 連結，由同一份本機 CLI 啟動記錄 |
-| 📝 **逐字稿與發言來源** | Meet 保存字幕、姓名與時間；本機語音辨識保存文字、軌道與估計講者代號 |
-| 🎙️ **錄音留存** | Meet 保存會議接收端音訊；Teams 分存電腦麥克風、會議播放聲音及對齊混音 |
-| 🇹🇼 **本機中文辨識** | 麥克風與 Teams 使用 Paraformer 中文 int8、繁體字形轉換與逐字數字整理；Whisper 可做整場備援轉錄 |
-| 👀 **即時查看與管理** | 啟動會議後自動開啟本機網頁面板（`http://127.0.0.1:8791`）：左側管理所有歷史會議（支援**一鍵匯出 ZIP／封存／取消封存／刪除**），右側並排顯示**會議對話逐字稿**（支援主要語言篩選與中／英／日即時雙語翻譯）與 **AI 結構化會議紀錄整理** |
-| ✅ **會後智慧整理** | 散會後網頁面板自動以動態進度條整理 4 大結構會議記錄（基本資訊、討論精髓、行動方案表格、結尾與附錄）並儲存為 `summary.md`，亦可由 Codex／Claude Code 讀取逐字稿整理 |
+| 🔗 **Start with a link** | Paste a Meet or Teams link into your AI conversation; the same local CLI starts the recording |
+| 📝 **Transcripts and sources** | Meet preserves captions, speaker names, and timestamps; local ASR preserves text, audio lanes, and estimated speaker labels |
+| 🎙️ **Saved audio** | Meet records received meeting audio; Teams saves the local microphone, playback audio, and an aligned mix separately |
+| 🇹🇼 **Local Chinese ASR** | Microphone and Teams modes use Paraformer Chinese int8, Traditional Chinese conversion, and spoken digit formatting; Whisper provides whole-recording fallback transcription |
+| 👀 **Live workspace & history** | Joining a meeting automatically opens the local web panel (`http://127.0.0.1:8791`) with a persistent left sidebar of all meetings (supporting **one-click ZIP Export / Archive / Unarchive / Delete**), side-by-side live transcript & structured summary panes, primary language filtering, and real-time bilingual translation (`zh-TW` / `en` / `ja`) |
+| ✅ **Structured meeting notes** | When a meeting ends, the web panel automatically generates a 4-section structured summary (`summary.md`) with an animated progress bar, or you can ask Codex / Claude Code to summarize the transcript |
 
-錄音與本機辨識不需要額外的雲端語音 API 金鑰。**摘要由你使用的 AI 服務處理**，不代表整套工作流程都不上雲。
+Recording and local ASR do not require an additional cloud speech API key. **Summaries are processed by your chosen AI service**; the entire workflow is not necessarily offline.
 
-## Google Meet 自主驗證
+## Autonomous Google Meet validation
 
-明確執行 `node scripts/verify-meet-live.js --live --seconds 30`，可建立私人測試會議、送出當次產生的合成語音，並從同一登入context的第二個靜音頁面接收錄音。需要既有Windows／Chrome與本機Paraformer環境。[完整命令與證據界線](docs/live-google-validation.md)。
+An explicit test command, `node scripts/verify-meet-live.js --live --seconds 30`, creates a private test meeting, sends newly generated synthetic speech, and records it from a second muted page in the same signed-in browser context. It requires the existing Windows/Chrome and local Paraformer setup. [Commands and evidence limits](docs/live-google-validation.md).
 
-2026-10-25實跑接收到25.216秒音訊，離線Paraformer核對完整測試句、Google Meet及1357通過；Google原生字幕仍有錯字，整體標為**部分通過**。後續120.064秒場次中，兩邊至少一次完整測試句核對通過；其他重複段落仍有錯字。這是同帳號雙頁的合成遠端測試，不能當成兩位真人或跨組織驗證。字幕與錄音解碼分別核對，解碼證據綁定實際WAV雜湊；測試產物只留本機忽略目錄。
+The 2026-10-25 run captured 25.216 seconds of received audio; offline Paraformer matched the complete test sentence, Google Meet, and 1357. Google native captions contained errors, so the overall result is **partial**. A subsequent 120.064-second run contained at least one complete matching sentence in both native captions and decoded audio; other repetitions still contained errors. This verifies a synthetic same-account remote path, not two human participants or independent organizations. Captions and decoded recording are checked separately against the actual WAV hash. Test artifacts remain local and ignored by Git.
 
-## Teams 原生字幕優先（真人驗證待完成）
+## Teams native captions first (live acceptance pending)
 
-貼上 Teams 連結後，背景工作開啟獨立 Chrome 設定檔，自動嘗試加入、關閉麥克風／鏡頭、開啟字幕並設定繁體中文。首次可能需要登入、授權或主持人放行；不需要手動選字幕或音訊裝置。裝置沿用上次確認設定或 Windows 預設。
+A Teams link starts a dedicated Chrome profile. The worker attempts to join, mute its microphone/camera, enable captions, and select Traditional Chinese. Sign-in, permissions or host admission may still require your action. Audio devices use saved settings or Windows defaults.
 
-平台提供的文字先寫入逐字稿；相近時間有等值文字的 Paraformer 結果會被平台字幕取代。沒有對應字幕的本機辨識仍保留，以免平台只記錄到單方。原始結果另存 `transcript-native.jsonl`、`transcript-paraformer.jsonl`，供核對與重建；措辭不同時可能同時保留兩種結果，不宣稱能完全消除重複。
+Native captions replace equivalent, nearby Paraformer results. Unmatched ASR remains so captions from only one participant cannot erase the other participant. Raw events remain in `transcript-native.jsonl` and `transcript-paraformer.jsonl`; differently worded results may both appear. Native times are reception times, and unknown speaker identities remain unknown.
 
-用 `status <ID>` 檢查 `teamsBrowser.state`（入會／登入狀態）、`nativeCaptions`（實際收到字幕）及 `audioHealth`（音訊訊號）。原生字幕時間為接收時間，姓名未提供時保留未確認，不套用 Paraformer 講者代號。字幕與錄音各自驗證。
+Check `teamsBrowser.state`, `nativeCaptions` and `audioHealth` independently. `--no-open` skips the native browser and keeps audio/ASR only; omit it for normal use. Stop with `leave <ID>` to finalize audio and close the dedicated browser.
 
-`--no-open` 刻意跳過專用瀏覽器，僅使用雙路音訊與 Paraformer；一般使用請省略。關閉頁面不會停止雙路錄音，請用 `leave <ID>` 收尾。專用 Teams 視窗收尾時自動關閉。
+Controlled Chrome tests pass; real Teams acceptance is pending. Private platform event formats may change. Audio capture starting does not prove membership, successful captions, or recorded speech. See [implementation and acceptance notes](docs/teams-native-captions.md).
 
-目前已通過本機受控 Chrome 測試，尚未完成新版真人 Teams 驗證。平台的私有事件格式與控制項可能改版；不可用時保留 Paraformer 備援，不把音訊啟動當作入會或字幕成功。詳見 [Teams 原生字幕說明](docs/teams-native-captions.md)。
+## Google Meet native account selection
 
-## Google Meet 原生選帳號與登入接續
+Paste the link; the dedicated Chrome window opens **Google's own account chooser/sign-in page**, even with existing signed-in accounts. Pick your account or use another account and complete verification yourself. Keep the window open. There is no custom localhost account form.
 
-貼連結後，專用 Chrome 直接開啟 **Google 自己的「選擇帳戶」／登入頁**，不再出現自製的本機表單。請選擇帳號，或使用其他帳戶自行登入及完成驗證，保持視窗開啟即可。
+The worker first verifies the authenticated account on Google's Meet home page, binds that email to the original meeting, and checks the actual prejoin identity again before requesting admission. Meet's native switch-account header is supported alongside its Google Account control. A different, missing or ambiguous identity stops the flow; profile order, URL parameters and chat text do not count as proof. A default-account redirect without an explicit choice or login is rejected.
 
-程式先在 Google Meet 首頁核對已驗證身分，綁定到原會議，再於送出加入請求前核對 Meet 預備頁的實際帳號。支援 Google 帳號控制項，以及原生「切換帳戶」旁顯示的電子郵件；不同、缺失或多重身分都停止。設定檔順序、網址參數、聊天內容都不算證據。Google 未經明確選擇／登入便自動回預設帳號時，也不會直接加入。
+Account choice and host admission are detected automatically; you do not need to reply “selected” or “admitted” to keep the recording worker moving. AI notifications depend on the host; automatic continuation does not by itself guarantee a proactive chat notification.
 
-選帳號與主持人放行後，背景程式會自動偵測並接續，無須回覆「選好了」或「已放行」。AI 主動通知取決於宿主追蹤能力，不能把程序自動接續當成聊天一定會自行喚醒。
+`selecting_account` means waiting on the native Google page. Waiting defaults to ten minutes (`OPENMEETING_LOGIN_TIMEOUT_MS`); `leave <ID>` cancels. Recording still requires actual admission and separate audio/caption checks. [Flow and validation](docs/meet-login-flow.md).
 
-`selecting_account` 表示等待你在 Google 原生頁操作。預設等待十分鐘（`OPENMEETING_LOGIN_TIMEOUT_MS`），`leave <ID>` 可取消。實際入會、字幕與錄音仍需分別確認。[流程與驗證](docs/meet-login-flow.md)。
+On October 26, 2026, a user-operated Google Meet test verified the chosen account, host admission, and 121.7 seconds of recording. Both native captions and decoded audio contained **1357**. “Google Meet” and “Arthur” still had recognition errors, so exact-sentence acceptance remains incomplete. [Evidence scope and limits](docs/meet-login-flow.md); private recordings and account data are not committed.
 
-2026-10-26 真人操作已確認：原生選帳號與實際身分一致、主持人放行成功，錄音約 121.7 秒；字幕與錄音轉錄都含 **1357**。「Google Meet／Arthur」仍有辨識錯字，不宣稱完整逐字通過。[實測範圍與限制](docs/meet-login-flow.md)；私人錄音、會議連結及帳號資料不提交。
+## Use cases
 
-## 使用情境
-
-| 情境 | 對 AI 說 | 會留下什麼 |
+| Situation | Ask your AI | What you keep |
 |---|---|---|
-| 💻 **Google Meet 專案討論** | 「這是會議連結，幫我加入並記錄」 | 字幕、發言者、時間與會議錄音 |
-| 📱 **Teams 電腦＋手機通話** | 「幫我記錄這場 Teams，結束後核對兩路內容」 | 本機／遠端分軌錄音、逐字稿與混音 |
-| 🪑 **現場多人會議** | 「開啟本機逐字稿，使用麥克風記錄」 | 中文逐字稿、估計講者代號與音檔 |
-| 🔍 **開到一半要回顧** | 「查看這場目前的逐字稿」 | 已保存的文字與發言來源 |
-| 📋 **散會後整理** | 「停止記錄，整理摘要、決議和待辦」 | AI 整理的 `summary.md`，可回查原始逐字稿 |
-| 🧪 **確認真的有錄到** | 「核對剛才的測試句和確認代碼」 | 實際音軌與辨識內容核對，避免只看到檔案就誤判成功 |
+| 💻 **Google Meet project discussion** | “Join this meeting and record it” | Captions, speakers, timestamps, and meeting audio |
+| 📱 **Teams call between a PC and a phone** | “Record this Teams meeting and verify both audio lanes afterward” | Separate local and remote recordings, transcripts, and a mix |
+| 🪑 **In-person discussion** | “Open the local transcript page and record with the microphone” | Chinese transcripts, estimated speaker labels, and audio |
+| 🔍 **Review during a meeting** | “Show the transcript so far” | Saved text and its sources |
+| 📋 **After the meeting** | “Stop recording and summarize decisions and action items” | An AI-written `summary.md`, with the original transcript available for review |
+| 🧪 **Verify the recording** | “Check that my test sentence and confirmation code were captured” | Content checks against the actual audio, rather than assuming a saved file means success |
 
-## 安裝
+## Install
 
-選你用的 AI 工具，照著做三步。
+Choose your AI tool and follow its three steps.
 
-**需求：** Windows 10/11 · Git · Node.js 22 以上 · Google Chrome · 可操作本機檔案和程序的 Codex 或 Claude Code。Claude Code 整合另需 `claude` CLI。私有儲存庫的使用者須先取得讀取權限。
+**Requirements:** Windows 10/11 · Git · Node.js 22 or later · Google Chrome · local Codex or Claude Code with access to this computer's files and processes. Claude integration also requires the `claude` CLI. Users of the private repository need read access first.
 
 ### OpenAI Codex
 
-**1. 複製這段，貼給本機 Codex**
+**1. Copy this into local Codex**
 
 ```text
-請幫我安裝 i-want-to-duck-meeting 的 Codex 技能：
-1. 從 https://github.com/jaylooloomi/i-want-to-duck-meeting 下載專案，已有 checkout 就沿用。
-2. 在專案目錄執行 npm install。
-3. 執行 npm run setup -- --target codex。
-4. 確認安裝成功，回報技能位置；不要把登入憑證或會議資料放進 Git。
+Install the i-want-to-duck-meeting Codex skill for me:
+1. Download https://github.com/jaylooloomi/i-want-to-duck-meeting, or reuse an existing checkout.
+2. Run npm install in the project directory.
+3. Run npm run setup -- --target codex.
+4. Verify installation and report the skill location. Keep credentials and meeting data out of Git.
 ```
 
-**2. 開啟新的本機 Codex 對話**
+**2. Start a new local Codex conversation**
 
-安裝後讓新對話載入技能；若沒有出現，再重啟 Codex。技能需要能存取安裝它的 Windows 電腦，雲端純聊天不能直接使用這台電腦的錄音設備。
+Let the new conversation load the installed skill. Restart Codex if it does not appear. The skill needs access to the Windows computer where it is installed; a cloud-only chat cannot directly use this computer's recording devices.
 
-**3. 貼上實際會議連結**
+**3. Paste your actual meeting link**
 
 ```text
-<你的 Google Meet 或 Teams 會議連結>
-幫我記錄這場會議，需要我登入或授權時再告訴我。
+<Your Google Meet or Teams meeting link>
+Record this meeting. Tell me when I need to sign in or grant permission.
 ```
 
-需要明確指定技能時，使用 `$openmeeting` 加上會議連結。
+To select the skill explicitly, use `$openmeeting` followed by the meeting link.
 
 ### Claude Code
 
-**1. 複製這段，貼給 Claude Code**
+**1. Copy this into Claude Code**
 
 ```text
-請幫我安裝 i-want-to-duck-meeting 的 Claude Code 外掛：
-1. 從 https://github.com/jaylooloomi/i-want-to-duck-meeting 下載專案，已有 checkout 就沿用。
-2. 在專案目錄執行 npm install。
-3. 執行 npm run setup -- --target claude。
-4. 確認 openmeeting@openmeeting-local 已啟用並回報完成。
+Install the i-want-to-duck-meeting Claude Code plugin for me:
+1. Download https://github.com/jaylooloomi/i-want-to-duck-meeting, or reuse an existing checkout.
+2. Run npm install in the project directory.
+3. Run npm run setup -- --target claude.
+4. Verify that openmeeting@openmeeting-local is enabled and report completion.
 ```
 
-**2. 重新載入外掛**
+**2. Reload the plugin**
 
-在 Claude Code 執行 `/reload-plugins`，或重新啟動 Claude Code。
+Run `/reload-plugins` in Claude Code, or restart Claude Code.
 
-**3. 貼上會議連結並要求記錄**
+**3. Paste your meeting link and ask to record**
 
-也可以明確呼叫：
+You can also invoke the command explicitly:
 
 ```text
-/openmeeting:meet <你的 Google Meet 或 Teams 會議連結>
+/openmeeting:meet <Your Google Meet or Teams meeting link>
 ```
 
-> 專案顯示名稱是 **i-want-to-duck-meeting**。為相容既有安裝，CLI、Codex 技能及 Claude 外掛的識別名稱仍是 `openmeeting`。
+> The project is displayed as **i-want-to-duck-meeting**. The CLI, Codex skill, and Claude plugin retain the identifier `openmeeting` for compatibility with existing installations.
 
 <details>
-<summary><b>自己安裝、同時安裝兩邊、更新與移除</b></summary>
+<summary><b>Manual installation, both agents, updates, and removal</b></summary>
 
-在 PowerShell 執行：
+Run in PowerShell:
 
 ```powershell
 git clone https://github.com/jaylooloomi/i-want-to-duck-meeting.git
 cd i-want-to-duck-meeting
 npm install
 npm run setup -- --target codex
-# 只裝 Claude：npm run setup -- --target claude
-# 同時安裝（需要 claude CLI）：npm run setup
+# Claude only: npm run setup -- --target claude
+# Both agents, requiring the claude CLI: npm run setup
 ```
 
-安裝器自動準備 uv、Python 3.12、音訊套件、Paraformer、VAD 與講者模型，首次需要連網下載。uv 安裝在資料根目錄 `tools/`，不改全域 PATH。`npm install` 本身只安裝依賴；`setup` 才會配置 AI 整合。
+The installer prepares uv, Python 3.12, audio packages, Paraformer, VAD, and speaker models. Initial downloads need a network connection. uv is installed under the data root's `tools/` directory without changing the global PATH. `npm install` installs dependencies; `setup` configures the AI integrations.
 
 ```powershell
-# 先看安裝計畫
+# Preview the installation plan
 npm run setup -- --dry-run
-# 只裝整合；Teams 首次記錄時再準備音訊環境
+# Install the integration now; Teams prepares audio on first use
 npm run setup -- --target codex --skip-audio
-# 更新後／移動專案或 Node 後，重跑原安裝目標
+# After updating, or moving the project or Node, repeat your installation target
 npm run setup -- --target codex
-# 移除 Claude 整合
+# Remove the Claude integration
 claude plugin uninstall openmeeting@openmeeting-local
 claude plugin marketplace remove openmeeting-local
 ```
 
-Codex 預設安裝至 `$CODEX_HOME/skills/openmeeting`，未設定時為 `~/.codex/skills/openmeeting`。可用 `--skills-dir` 指定技能父目錄；移除時刪除實際安裝位置的技能資料夾。技能會指向這份 checkout，請保留專案目錄。
+Codex installs under `$CODEX_HOME/skills/openmeeting`, or `~/.codex/skills/openmeeting` when `CODEX_HOME` is unset. Use `--skills-dir` to select a skill parent directory. To uninstall, remove the installed skill directory. The skill points to this checkout, so keep the project directory in place.
 
-自訂位置、舊版遷移與 `--force` 的使用範圍見 [完整安裝指南](docs/installation.md)。
+See the [installation guide](docs/installation.md) for custom paths, migration, and the scope of `--force`. Detailed linked guides are currently in Traditional Chinese.
 
 </details>
 
-## 日常使用
+## Everyday use
 
-### Google Meet：讓機器人替你記錄
+### Google Meet: a silent recording account
 
-1. 第一次由 AI 開啟專用 Chrome 登入頁，你手動登入記錄帳號；完成後關閉整個專用登入視窗。
-2. 自己用平常的帳號參加會議；把連結貼給 AI，請它加入並記錄。
-3. 主持人放行記錄帳號，AI 確認已加入後開始保存字幕與錄音。
-4. 結束時說「離開會議並整理摘要」。
+1. On first use, let the AI open a dedicated Chrome sign-in window. Sign in to the recording account yourself, then close that entire dedicated window.
+2. Join with your normal account, paste the link into the AI conversation, and ask it to join and record.
+3. The host admits the recording account. The AI confirms it has joined before reporting that recording is active.
+4. When finished, say “leave the meeting and summarize it.”
 
-機器人保持麥克風與攝影機關閉，接收聲音不需要啟用它的麥克風。已登入時通常顯示 Google 帳號名稱；`--name` 不保證覆蓋該名稱。記錄前告知與會者。
+The recording account keeps its microphone and camera off. Receiving audio does not require enabling its microphone. A signed-in account normally displays its Google account name; `--name` does not guarantee an override. Let participants know the meeting is being recorded.
 
-### Teams：原生字幕與電腦雙路收音
+### Teams: native captions and two audio lanes
 
-1. 把**目前這場的完整加入連結**貼給 AI，保留 `?p=` 等參數。
-2. 程式開啟專用 Teams Chrome，自動嘗試加入與設定字幕；必要時才請你登入、授權或請主持人放行。
-3. 程式準備環境，使用已確認裝置或 Windows 預設裝置，啟動背景雙路錄音。
-4. 首次使用或換設備後，讓雙方各說一句，核對兩路內容；成功設定可保存供下次比對。
-5. 結束時說「停止記錄，整理這場會議」。
+1. Paste the **full invitation link for the current meeting**, preserving parameters such as `?p=`.
+2. The program opens a dedicated Teams Chrome and attempts joining and caption setup. Complete sign-in, permissions or host admission only when needed.
+3. The program prepares the environment and starts background recording with previously confirmed devices or Windows defaults.
+4. On first use or after changing devices, have both sides speak and verify the content of each lane. Confirmed device settings can be saved for subsequent use.
+5. Say “stop recording and summarize this meeting” when finished.
 
-**專用 Teams 頁面是額外與會端；登入與主持人放行無法保證自動完成。** 原生文字由該頁面接收，錄音仍來自這台電腦的麥克風與播放裝置。若使用 `--no-open`，需要既有電腦端接收會議聲音。
+**The dedicated Teams page is an additional participant; sign-in and host admission cannot be guaranteed automatically.** Native text comes from that page; audio still comes from this computer's microphone and playback device. With `--no-open`, an existing computer-side client must receive meeting audio.
 
-播放端會包含該裝置上其他應用程式的聲音，音樂可能混進錄音。程式不讀取 Teams 私有裝置設定；Windows 預設不一定等於 Teams 自訂值，必要時仍需核對。更多細節見 [自動音訊設定](docs/automatic-audio.md)。
+The playback lane includes other applications using that output device, so music can enter the recording. The program does not read private Teams device settings, and Windows defaults may differ from Teams selections. See [automatic audio setup](docs/automatic-audio.md).
 
-### 現場會議與即時逐字稿面板
-
-執行 `node bin/openmeeting.js join "<會議連結>"` 時，系統會**自動啟動並開啟本機即時逐字稿網頁面板**（預設 `http://127.0.0.1:8791/?id=<會議ID>`）；若要手動啟動或記錄現場討論，也可直接執行：
+### In-person meetings and live transcripts
 
 ```powershell
 node bin/openmeeting.js live
 ```
 
-開啟輸出的 `LIVE_URL`（預設 `http://127.0.0.1:8791`），面板提供以下完整功能：
-- **左側「本機會議紀錄」清單**：集中顯示這台電腦上開過的所有會議，支援點擊切換場次、**封存／取消封存**（切換「進行與完成」與「已封存」分頁）、**一鍵打包匯出整場資訊（ZIP）**以及**安全刪除（含二次確認）**。
-- **右側「會議對話 × 會議記錄整理」雙欄並排工作區**：上方控制列固定不隨滾動消失，支援「並排檢視 / 會議對話 / 會議紀錄整理」三種檢視模式切換。
-- **主要語言篩選與即時雙語翻譯**：可選擇主要語言（全部顯示／中文優先／英文）與附屬翻譯語言（繁體中文／英文／日文），對話卡片下方會即時附上雙語對照。
-- **會後自動結構化整理（含動態進度條）**：會議結束後自動根據逐字稿整理出四大區塊會議記錄（1. 基本資訊、2. 會議內容討論精髓、3. 行動方案負責人與期限表格、4. 結尾與附錄，無內容項目自動省略不硬寫），亦可隨時點擊「重新整理會議記錄」重新生成。
+Open the printed `LIVE_URL`, normally `http://127.0.0.1:8791`. View an existing recording or select a microphone to record an in-person discussion.
 
-麥克風與 Teams 即時辨識使用 CPU 執行 Paraformer 中文 int8。語音短停頓容忍約 1.2 秒、連續發言約 15 秒後分段送出，避免把中英混合句切得太碎。結果顯示仍取決於 CPU 和句子長度。
+Microphone and Teams ASR run Paraformer Chinese int8 on the CPU. The segmenter tolerates approximately 1.2 seconds of silence and submits continuous speech after about 15 seconds, preserving context across brief pauses and language switches. Display latency still depends on CPU speed and utterance length.
 
-Meet 字幕沿用會議提供的姓名；本機辨識的 A／B 是該場估計代號，不是姓名。Teams 本機麥克風固定為 A，遠端保守分群；不確定時標「講者未確認」。多人共用本機麥克風都算 A，遠端重疊發言仍可能誤判。
+Meet captions retain the names supplied by the meeting. Local ASR labels A/B are estimates within the current session, not identities. In Teams, the local microphone is always A; remote voices are conservatively clustered and uncertain regions remain unidentified. Multiple people sharing the local microphone all appear as A. Overlapping remote voices can still be misidentified.
 
-操作、分段、分群與音訊重播方式見 [即時逐字稿說明](docs/live-transcription.md)。
+See [live transcription](docs/live-transcription.md) for operation, segmentation, clustering, and saved-audio replay.
 
-## 散會後
+## After the meeting
 
-<p align="center"><img src="docs/images/meeting-review-zh.png" alt="散會後，使用者與戴耳機的章魚一起查看逐字稿、錄音、摘要與待辦，人工檢查 AI 整理的成果。" width="900"></p>
-<p align="center"><sub>成果情境插畫，非實際介面截圖；摘要由 AI 對話依逐字稿整理。</sub></p>
+<p align="center"><img src="docs/images/meeting-review-en.png" alt="A participant and a headset-wearing octopus review four panels labeled Transcript, Recording, Summary, and Action items. Headline: Meeting over. Key points kept." width="900"></p>
+<p align="center"><sub>Illustrated outcome, not an application screenshot. The conversational AI produces summaries from the transcript.</sub></p>
 
-對原本的 AI 對話說：
+Return to your AI conversation and say:
 
 ```text
-停止記錄，整理這場會議：
-- 重點與決議
-- 待辦、負責人與期限
-- 還沒確認的問題
-請附上逐字稿和錄音位置，不確定的內容不要猜。
+Stop recording and summarize this meeting:
+- Highlights and decisions
+- Action items, owners, and deadlines
+- Open questions
+Include transcript and audio locations. Do not guess uncertain details.
 ```
 
-CLI 負責記錄、停止與輸出檔案；摘要由 Codex／Claude Code 讀取逐字稿後產生，**不是 CLI 自動生成**。宿主沒有背景完成通知時，會後回到原對話要求整理。
+The CLI records, stops, and saves files. Codex or Claude Code reads the transcript to produce a summary; **the CLI does not generate one automatically**. If the host cannot deliver background completion notifications, return to the original conversation after the meeting and ask for the summary.
 
-每場資料保存於本機 `meetings/<會議ID>/`：
+Each recording is saved locally under `meetings/<meeting-ID>/`:
 
-| 檔案 | 用途 |
+| File | Purpose |
 |---|---|
-| `transcript.md`、`transcript.jsonl` | 可閱讀與結構化逐字稿，含時間、講者及來源 |
-| `audio.wav` | Meet／現場錄音，或 Teams 對齊混音 |
-| `audio-microphone.wav`、`audio-system.wav` | Teams 本機麥克風與會議播放兩路原始錄音 |
-| `status.json`、`live.json` | 流程狀態、訊號與即時更新內容 |
-| `transcript-whisper.*` | 執行 Whisper 備援轉錄後產生 |
-| `summary.md` | AI 依要求整理的摘要、決議與待辦 |
+| `transcript.md`, `transcript.jsonl` | Readable and structured transcripts with timestamps, speakers, and sources |
+| `audio.wav` | Meet or in-person recording, or the aligned Teams mix |
+| `audio-microphone.wav`, `audio-system.wav` | Separate Teams local microphone and playback recordings |
+| `status.json`, `live.json` | Recording state, signal information, and live text |
+| `transcript-whisper.*` | Output from Whisper fallback transcription |
+| `summary.md` | AI-written summary, decisions, and action items |
 
-背景錄音不必維持對話或逐字稿網頁開啟；**關閉 Teams 不代表停止錄音**。請明確要求停止，最長預設四小時。
+Background recording does not require keeping the chat or transcript page open. **Closing Teams does not stop the recording.** Explicitly request a stop; the default maximum duration is four hours.
 
-## 確認字幕與錄音成功
+## Verify captions and audio
 
-有音檔，不等於有錄到你。
+An audio file existing does not mean it captured your voice.
 
 ```powershell
-node bin/openmeeting.js status <會議ID>
-node bin/openmeeting.js transcript <會議ID>
-node bin/openmeeting.js transcribe <會議ID>
+node bin/openmeeting.js status <meeting-ID>
+node bin/openmeeting.js transcript <meeting-ID>
+node bin/openmeeting.js transcribe <meeting-ID>
 ```
 
-- `audioPeak > 0` 只證明有訊號；長度增加、`signal_only` 或 `state=done` 都不能證明特定發言被收錄。
-- 用實際錄音轉錄或播放核對完整句子、名稱、數字與來源；Teams 兩路分開檢查。
-- `transcribe` 使用 Whisper 整場備援，需要 `setup-stt` 環境；字幕為零時，環境可用才會嘗試自動備援。它不提供 Meet 姓名辨識。
+- `audioPeak > 0` proves only a nonzero signal. A growing duration, `signal_only`, or `state=done` does not establish that a particular utterance was recorded.
+- Transcribe or play the actual recording and compare the complete sentence, names, numbers, and sources. Verify Teams lanes separately.
+- `transcribe` uses whole-recording Whisper fallback and requires the `setup-stt` environment. Automatic fallback when captions are empty is attempted only if that environment is available. It does not identify Meet participants by name.
 
-## 實測與適用範圍
+## Validation and scope
 
-| 項目 | 已驗證的內容 | 邊界 |
+| Area | Verified evidence | Limits |
 |---|---|---|
-| Google Meet | 真人字幕、發言者及錄音內容核對 | 組織政策與網頁改版仍可能影響加入或擷取 |
-| Teams 雙路 | 曾核對電腦端與手機端各自的語音 | 不代表所有裝置、回音與重疊發言都準確 |
-| Paraformer 中文與英文混用 | 新手機錄音經修正後的實際即時流程重播，完整句子、Microsoft Teams、1357 通過 | 是保存錄音重播驗證；較早受干擾的錄音仍有錯字 |
-| 音樂干擾 | 真人測試時曾以臨時程序監看、暫停特定音樂 | 尚無安裝後通用的自動音樂隔離功能 |
-| Codex／Claude Code | Windows 本機技能／外掛，共用同一份 CLI | macOS、Linux、雲端純聊天目前不支援完整收音 |
+| Google Meet | Real participants' captions, speakers, and recorded speech checked | Organization policies and website changes may affect admission and capture |
+| Teams dual audio | PC and phone utterances checked in separate recordings | Does not establish accuracy for every device, room echo, or overlapping voice |
+| Paraformer Chinese/English mixing | A new phone recording replayed through the corrected live pipeline matched the complete sentence, Microsoft Teams, and 1357 | Saved-audio replay validation; earlier noisy recordings still contain errors |
+| Music interference | A temporary local helper monitored and paused specific music during the live test | No general automatic music-isolation feature is installed |
+| Codex / Claude Code | Local Windows skill/plugin sharing one CLI | Full capture on macOS, Linux, or cloud-only chat is not supported |
 
-驗證紀錄：[Meet 真人實測](docs/2026-10-24-live-meet-recording.md) · [Teams 音訊驗證](docs/teams-audio-validation.md) · [即時辨識與重播](docs/live-transcription.md) · [舊版雙人分群驗證](docs/local-microphone-validation.md)。
+Evidence: [Meet live test](docs/2026-10-24-live-meet-recording.md) · [Teams audio validation](docs/teams-audio-validation.md) · [Live ASR and replay](docs/live-transcription.md) · [Earlier two-speaker validation](docs/local-microphone-validation.md).
 
-## 為什麼做這個？
+## Why build this?
 
-會議最容易漏掉的，常常是那句決議、那個數字，或最後沒人記下來的待辦。
+The easiest things to miss in a meeting are often a decision, a number, or an action item nobody wrote down.
 
-這個工具把會議聲音、文字和會後整理接在同一個 AI 對話裡。保留原始錄音與逐字稿，讓摘要有依據，也讓有疑問的內容能回頭核對。
+This tool connects audio, transcripts, and follow-up in the same AI conversation. Keeping the original recordings and transcripts gives summaries a source and lets you check uncertain details.
 
-## 如何運作
+## How it works
 
 ```text
-Codex 技能／Claude Code 外掛
-             ↓
-       本機 openmeeting CLI
-             ↓
-  Google Meet             Teams／現場
-  專用 Chrome             Windows 播放端／麥克風
-  字幕＋接收端音訊         VAD → Paraformer → 講者代號
-             ↓
-  本機 meetings/<ID>/：逐字稿＋WAV＋狀態
-             ↓
-  對話中的 AI：依要求讀取逐字稿 → 摘要與待辦
+Codex skill / Claude Code plugin
+                  |
+         Local openmeeting CLI
+                  |
+  Google Meet                  Teams / in-person
+  Dedicated Chrome             Windows playback / microphone
+  Captions + received audio    VAD -> Paraformer -> speaker labels
+                  |
+  Local meetings/<ID>/: transcripts + WAV + state
+                  |
+  Conversational AI: read transcript on request -> summary + tasks
 ```
 
-Meet 預設擷取接收端 WebAudio，機器人不發聲。Teams 使用 WASAPI loopback 與麥克風雙路擷取。本機網頁只監聽 `127.0.0.1`，沒有提供遠端共用服務。
+Meet captures received WebAudio by default; the recording account stays silent. Teams uses WASAPI loopback plus microphone capture. The local web server listens only on `127.0.0.1`; it is not a remote sharing service.
 
 <details>
-<summary><b>CLI、環境變數與進階設定</b></summary>
+<summary><b>CLI, environment variables, and advanced settings</b></summary>
 
 ```powershell
 node bin/openmeeting.js doctor
 node bin/openmeeting.js login
-node bin/openmeeting.js join "<實際會議連結>"
+node bin/openmeeting.js join "<actual meeting link>"
 node bin/openmeeting.js list
-node bin/openmeeting.js status <會議ID>
-node bin/openmeeting.js leave <會議ID>
+node bin/openmeeting.js status <meeting-ID>
+node bin/openmeeting.js leave <meeting-ID>
 ```
 
-使用明確 ID 避免 `latest` 指到另一場。Meet 同時只能由機器人記錄一場；本機網頁一次只能啟動一個收音工作。
+Use an explicit ID so `latest` cannot select a different recording. The Meet bot records one meeting at a time; the local web page can own one local capture job at a time.
 
-| 設定 | 用途 |
+| Setting | Purpose |
 |---|---|
-| `OPENMEETING_HOME` | 資料根目錄，含會議、音訊設定與模型 |
-| `CHROME_PATH`、`OPENMEETING_PROFILE` | Chrome 執行檔與記錄帳號專用設定檔 |
-| `OPENMEETING_CAPTION_LANG` | Meet 字幕語言，預設 `cmn-Hant-TW` |
-| `OPENMEETING_NAME` | 訪客名稱，不保證覆蓋 Google 登入名稱 |
-| `OPENMEETING_MUTE=0` | 讓喇叭播放 Meet 接收聲音 |
-| `audio-settings.json` | `audio-confirm <ID>` 保存經確認的裝置名稱、聲道及取樣率 |
+| `OPENMEETING_HOME` | Data root containing recordings, device settings, and models |
+| `CHROME_PATH`, `OPENMEETING_PROFILE` | Chrome executable and dedicated recording profile |
+| `OPENMEETING_CAPTION_LANG` | Meet caption language, default `cmn-Hant-TW` |
+| `OPENMEETING_NAME` | Guest name; does not guarantee overriding a Google account name |
+| `OPENMEETING_MUTE=0` | Play received Meet audio through the speakers |
+| `audio-settings.json` | Device names, channels, and sample rates saved by `audio-confirm <ID>` after confirmation |
 
-完整參數、停止方式與錯誤說明見 [CLI 參考](docs/cli.md)。
+See the [CLI reference](docs/cli.md) for parameters, stopping behavior, and errors.
 
 </details>
 
-## 資料與隱私
+## Data and privacy
 
-錄音、逐字稿與本機辨識結果保存在你的 Windows 電腦。第一次安裝套件和模型需要網路；Paraformer 執行時只載入本機模型。要求 AI 摘要時，逐字稿可能交由你選用的 AI 服務處理，依該服務的設定與政策為準。
+Recordings, transcripts, and local ASR output stay on your Windows computer. Initial package and model downloads need a network connection; Paraformer loads local models at runtime. When you request a summary, transcript content may be processed by your selected AI service according to its settings and policies.
 
-請在記錄前告知與會者。不要提交 `meetings/`、`chrome-profile/`、個人音訊設定或登入憑證；這些資料已有 Git 忽略規則。講者特徵留在辨識程序記憶體，沒有持久化聲紋資料庫，但錄音本身仍應妥善保管。
+Inform participants before recording. Do not commit `meetings/`, `chrome-profile/`, personal audio settings, or credentials; Git ignore rules cover these locations. Speaker features stay in process memory rather than a persistent voiceprint database, but the recordings themselves still need appropriate care.
 
-本專案不是 Google 或 Microsoft 官方服務。
+This project is not an official Google or Microsoft service.
 
-## 本機檢視器就緒狀態與 QA
+## Local viewer readiness and QA
 
-沒有會議時，檢視器會清除舊逐字稿、計數與 Meet 連結。無效會議 ID 會回到 latest 並同步網址；切換或開始會議會保留 source=teams 等其他參數。Teams 裝置載入中或缺少任一路裝置時，開始按鈕會禁用並顯示提示；連接裝置後可按「更新裝置」重試。切換來源後，過期裝置回應不會覆寫目前畫面。首次使用麥克風仍須授予瀏覽器權限。
+The viewer clears old transcripts, counts, and Meet links when no meetings remain. Unknown meeting IDs fall back to `latest` with a synchronized URL; selecting or starting a meeting preserves other query parameters, including `source=teams`. Teams capture stays disabled while devices load or either required device is unavailable. Connect devices and use **更新裝置** to retry; stale responses after switching modes are ignored. Starting still requires browser microphone permission when applicable.
 
-執行 `node test/qa/run.mjs` 可跑兩輪完整離線回歸。詳見[測試矩陣](TEST_MATRIX.md)、[品質報告](TEST_SUMMARY.md)、[缺陷與驗收限制](BUG_REPORT.md)。這驗證本機行為與合成資料，不代表真人會議辨識正確率。16 個 HTTP／網路故障注入案例因 Chromium 自身資源 console error 與嚴格零 console 規則衝突而保留驗收限制，不計為通過。
+Run `node test/qa/run.mjs` for two complete offline regression rounds. See [test matrix](TEST_MATRIX.md), [quality report](TEST_SUMMARY.md), and [defects and acceptance limits](BUG_REPORT.md). This verifies local behavior and synthetic fixtures, not live meeting accuracy. Sixteen HTTP/network fault-injection cases remain acceptance-limited because Chromium itself emits resource console errors under the strict zero-console rule; they are not counted as passes.
 
-## 開發與測試
+## Development and tests
 
 ```powershell
 npm test
@@ -340,14 +332,14 @@ npm run test:all
 .venv-stt/Scripts/python.exe -m unittest discover -s stt -p 'test_*.py'
 ```
 
-需要真人音軌、公開樣本或實體裝置的測試採 opt-in，未提供時會略過；不要把略過當成通過。整合測試操作本機模擬會議頁面，也不等於已加入真人會議。
+Tests requiring private audio, public fixtures, or physical devices are opt-in and skipped without those inputs. A skip is not a pass. Integration tests using local simulated meeting pages do not establish that a real meeting was joined.
 
-最新離線 QA 數量、覆蓋率、略過案例與驗收限制統一記錄於 [TEST_SUMMARY.md](TEST_SUMMARY.md)；上方真人／重播紀錄屬不同驗證範圍。
+Current offline QA totals, coverage, skipped cases, and acceptance limits are recorded in [TEST_SUMMARY.md](TEST_SUMMARY.md). Historical live/replay results above have a different scope.
 
-主要實作位於 `src/`，語音工具位於 `stt/`；Codex 技能在 `codex/skills/openmeeting/`，Claude 外掛在 `plugin/`，統一安裝入口是 `scripts/install.js`。
+Application code is in `src/`, audio tools in `stt/`, the Codex skill in `codex/skills/openmeeting/`, and the Claude plugin in `plugin/`. The unified installer is `scripts/install.js`.
 
-## 致謝與授權
+## Credits and license
 
-README 編排與章魚插畫風格參考 [i-want-to-sleep](https://github.com/jaylooloomi/i-want-to-sleep)。本專案兩張新插畫以內建 imagegen 生成；[圖片提示詞與來源](docs/readme-assets.md)。Paraformer 模型選用參考 [SpeakSlow](https://github.com/Jeffrey0117/SpeakSlow)。
+README structure and octopus illustration direction were inspired by [i-want-to-sleep](https://github.com/jaylooloomi/i-want-to-sleep). The two new illustrations were generated with built-in imagegen; see [prompts and sources](docs/readme-assets.md). Paraformer model selection was informed by [SpeakSlow](https://github.com/Jeffrey0117/SpeakSlow).
 
-程式採 [MIT](LICENSE) 授權；第三方套件與模型依各自授權條款使用。
+Code is licensed under [MIT](LICENSE). Third-party packages and models retain their respective licenses.
