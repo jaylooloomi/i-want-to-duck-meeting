@@ -2,10 +2,20 @@
 <html lang="zh-Hant">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>i-want-to-duck-meeting · 即時逐字稿</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script><script src="/microphone.js" defer></script></head>
 <body>
-<header><div class="brand">◉ i-want-to-duck-meeting <span>本機會議記錄</span></div><div id="connection" role="status">連線中…</div></header>
+<header><div class="brand">◉ i-want-to-duck-meeting <span>本機會議記錄與智慧整理</span></div><div id="connection" role="status">連線中…</div></header>
+<div class="app-shell">
+<aside class="sidebar" aria-label="歷史會議清單">
+<div class="sidebar-header">
+<div class="sidebar-title-row"><h2>本機會議紀錄</h2><span id="meeting-total" class="sidebar-count">0 場</span></div>
+<p class="sidebar-hint">點擊任一會議即可檢視對話與整理紀錄</p>
+</div>
+<div id="meeting-list" class="meeting-list" role="list">
+<button type="button" class="meeting-card active" data-id="latest"><div class="meeting-card-top"><span class="meeting-card-title">⚡ 自動跟隨最新會議</span><span class="meeting-card-state live">即時</span></div><div class="meeting-card-meta">自動切換至最新啟動的會議</div></button>
+</div>
+</aside>
 <main>
 <div class="top-sticky">
-<div class="heading"><div><p class="eyebrow">LIVE TRANSCRIPT</p><h1>每個人的話，都跟得上。</h1><p class="intro">本機語音轉文字、講者區分與 Meet 字幕，內容自動更新。</p></div><a id="meet" hidden target="_blank" rel="noopener">進入 Meet ↗</a></div>
+<div class="heading"><div><p class="eyebrow">LIVE TRANSCRIPT &amp; NOTES</p><h1>每個人的話，都跟得上。</h1><p class="intro">本機語音轉文字、講者區分與 Meet / Teams 會議記錄，內容自動更新。</p></div><a id="meet" hidden target="_blank" rel="noopener">進入 Meet ↗</a></div>
 <section class="mic-panel" aria-label="本機麥克風">
 <label>會議來源 <select id="audio-mode"><option value="microphone">現場會議 · 麥克風</option><option value="teams">Teams · 會議聲音＋自己的麥克風</option></select></label>
 <div><strong>現場會議 · 本機麥克風</strong><p>聲音留在這台電腦，以講者 A、B 區分。新聲音先標成「講者未確認」，累積一致片段後才分配代號。停頓約 1.2 秒或連續發言約 15 秒後送出辨識，結果稍後顯示。</p></div>
@@ -17,22 +27,28 @@
 <div class="mic-controls"><label>麥克風 <select id="mic-device"><option value="">系統預設麥克風</option></select></label><button id="mic-refresh" type="button">更新裝置</button><button id="mic-start" type="button">開始收音</button><button id="mic-stop" type="button" disabled>結束記錄</button></div>
 <div class="mic-feedback"><meter id="mic-level" min="0" max="1" value="0" aria-label="麥克風音量"></meter><span id="mic-status" role="status">尚未收音；按開始後會要求麥克風權限。</span></div>
 </section>
-<section class="toolbar"><div class="toolbar-group"><label>會議 <select id="meeting"><option value="latest">自動跟隨最新會議</option></select></label><label>主要語言 <select id="primary-lang"><option value="all">全部顯示（中＋英）</option><option value="zh-TW">中文優先（過濾英文空耳）</option><option value="en">英文（English）</option></select></label><label>附屬語言 <select id="secondary-lang"><option value="none">不翻譯</option><option value="zh-TW">繁體中文（zh-TW）</option><option value="en">英文（English）</option><option value="ja">日文（日本語）</option></select></label></div><label class="follow"><input type="checkbox" id="follow" checked> 自動捲動</label></section>
+<section class="toolbar"><div class="toolbar-group"><label>會議 <select id="meeting"><option value="latest">自動跟隨最新會議</option></select></label><label>主要語言 <select id="primary-lang"><option value="all">全部顯示（中＋英）</option><option value="zh-TW">中文優先（過濾英文空耳）</option><option value="en">英文（English）</option></select></label><label>附屬語言 <select id="secondary-lang"><option value="none">不翻譯</option><option value="zh-TW">繁體中文（zh-TW）</option><option value="en">英文（English）</option><option value="ja">日文（日本語）</option></select></label></div><div class="toolbar-right"><div class="view-tabs" role="group" aria-label="檢視模式"><button type="button" class="view-tab active" data-view="split">並排檢視</button><button type="button" class="view-tab" data-view="transcript">會議對話</button><button type="button" class="view-tab" data-view="summary">會議紀錄整理</button></div><label class="follow"><input type="checkbox" id="follow" checked> 自動捲動</label></div></section>
 <section class="activity"><span id="state">載入中</span><span id="speaking" aria-live="polite">等待字幕</span><span id="count">0 段發言</span></section>
 </div>
 <div class="content-scroll">
-<section id="summary-panel" class="summary-panel" aria-label="會議記錄整理" hidden>
-<div class="summary-header">
-<div class="summary-title"><span class="summary-badge" id="summary-badge">AI 智慧整理</span><h2>會議記錄整理</h2></div>
+<div id="workspace-grid" class="workspace-grid" data-view="split">
+<div class="pane pane-transcript">
+<div class="pane-header"><div class="pane-title"><h2>💬 會議對話逐字稿</h2><span id="pane-count" class="pane-badge">即時同步</span></div></div>
+<section id="transcript" class="pane-body" aria-label="會議逐字稿"><div class="empty">尚無字幕，開始發言後會自動顯示。</div></section>
+</div>
+<section id="summary-panel" class="pane pane-summary summary-panel" aria-label="會議記錄整理">
+<div class="summary-header pane-header">
+<div class="summary-title pane-title"><h2>📋 會議記錄整理</h2><span class="summary-badge" id="summary-badge">AI 智慧整理</span></div>
 <div class="summary-actions"><button id="summary-regenerate" type="button">重新整理會議記錄</button><button id="summary-toggle" type="button">收合</button></div>
 </div>
 <div id="summary-progress-wrap" class="summary-progress-wrap" hidden>
 <div class="summary-progress-info"><span class="summary-spinner" aria-hidden="true"></span><span id="summary-stage">正在準備整理會議記錄…</span><strong id="summary-percent">0%</strong></div>
 <div class="summary-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="summary-progress-fill" class="summary-progress-fill"></div></div>
 </div>
-<div id="summary-body" class="summary-body"></div>
+<div id="summary-body" class="summary-body pane-body"></div>
 </section>
-<section id="transcript" aria-label="會議逐字稿"><div class="empty">尚無字幕，開始發言後會自動顯示。</div></section>
+</div>
 </div>
 <footer>本機模式依聲音特徵估計講者；短句、重疊發言與收音差可能誤判或顯示「講者未確認」。Meet 字幕模式的姓名來自帳號。<span id="updated"></span></footer>
-</main></body></html>
+</main>
+</div></body></html>

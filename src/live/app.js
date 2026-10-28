@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const selector = $('meeting'), primaryLang = $('primary-lang'), secondaryLang = $('secondary-lang');
+const meetingList = $('meeting-list'), meetingTotal = $('meeting-total'), workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
 const summaryPanel = $('summary-panel'), summaryProgressWrap = $('summary-progress-wrap'), summaryBody = $('summary-body');
 const summaryStage = $('summary-stage'), summaryPercent = $('summary-percent'), summaryFill = $('summary-progress-fill');
 const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle');
@@ -7,7 +8,7 @@ const params = new URLSearchParams(location.search);
 let selected = params.get('id') || 'latest';
 if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
 if (secondaryLang && params.get('secondary')) secondaryLang.value = params.get('secondary');
-let signature = '', summarySignature = '', translating = false, summaryCollapsed = false;
+let signature = '', summarySignature = '', translating = false, summaryCollapsed = false, activeMeetingId = '';
 const translations = new Map(), autoTriggeredIds = new Set();
 function syncSelection() {
   const url = new URL(location.href); url.searchParams.set('id', selected);
@@ -15,6 +16,22 @@ function syncSelection() {
   if (secondaryLang) { if (secondaryLang.value !== 'none') url.searchParams.set('secondary', secondaryLang.value); else url.searchParams.delete('secondary'); }
   history.replaceState(null, '', url);
 }
+function selectMeeting(id) {
+  if (!id) return;
+  selected = id;
+  if (selector) selector.value = selected;
+  signature = ''; summarySignature = '';
+  syncSelection();
+  updateSidebarActive();
+  void pollNow();
+}
+document.querySelectorAll('.view-tab').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.view || 'split';
+    if (workspaceGrid) workspaceGrid.dataset.view = mode;
+    document.querySelectorAll('.view-tab').forEach((b) => b.classList.toggle('active', b === btn));
+  });
+});
 document.addEventListener('microphone-started', ({ detail }) => {
   selected = detail.id; signature = ''; summarySignature = ''; selector.dataset.signature = '';
   syncSelection();
@@ -22,6 +39,63 @@ document.addEventListener('microphone-started', ({ detail }) => {
 const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', failed:'記錄失敗' };
 const clock = (value) => { const date = new Date(value); return Number.isNaN(+date) ? '' : date.toLocaleTimeString('zh-TW', { hour12:false }); };
 const hasCjk = (s) => /[\u3400-\u9FFF\uF900-\uFAFF]/.test(s);
+function formatMeetingMeta(m) {
+  const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.+)$/.exec(m.id || '');
+  const codeLabels = { 'teams-audio':'Teams 會議收音', 'local-mic':'現場麥克風收音', 'teams':'Teams 線上會議' };
+  if (!match) return { title: m.code || m.id, dateStr: m.id };
+  const [, y, mo, d, h, mi, , slug] = match;
+  const rawCode = m.code || slug;
+  const title = codeLabels[rawCode] || rawCode;
+  return { title, dateStr: `${y}-${mo}-${d} ${h}:${mi}` };
+}
+function stateClass(st) {
+  if (st === 'in_call' || st === 'starting' || st === 'joining' || st === 'launching') return 'live';
+  if (st === 'failed') return 'failed';
+  return 'done';
+}
+function updateSidebarActive() {
+  if (!meetingList) return;
+  for (const btn of meetingList.querySelectorAll('.meeting-card')) {
+    const id = btn.dataset.id;
+    const isCurrent = id === selected || (selected === 'latest' && id === activeMeetingId && id !== 'latest');
+    btn.classList.toggle('active', id === selected || (selected === 'latest' && id === 'latest'));
+    btn.classList.toggle('current-resolved', isCurrent);
+  }
+}
+const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'✓ 完成', failed:'✕ 異常' };
+function renderSidebar(meetings) {
+  if (meetingTotal) meetingTotal.textContent = meetings.length + ' 場';
+  if (!meetingList) return;
+  const frag = document.createDocumentFragment();
+  const latestBtn = document.createElement('button');
+  latestBtn.type = 'button'; latestBtn.className = 'meeting-card'; latestBtn.dataset.id = 'latest';
+  const lTop = document.createElement('div'); lTop.className = 'meeting-card-top';
+  const lTitle = document.createElement('span'); lTitle.className = 'meeting-card-title'; lTitle.textContent = '⚡ 自動跟隨最新會議';
+  const lBadge = document.createElement('span'); lBadge.className = 'meeting-card-state live'; lBadge.textContent = '自動';
+  lTop.append(lTitle, lBadge);
+  const lMeta = document.createElement('div'); lMeta.className = 'meeting-card-meta'; lMeta.textContent = meetings[0] ? '目前最新：' + formatMeetingMeta(meetings[0]).dateStr : '點擊切換最新場次';
+  latestBtn.append(lTop, lMeta);
+  latestBtn.addEventListener('click', () => selectMeeting('latest'));
+  frag.append(latestBtn);
+  for (const m of meetings) {
+    const info = formatMeetingMeta(m);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'meeting-card'; btn.dataset.id = m.id;
+    const top = document.createElement('div'); top.className = 'meeting-card-top';
+    const title = document.createElement('span'); title.className = 'meeting-card-title'; title.textContent = info.title;
+    const badge = document.createElement('span'); badge.className = 'meeting-card-state ' + stateClass(m.state); badge.textContent = sidebarStates[m.state] || '未知';
+    top.append(title, badge);
+    const meta = document.createElement('div'); meta.className = 'meeting-card-meta';
+    const dt = document.createElement('span'); dt.textContent = info.dateStr;
+    const codeSpan = document.createElement('span'); codeSpan.textContent = m.code || '';
+    meta.append(dt, codeSpan);
+    btn.append(top, meta);
+    btn.addEventListener('click', () => selectMeeting(m.id));
+    frag.append(btn);
+  }
+  meetingList.replaceChildren(frag);
+  updateSidebarActive();
+}
 function filterRecords(records) {
   const mode = primaryLang ? primaryLang.value : 'all';
   if (mode === 'zh-TW') return records.filter((r) => r.source !== 'teams-native' || hasCjk(r.text));
@@ -103,9 +177,10 @@ function renderMarkdownDom(md) {
   return frag;
 }
 async function requestSummarize(meetingId, force = false) {
-  if (!meetingId) return;
+  const targetId = meetingId === 'latest' ? activeMeetingId : meetingId;
+  if (!targetId) return;
   try {
-    await fetch('/api/summarize', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ id:meetingId, force }) });
+    await fetch('/api/summarize', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ id:targetId, force }) });
     summarySignature = '';
   } catch {}
 }
@@ -123,16 +198,12 @@ function updateSummaryPanel(data) {
   if (!summaryPanel) return;
   const st = data.status?.state;
   const sum = data.summary || { state:'idle', progress:0, stage:'' };
-  const isTerminal = st === 'done' || st === 'failed' || st === 'leaving' || st === 'transcribing';
-  if (!isTerminal && sum.state === 'idle') {
-    summaryPanel.hidden = true; return;
-  }
   if (st === 'done' && sum.state === 'idle' && data.records?.length > 0 && !autoTriggeredIds.has(data.id)) {
     autoTriggeredIds.add(data.id);
     void requestSummarize(data.id, false);
   }
   summaryPanel.hidden = false;
-  const nextSig = JSON.stringify([data.id, st, sum.state, sum.progress, sum.stage, sum.updatedAt, summaryCollapsed]);
+  const nextSig = JSON.stringify([data.id, st, sum.state, sum.progress, sum.stage, sum.updatedAt, summaryCollapsed, data.records?.length || 0]);
   if (nextSig === summarySignature) return;
   summarySignature = nextSig;
   if (st === 'leaving' || st === 'transcribing' || sum.state === 'generating') {
@@ -148,7 +219,7 @@ function updateSummaryPanel(data) {
     if (!sum.markdown) { summaryBody.replaceChildren(); summaryBody.hidden = true; }
     return;
   }
-  summaryRegen.disabled = false;
+  summaryRegen.disabled = !data.records?.length;
   if (sum.state === 'ready' && sum.markdown) {
     summaryBadge.textContent = '已完成整理';
     summaryBadge.className = 'summary-badge ready';
@@ -157,11 +228,13 @@ function updateSummaryPanel(data) {
     summaryBody.hidden = summaryCollapsed;
     return;
   }
-  summaryBadge.textContent = sum.state === 'failed' ? '整理失敗' : '待整理';
+  summaryBadge.textContent = sum.state === 'failed' ? '整理失敗' : (st === 'in_call' ? '會議進行中' : '待整理');
   summaryBadge.className = 'summary-badge';
   summaryProgressWrap.hidden = true;
-  const empty = document.createElement('p'); empty.className = 'summary-p';
-  empty.textContent = data.records?.length ? (sum.stage || '點擊右上角「重新整理會議記錄」即可產生結構化會議摘要。') : '本場會議尚無有效字幕，略過自動整理。';
+  const empty = document.createElement('div'); empty.className = 'empty';
+  empty.textContent = data.records?.length
+    ? (st === 'in_call' ? '會議正在進行中，結束後將自動整理結構化會議紀錄；您也可以隨時點擊右上角「重新整理會議記錄」搶先產生摘要。' : (sum.stage || '點擊右上角「重新整理會議記錄」即可產生結構化會議摘要。'))
+    : '本場會議尚無有效對話字幕，累積發言後即可產生結構化會議記錄。';
   summaryBody.replaceChildren(empty);
   summaryBody.hidden = summaryCollapsed;
 }
@@ -186,11 +259,11 @@ function row(record, pending) {
   }
   card.append(avatar, body); return card;
 }
-selector.addEventListener('change', () => { selected = selector.value; signature = ''; summarySignature = ''; syncSelection(); });
+selector.addEventListener('change', () => selectMeeting(selector.value));
 primaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); });
 secondaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); });
 async function get(url) { const response = await fetch(url); if (!response.ok) throw new Error('讀取失敗'); return response.json(); }
-async function poll() {
+async function pollNow() {
   try {
     const meetings = await get('/api/meetings');
     const optionSignature = JSON.stringify(meetings);
@@ -199,16 +272,20 @@ async function poll() {
       selector.replaceChildren(...options); selector.value = selected;
       if (!selector.value) { selected = 'latest'; selector.value = selected; syncSelection(); }
       selector.dataset.signature = optionSignature;
+      renderSidebar(meetings);
     }
     if (!meetings.length) {
       $('state').textContent = '尚無會議'; $('speaking').textContent = '加入會議後將自動顯示';
       $('transcript').replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無字幕，開始發言後會自動顯示。' }));
-      if (summaryPanel) summaryPanel.hidden = true;
-      $('count').textContent = '0 段發言'; $('meet').hidden = true; $('meet').removeAttribute('href');
+      if (summaryBody) summaryBody.replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無會議記錄可供整理。' }));
+      $('count').textContent = '0 段發言'; if (paneCount) paneCount.textContent = '共 0 則對話';
+      $('meet').hidden = true; $('meet').removeAttribute('href');
       $('updated').textContent = ''; signature = ''; summarySignature = '';
       $('connection').textContent = '● 已連線'; return;
     }
     const data = await get('/api/transcript?id=' + encodeURIComponent(selected));
+    activeMeetingId = data.id || '';
+    updateSidebarActive();
     document.dispatchEvent(new CustomEvent('meeting-status', { detail:data }));
     $('state').textContent = states[data.status?.state] || '未知狀態';
     $('speaking').textContent = data.status?.error?.message || (data.activeSpeakers.length ? (['microphone','teams'].includes(data.status?.source) ? '語音辨識 · ' : '字幕活動 · ') + data.activeSpeakers.join('、') : (['done','failed'].includes(data.status?.state) ? '記錄已停止' : '等待新的發言…'));
@@ -216,6 +293,7 @@ async function poll() {
     const filtered = filterRecords(data.records);
     void requestTranslations(filtered);
     $('count').textContent = filtered.length + ' 段發言';
+    if (paneCount) paneCount.textContent = '共 ' + filtered.length + ' 則對話';
     if (data.status?.source === 'teams' && data.status?.state === 'in_call') {
       const missing = Object.entries(data.status.audioHealth || {}).filter(([,value]) => value === 'no_signal').map(([lane]) => lane === 'mic' ? '本機麥克風' : '會議播放端');
       if (missing.length) $('speaking').textContent = missing.join('、') + ' 尚無訊號；發言後仍無訊號時請檢查裝置。';
@@ -231,11 +309,14 @@ async function poll() {
       const rows = [...filtered.map((r) => row(r, false)), ...data.pending.map((r) => row(r, true))];
       if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = '尚無字幕，開始發言後會自動顯示。'; rows.push(empty); }
       $('transcript').replaceChildren(...rows); signature = next;
-      if ($('follow').checked && data.status?.state === 'in_call' && filtered.length + data.pending.length > 0) { const box = document.querySelector('.content-scroll') || $('transcript'); box.scrollTop = box.scrollHeight; rows.at(-1).scrollIntoView({ block:'nearest' }); }
+      if ($('follow').checked && data.status?.state === 'in_call' && filtered.length + data.pending.length > 0) { const box = $('transcript'); box.scrollTop = box.scrollHeight; rows.at(-1).scrollIntoView({ block:'nearest' }); }
     }
     $('connection').textContent = '● 已連線 · 自動更新';
     $('updated').textContent = '最後同步 ' + clock(Date.now());
   } catch { $('connection').textContent = '連線中斷 · 正在重試'; $('speaking').textContent = '畫面可能不是最新資料'; }
-  finally { setTimeout(poll, 750); }
+}
+async function poll() {
+  await pollNow();
+  setTimeout(poll, 750);
 }
 poll();
