@@ -30,7 +30,7 @@
 | 📝 **Transcripts and sources** | Meet preserves captions, speaker names, and timestamps; local ASR preserves text, audio lanes, and estimated speaker labels |
 | 🎙️ **Saved audio** | Meet records received meeting audio; Teams saves the local microphone, playback audio, and an aligned mix separately |
 | 🇹🇼 **Local Chinese ASR** | Microphone and Teams modes use Paraformer Chinese int8, Traditional Chinese conversion, and spoken digit formatting; Whisper provides whole-recording fallback transcription |
-| 👀 **Live workspace & history** | Joining a meeting automatically opens the local web panel (`http://127.0.0.1:8791`) with a persistent left sidebar of all meetings (supporting **Archive / Unarchive / Delete**), side-by-side live transcript & structured summary panes, primary language filtering, and real-time bilingual translation (`zh-TW` / `en` / `ja`) |
+| 👀 **Live workspace & history** | Joining a meeting automatically opens the local web panel (`http://127.0.0.1:8791`) with a persistent left sidebar of all meetings (supporting **one-click ZIP Export / Archive / Unarchive / Delete**), side-by-side live transcript & structured summary panes, primary language filtering, and real-time bilingual translation (`zh-TW` / `en` / `ja`) |
 | ✅ **Structured meeting notes** | When a meeting ends, the web panel automatically generates a 4-section structured summary (`summary.md`) with an animated progress bar, or you can ask Codex / Claude Code to summarize the transcript |
 
 Recording and local ASR do not require an additional cloud speech API key. **Summaries are processed by your chosen AI service**; the entire workflow is not necessarily offline.
