@@ -343,10 +343,6 @@ function updateSummaryPanel(data) {
   if (!summaryPanel) return;
   const st = data.status?.state;
   const sum = data.summary || { state:'idle', progress:0, stage:'' };
-  if (st === 'done' && sum.state === 'idle' && data.records?.length > 0 && !autoTriggeredIds.has(data.id)) {
-    autoTriggeredIds.add(data.id);
-    void requestSummarize(data.id, false);
-  }
   summaryPanel.hidden = false;
   const nextSig = JSON.stringify([data.id, st, sum.state, sum.progress, sum.stage, sum.updatedAt, summaryCollapsed, data.records?.length || 0]);
   if (nextSig === summarySignature) return;
@@ -374,12 +370,12 @@ function updateSummaryPanel(data) {
     summaryBody.hidden = summaryCollapsed;
     return;
   }
-  summaryBadge.textContent = sum.state === 'failed' ? '整理失敗' : (st === 'in_call' ? '會議進行中' : '待整理');
+  summaryBadge.textContent = sum.state === 'failed' ? '整理失敗' : (st === 'in_call' ? '會議進行中' : '尚未整理');
   summaryBadge.className = 'summary-badge';
   summaryProgressWrap.hidden = true;
   const empty = document.createElement('div'); empty.className = 'empty';
   empty.textContent = data.records?.length
-    ? (st === 'in_call' ? '會議正在進行中，結束後將自動整理結構化會議紀錄；您也可以隨時點擊右上角「重新整理會議記錄」搶先產生摘要。' : (sum.stage || '點擊右上角「重新整理會議記錄」即可產生結構化會議摘要。'))
+    ? (st === 'in_call' ? '會議正在進行中。結束後可在 AI 對話框輸入「會議紀錄整理」交由 Agent 深度整理，或點擊右上角按鈕整理／匯出。' : '此場會議尚未整理。您可以在 AI 對話框輸入「會議紀錄整理」交由 Agent 親自深度整理，或點擊上方「✨ 匯出逐字稿交由自訂 AI 整理」／「重新整理會議記錄」。')
     : '本場會議尚無有效對話字幕，累積發言後即可產生結構化會議記錄。';
   summaryBody.replaceChildren(empty);
   summaryBody.hidden = summaryCollapsed;

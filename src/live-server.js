@@ -329,7 +329,7 @@ async function generateWithLlm(status, transcriptText) {
 
 export function getMeetingSummaryState(dir, status, records = []) {
   const summaryPath = path.join(dir, 'summary.md');
-  const job = summaryJobs.get(dir);
+  const job = summaryJobs.get(dir) || (status?.summaryJob?.state === 'generating' ? status.summaryJob : null);
   if (job && job.state === 'generating') {
     return {
       state: 'generating',

@@ -44,7 +44,7 @@ const HEARTBEAT_CONFIRM_MS = 60_000;
 const EXIT_ALREADY_RECORDING = 5;
 
 /** Flags that take a value (`--name X` or `--name=X`). */
-const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port', 'input', 'output']);
+const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port', 'input', 'output', 'progress', 'stage']);
 /** Boolean flags. */
 const BOOL_FLAGS = new Set(['foreground', 'help', 'no-open']);
 
@@ -102,6 +102,8 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   setup-audio                                             自動準備 Teams／本機收音套件與模型
   audio-devices                                           列出本機收音裝置
   audio-confirm <id>                                      確認雙方內容後保存該場成功裝置
+  notes-list                                              盤點所有會議與是否已整理會議紀錄（供「會議紀錄整理」指令使用）
+  notes-status <id> <generating|ready|idle> [--progress N] [--stage 文字]  同步更新網頁面板的會議紀錄整理進度
   transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
 
 /**
@@ -1238,6 +1240,45 @@ export async function main(argv, io = {}) {
       case 'wait': return await cmdWait(ctx, positionals, flags);
       case 'status': return await cmdStatus(ctx, positionals);
       case 'list': return await cmdList(ctx);
+      case 'notes-list': {
+        const items = listMeetings(ctx.config.meetingsDir);
+        const result = items.map((m) => {
+          const st = reconcileStatus(m.dir, m.status) || {};
+          const summaryPath = path.join(m.dir, 'summary.md');
+          let hasSummary = false;
+          try { hasSummary = fs.existsSync(summaryPath) && fs.readFileSync(summaryPath, 'utf8').trim().length > 0; } catch {}
+          return {
+            id: m.id,
+            dir: m.dir,
+            code: st.code || '',
+            state: st.state || 'unknown',
+            startedAt: st.startedAt || null,
+            endedAt: st.endedAt || null,
+            utterances: countUtterances(m.dir, st),
+            hasSummary,
+            summaryPath,
+          };
+        });
+        out(JSON.stringify(result, null, 2));
+        return 0;
+      }
+      case 'notes-status': {
+        const m = findMeeting(ctx, positionals[0]);
+        if (!m) return 1;
+        const mode = String(positionals[1] || 'generating').toLowerCase();
+        if (mode === 'ready' || mode === 'idle') {
+          writeStatus(m.dir, { summaryJob: null });
+          out('NOTES_STATUS=' + mode);
+          return 0;
+        }
+        const progress = flags.progress !== undefined ? num(flags.progress, 35) : 35;
+        const stage = typeof flags.stage === 'string' && flags.stage.trim() ? flags.stage.trim() : 'AI Agent 正在深度整理會議記錄…';
+        writeStatus(m.dir, {
+          summaryJob: { state: 'generating', progress, stage, updatedAt: new Date().toISOString() },
+        });
+        out('NOTES_STATUS=generating');
+        return 0;
+      }
       case 'leave': return await cmdLeave(ctx, positionals, flags);
       case 'transcript': return await cmdTranscript(ctx, positionals);
       case 'login': return await cmdLogin(ctx);
