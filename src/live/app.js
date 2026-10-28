@@ -4,7 +4,7 @@ const meetingList = $('meeting-list'), meetingTotal = $('meeting-total'), archiv
 const workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
 const summaryPanel = $('summary-panel'), summaryProgressWrap = $('summary-progress-wrap'), summaryBody = $('summary-body');
 const summaryStage = $('summary-stage'), summaryPercent = $('summary-percent'), summaryFill = $('summary-progress-fill');
-const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle');
+const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle'), summaryExport = $('summary-export');
 const params = new URLSearchParams(location.search);
 let selected = params.get('id') || 'latest';
 if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
@@ -143,6 +143,16 @@ function renderSidebar(meetings) {
     mainBtn.addEventListener('click', () => selectMeeting(m.id));
     const actions = document.createElement('div');
     actions.className = 'meeting-card-actions';
+    const exportBtn = document.createElement('button');
+    exportBtn.type = 'button';
+    exportBtn.className = 'card-action-btn export';
+    exportBtn.textContent = '匯出';
+    exportBtn.title = '一鍵打包下載此場會議所有檔案（錄音、逐字稿、會議紀錄整理 ZIP）';
+    exportBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exportMeeting(m.id);
+    });
+    actions.append(exportBtn);
     const isArchived = m.state === 'archived';
     const archiveBtn = document.createElement('button');
     archiveBtn.type = 'button';
@@ -280,6 +290,17 @@ async function requestSummarize(meetingId, force = false) {
     summarySignature = '';
   } catch {}
 }
+function exportMeeting(meetingId) {
+  const targetId = meetingId === 'latest' ? activeMeetingId : meetingId;
+  if (!targetId) return;
+  const a = document.createElement('a');
+  a.href = '/api/export?id=' + encodeURIComponent(targetId);
+  a.download = targetId + '.zip';
+  document.body.append(a);
+  a.click();
+  a.remove();
+}
+summaryExport?.addEventListener('click', () => exportMeeting(selected));
 summaryRegen?.addEventListener('click', () => {
   summaryCollapsed = false;
   if (summaryToggle) summaryToggle.textContent = '收合';

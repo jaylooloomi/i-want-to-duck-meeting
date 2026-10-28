@@ -11,6 +11,153 @@ import { sttPython } from './stt.js';
 const translationCache = new Map();
 const summaryJobs = new Map();
 
+const CRC32_TABLE = new Uint32Array(256);
+for (let i = 0; i < 256; i++) {
+  let c = i;
+  for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+  CRC32_TABLE[i] = c >>> 0;
+}
+function crc32Chunk(buf, crc = 0xFFFFFFFF) {
+  let c = crc >>> 0;
+  for (let i = 0; i < buf.length; i++) c = CRC32_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return c >>> 0;
+}
+function dosDateTime(date = new Date()) {
+  const y = Math.max(1980, date.getFullYear());
+  const dosDate = ((y - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+  const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1);
+  return { dosDate, dosTime };
+}
+function collectExportFiles(rootDir, prefix = '') {
+  const out = [];
+  let entries = [];
+  try { entries = fs.readdirSync(rootDir, { withFileTypes: true }); } catch { return out; }
+  for (const e of entries) {
+    if (e.name.startsWith('.') || e.name.endsWith('.tmp') || e.name === 'STOP' || e.name === 'worker-env.json') continue;
+    const full = path.join(rootDir, e.name);
+    const rel = prefix ? `${prefix}/${e.name}` : e.name;
+    if (e.isDirectory()) {
+      out.push(...collectExportFiles(full, rel));
+    } else if (e.isFile()) {
+      try {
+        const st = fs.statSync(full);
+        if (st.size === 0 && (e.name.endsWith('.log') || e.name.endsWith('.out'))) continue;
+        out.push({ full, rel, mtime: st.mtime });
+      } catch { /* ignore */ }
+    }
+  }
+  return out;
+}
+function streamMeetingZip(res, meetingId, meetingDir) {
+  const files = collectExportFiles(meetingDir, meetingId);
+  const statusFile = path.join(meetingDir, 'status.json');
+  res.writeHead(200, {
+    'Content-Type': 'application/zip',
+    'Content-Disposition': `attachment; filename="${encodeURIComponent(meetingId)}.zip"`,
+  });
+  const centralEntries = [];
+  let offset = 0;
+  const writeBuf = (buf) => { res.write(buf); offset += buf.length; };
+  for (const f of files) {
+    let dataBuf;
+    let crc = 0;
+    let size = 0;
+    if (path.resolve(f.full) === path.resolve(statusFile)) {
+      try {
+        const rawObj = JSON.parse(fs.readFileSync(f.full, 'utf8'));
+        delete rawObj.token;
+        delete rawObj.pid;
+        dataBuf = Buffer.from(JSON.stringify(rawObj, null, 2) + '\n', 'utf8');
+      } catch {
+        dataBuf = fs.readFileSync(f.full);
+      }
+      size = dataBuf.length;
+      crc = (crc32Chunk(dataBuf) ^ 0xFFFFFFFF) >>> 0;
+    } else {
+      let c = 0xFFFFFFFF;
+      const fd = fs.openSync(f.full, 'r');
+      const chunk = Buffer.allocUnsafe(262144);
+      try {
+        let bytesRead = 0;
+        while ((bytesRead = fs.readSync(fd, chunk, 0, chunk.length, null)) > 0) {
+          c = crc32Chunk(chunk.subarray(0, bytesRead), c);
+          size += bytesRead;
+        }
+      } finally {
+        fs.closeSync(fd);
+      }
+      crc = (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    const nameBuf = Buffer.from(f.rel.replace(/\\/g, '/'), 'utf8');
+    const { dosDate, dosTime } = dosDateTime(f.mtime || new Date());
+    const localHeaderOffset = offset;
+    const lh = Buffer.alloc(30);
+    lh.writeUInt32LE(0x04034b50, 0);
+    lh.writeUInt16LE(20, 4);
+    lh.writeUInt16LE(0x0800, 6);
+    lh.writeUInt16LE(0, 8);
+    lh.writeUInt16LE(dosTime, 10);
+    lh.writeUInt16LE(dosDate, 12);
+    lh.writeUInt32LE(crc, 14);
+    lh.writeUInt32LE(size, 18);
+    lh.writeUInt32LE(size, 22);
+    lh.writeUInt16LE(nameBuf.length, 26);
+    lh.writeUInt16LE(0, 28);
+    writeBuf(lh);
+    writeBuf(nameBuf);
+    if (dataBuf) {
+      writeBuf(dataBuf);
+    } else {
+      const fd = fs.openSync(f.full, 'r');
+      const chunk = Buffer.allocUnsafe(262144);
+      let written = 0;
+      try {
+        let bytesRead = 0;
+        while (written < size && (bytesRead = fs.readSync(fd, chunk, 0, Math.min(chunk.length, size - written), null)) > 0) {
+          writeBuf(chunk.subarray(0, bytesRead));
+          written += bytesRead;
+        }
+      } finally {
+        fs.closeSync(fd);
+      }
+      if (written < size) writeBuf(Buffer.alloc(size - written));
+    }
+    const cd = Buffer.alloc(46);
+    cd.writeUInt32LE(0x02014b50, 0);
+    cd.writeUInt16LE(20, 4);
+    cd.writeUInt16LE(20, 6);
+    cd.writeUInt16LE(0x0800, 8);
+    cd.writeUInt16LE(0, 10);
+    cd.writeUInt16LE(dosTime, 12);
+    cd.writeUInt16LE(dosDate, 14);
+    cd.writeUInt32LE(crc, 16);
+    cd.writeUInt32LE(size, 20);
+    cd.writeUInt32LE(size, 24);
+    cd.writeUInt16LE(nameBuf.length, 28);
+    cd.writeUInt16LE(0, 30);
+    cd.writeUInt16LE(0, 32);
+    cd.writeUInt16LE(0, 34);
+    cd.writeUInt16LE(0, 36);
+    cd.writeUInt32LE(0, 38);
+    cd.writeUInt32LE(localHeaderOffset >>> 0, 42);
+    centralEntries.push(cd, nameBuf);
+  }
+  const cdStart = offset;
+  for (const b of centralEntries) writeBuf(b);
+  const cdSize = offset - cdStart;
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(0, 4);
+  eocd.writeUInt16LE(0, 6);
+  eocd.writeUInt16LE(files.length, 8);
+  eocd.writeUInt16LE(files.length, 10);
+  eocd.writeUInt32LE(cdSize >>> 0, 12);
+  eocd.writeUInt32LE(cdStart >>> 0, 16);
+  eocd.writeUInt16LE(0, 20);
+  writeBuf(eocd);
+  res.end();
+}
+
 async function translateText(text, target) {
   const key = `${target}:${text}`;
   if (translationCache.has(key)) return translationCache.get(key);
@@ -424,6 +571,11 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
       if (url.pathname === '/api/transcript') {
         const data = readLiveMeeting(meetingsDir, url.searchParams.get('id') || 'latest');
         json(data || { error: '找不到會議' }, data ? 200 : 404); return;
+      }
+      if (url.pathname === '/api/export') {
+        const meeting = resolveMeeting(meetingsDir, url.searchParams.get('id') || 'latest');
+        if (!meeting) { json({ error: '找不到會議' }, 404); return; }
+        streamMeetingZip(res, meeting.id, meeting.dir); return;
       }
       const routes = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const asset = routes[url.pathname];
