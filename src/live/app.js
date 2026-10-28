@@ -5,6 +5,8 @@ const workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
 const summaryPanel = $('summary-panel'), summaryProgressWrap = $('summary-progress-wrap'), summaryBody = $('summary-body');
 const summaryStage = $('summary-stage'), summaryPercent = $('summary-percent'), summaryFill = $('summary-progress-fill');
 const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle'), summaryExport = $('summary-export'), summaryExportAi = $('summary-export-ai');
+const reportBtn = $('report-issue-btn'), sidebarReportBtn = $('sidebar-report-btn'), issueModal = $('issue-modal'), issueClose = $('issue-modal-close');
+const issueTitleInput = $('issue-title-input'), issueDescInput = $('issue-desc-input'), issueCopyBtn = $('issue-copy-template'), issueGithubLink = $('issue-github-link');
 const params = new URLSearchParams(location.search);
 let selected = params.get('id') || 'latest';
 if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
@@ -329,6 +331,64 @@ async function exportForCustomAi(meetingId) {
 }
 summaryExport?.addEventListener('click', () => exportMeeting(selected));
 summaryExportAi?.addEventListener('click', () => { void exportForCustomAi(selected); });
+function buildIssueMarkdown() {
+  const modeVal = $('audio-mode')?.value || 'unknown';
+  const stateVal = $('state')?.textContent || '未知';
+  const countVal = $('count')?.textContent || '0 段發言';
+  const userDesc = (issueDescInput?.value || '').trim() || '（請在此描述您遇到的問題、操作步驟與預期結果）';
+  return [
+    '### 📝 問題描述',
+    userDesc,
+    '',
+    '### 📸 畫面截圖（請按 Ctrl+V 直接貼上截圖）',
+    '<!-- 請先按 Win + Shift + S 截圖，並在此處按 Ctrl + V 貼上圖片 -->',
+    '',
+    '### 💻 環境與會議狀態診斷資訊（系統自動帶入）',
+    `- **會議 ID**：\`${activeMeetingId || selected || 'none'}\``,
+    `- **收音來源模式**：\`${modeVal}\``,
+    `- **目前狀態**：${stateVal}（${countVal}）`,
+    `- **語言設定**：主要 \`${primaryLang?.value || 'all'}\` / 附屬 \`${secondaryLang?.value || 'none'}\``,
+    `- **時間**：${new Date().toISOString()}`,
+  ].join('\n');
+}
+function syncIssueGithubLink() {
+  if (!issueGithubLink) return;
+  const baseUrl = 'https://github.com/jaylooloomi/i-want-to-duck-meeting/issues/new';
+  const rawTitle = (issueTitleInput?.value || '').trim();
+  const title = rawTitle ? `[問題回報] ${rawTitle}` : `[問題回報] 會議記錄異常 (${activeMeetingId || selected || 'live'})`;
+  const body = buildIssueMarkdown();
+  const u = new URL(baseUrl);
+  u.searchParams.set('title', title);
+  u.searchParams.set('body', body);
+  issueGithubLink.href = u.toString();
+}
+function openIssueModal() {
+  if (!issueModal) return;
+  syncIssueGithubLink();
+  issueModal.hidden = false;
+  issueTitleInput?.focus();
+}
+function closeIssueModal() {
+  if (!issueModal) return;
+  issueModal.hidden = true;
+}
+reportBtn?.addEventListener('click', openIssueModal);
+sidebarReportBtn?.addEventListener('click', openIssueModal);
+issueClose?.addEventListener('click', closeIssueModal);
+issueModal?.addEventListener('click', (e) => { if (e.target === issueModal) closeIssueModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && issueModal && !issueModal.hidden) closeIssueModal(); });
+issueTitleInput?.addEventListener('input', syncIssueGithubLink);
+issueDescInput?.addEventListener('input', syncIssueGithubLink);
+issueCopyBtn?.addEventListener('click', async () => {
+  syncIssueGithubLink();
+  const text = buildIssueMarkdown();
+  const orig = issueCopyBtn.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    issueCopyBtn.textContent = '✓ 已複製回報範本！';
+    setTimeout(() => { issueCopyBtn.textContent = orig; }, 2200);
+  } catch {}
+});
 summaryRegen?.addEventListener('click', () => {
   summaryCollapsed = false;
   if (summaryToggle) summaryToggle.textContent = '收合';

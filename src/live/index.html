@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>i-want-to-duck-meeting · 即時逐字稿</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script><script src="/microphone.js" defer></script></head>
 <body>
-<header><div class="brand">◉ i-want-to-duck-meeting <span>本機會議記錄與智慧整理</span></div><div id="connection" role="status">連線中…</div></header>
+<header><div class="brand">◉ i-want-to-duck-meeting <span>本機會議記錄與智慧整理</span></div><div class="header-right"><button id="report-issue-btn" type="button" class="report-btn" title="回報問題或功能建議（附截圖與回報教學）">🐞 問題回報</button><div id="connection" role="status">連線中…</div></div></header>
 <div class="app-shell">
 <aside class="sidebar" aria-label="歷史會議清單">
 <div class="sidebar-header">
@@ -15,6 +15,7 @@
 <div id="meeting-list" class="meeting-list" role="list">
 <div class="meeting-card active" data-id="latest"><div class="meeting-card-main"><div class="meeting-card-top"><span class="meeting-card-title">⚡ 自動跟隨最新會議</span><span class="meeting-card-state live">自動</span></div><div class="meeting-card-meta">點擊切換最新場次</div></div></div>
 </div>
+<div class="sidebar-footer"><button id="sidebar-report-btn" type="button" class="sidebar-report-btn">🐞 遇到問題？點此查看回報教學</button></div>
 </aside>
 <main>
 <div class="top-sticky">
@@ -54,4 +55,30 @@
 </div>
 <footer>本機模式依聲音特徵估計講者；短句、重疊發言與收音差可能誤判或顯示「講者未確認」。Meet 字幕模式的姓名來自帳號。<span id="updated"></span></footer>
 </main>
+</div>
+<div id="issue-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="issue-modal-title" hidden>
+<div class="modal-card">
+<div class="modal-header">
+<div class="modal-title-wrap"><span class="modal-icon" aria-hidden="true">🐞</span><h2 id="issue-modal-title">問題回報與操作指南</h2></div>
+<button id="issue-modal-close" type="button" class="modal-close" aria-label="關閉視窗">✕</button>
+</div>
+<div class="modal-body">
+<p class="modal-lead">遇到收音異常、字幕缺漏或介面問題嗎？請參考以下 <strong>3 個簡單步驟</strong>，幫助我們最快為您排查並修復：</p>
+<div class="guide-steps">
+<div class="guide-step"><span class="step-num">1</span><div class="step-content"><strong>📸 擷取畫面截圖（必備）</strong><p>請按下鍵盤 <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> 擷取目前的「<strong>網頁面板畫面</strong>」或「<strong>錯誤訊息視窗</strong>」。在 GitHub Issue 編輯框中可直接按 <kbd>Ctrl</kbd> + <kbd>V</kbd> 貼上圖片！</p></div></div>
+<div class="guide-step"><span class="step-num">2</span><div class="step-content"><strong>✍️ 填寫下方問題描述（可選填，將自動帶入 GitHub）</strong><p>簡單描述您「原本預期發生什麼」以及「實際遇到什麼狀況」（例如：Teams 遠端聲音沒有訊號、按開始收音出現權限錯誤等）。</p></div></div>
+<div class="guide-step"><span class="step-num">3</span><div class="step-content"><strong>🚀 點擊下方按鈕前往 GitHub 送出</strong><p>系統會自動幫您帶入目前的環境診斷資訊（會議模式、狀態與範本），您只需貼上截圖即可送出！</p></div></div>
+</div>
+<div class="issue-form">
+<label for="issue-title-input">問題簡述（標題）</label>
+<input id="issue-title-input" type="text" placeholder="例如：Teams 雙路收音時遠端沒有出現字幕">
+<label for="issue-desc-input">詳細步驟與狀況說明</label>
+<textarea id="issue-desc-input" rows="3" placeholder="請描述您進行的操作步驟、看到的錯誤提示，並記得在前往 GitHub 後貼上截圖 (Ctrl+V)…"></textarea>
+</div>
+</div>
+<div class="modal-footer">
+<button id="issue-copy-template" type="button" class="btn-secondary">📋 複製回報範本與診斷資訊</button>
+<a id="issue-github-link" href="https://github.com/jaylooloomi/i-want-to-duck-meeting/issues/new" target="_blank" rel="noopener" class="btn-primary-link">前往 GitHub Issues 回報 ↗</a>
+</div>
+</div>
 </div></body></html>
