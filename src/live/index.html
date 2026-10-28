@@ -7,10 +7,13 @@
 <aside class="sidebar" aria-label="歷史會議清單">
 <div class="sidebar-header">
 <div class="sidebar-title-row"><h2>本機會議紀錄</h2><span id="meeting-total" class="sidebar-count">0 場</span></div>
-<p class="sidebar-hint">點擊任一會議即可檢視對話與整理紀錄</p>
+<div class="sidebar-filter-tabs" role="group" aria-label="會議篩選">
+<button type="button" class="sidebar-filter active" data-filter="active">進行與完成</button>
+<button type="button" class="sidebar-filter" data-filter="archived">已封存 <span id="archived-count">0</span></button>
+</div>
 </div>
 <div id="meeting-list" class="meeting-list" role="list">
-<button type="button" class="meeting-card active" data-id="latest"><div class="meeting-card-top"><span class="meeting-card-title">⚡ 自動跟隨最新會議</span><span class="meeting-card-state live">即時</span></div><div class="meeting-card-meta">自動切換至最新啟動的會議</div></button>
+<div class="meeting-card active" data-id="latest"><div class="meeting-card-main"><div class="meeting-card-top"><span class="meeting-card-title">⚡ 自動跟隨最新會議</span><span class="meeting-card-state live">自動</span></div><div class="meeting-card-meta">點擊切換最新場次</div></div></div>
 </div>
 </aside>
 <main>

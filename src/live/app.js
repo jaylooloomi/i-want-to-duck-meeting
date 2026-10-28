@@ -1,6 +1,7 @@
 const $ = (id) => document.getElementById(id);
 const selector = $('meeting'), primaryLang = $('primary-lang'), secondaryLang = $('secondary-lang');
-const meetingList = $('meeting-list'), meetingTotal = $('meeting-total'), workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
+const meetingList = $('meeting-list'), meetingTotal = $('meeting-total'), archivedCountEl = $('archived-count');
+const workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
 const summaryPanel = $('summary-panel'), summaryProgressWrap = $('summary-progress-wrap'), summaryBody = $('summary-body');
 const summaryStage = $('summary-stage'), summaryPercent = $('summary-percent'), summaryFill = $('summary-progress-fill');
 const summaryBadge = $('summary-badge'), summaryRegen = $('summary-regenerate'), summaryToggle = $('summary-toggle');
@@ -9,6 +10,7 @@ let selected = params.get('id') || 'latest';
 if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
 if (secondaryLang && params.get('secondary')) secondaryLang.value = params.get('secondary');
 let signature = '', summarySignature = '', translating = false, summaryCollapsed = false, activeMeetingId = '';
+let sidebarFilter = 'active', cachedMeetings = [], confirmDeleteId = '';
 const translations = new Map(), autoTriggeredIds = new Set();
 function syncSelection() {
   const url = new URL(location.href); url.searchParams.set('id', selected);
@@ -32,11 +34,20 @@ document.querySelectorAll('.view-tab').forEach((btn) => {
     document.querySelectorAll('.view-tab').forEach((b) => b.classList.toggle('active', b === btn));
   });
 });
+document.querySelectorAll('.sidebar-filter').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    sidebarFilter = btn.dataset.filter || 'active';
+    confirmDeleteId = '';
+    document.querySelectorAll('.sidebar-filter').forEach((b) => b.classList.toggle('active', b === btn));
+    renderSidebar(cachedMeetings);
+  });
+});
 document.addEventListener('microphone-started', ({ detail }) => {
   selected = detail.id; signature = ''; summarySignature = ''; selector.dataset.signature = '';
   syncSelection();
 });
-const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', failed:'記錄失敗' };
+const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', archived:'已封存', failed:'記錄失敗' };
+const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'✓ 完成', archived:'📦 已封存', failed:'✕ 異常' };
 const clock = (value) => { const date = new Date(value); return Number.isNaN(+date) ? '' : date.toLocaleTimeString('zh-TW', { hour12:false }); };
 const hasCjk = (s) => /[\u3400-\u9FFF\uF900-\uFAFF]/.test(s);
 function formatMeetingMeta(m) {
@@ -51,36 +62,75 @@ function formatMeetingMeta(m) {
 function stateClass(st) {
   if (st === 'in_call' || st === 'starting' || st === 'joining' || st === 'launching') return 'live';
   if (st === 'failed') return 'failed';
+  if (st === 'archived') return 'archived';
   return 'done';
+}
+async function performMeetingAction(id, action) {
+  if (!id || id === 'latest') return;
+  try {
+    const res = await fetch('/api/meetings/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action }),
+    });
+    if (!res.ok) return;
+    confirmDeleteId = '';
+    if (action === 'delete' && (selected === id || activeMeetingId === id)) {
+      selected = 'latest';
+      syncSelection();
+    }
+    selector.dataset.signature = '';
+    signature = '';
+    summarySignature = '';
+    await pollNow();
+  } catch {}
 }
 function updateSidebarActive() {
   if (!meetingList) return;
-  for (const btn of meetingList.querySelectorAll('.meeting-card')) {
-    const id = btn.dataset.id;
+  for (const card of meetingList.querySelectorAll('.meeting-card')) {
+    const id = card.dataset.id;
     const isCurrent = id === selected || (selected === 'latest' && id === activeMeetingId && id !== 'latest');
-    btn.classList.toggle('active', id === selected || (selected === 'latest' && id === 'latest'));
-    btn.classList.toggle('current-resolved', isCurrent);
+    card.classList.toggle('active', id === selected || (selected === 'latest' && id === 'latest'));
+    card.classList.toggle('current-resolved', isCurrent);
   }
 }
-const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'✓ 完成', failed:'✕ 異常' };
 function renderSidebar(meetings) {
-  if (meetingTotal) meetingTotal.textContent = meetings.length + ' 場';
+  cachedMeetings = meetings;
+  const activeList = meetings.filter((m) => m.state !== 'archived');
+  const archivedList = meetings.filter((m) => m.state === 'archived');
+  if (meetingTotal) meetingTotal.textContent = activeList.length + ' 場';
+  if (archivedCountEl) archivedCountEl.textContent = String(archivedList.length);
   if (!meetingList) return;
   const frag = document.createDocumentFragment();
-  const latestBtn = document.createElement('button');
-  latestBtn.type = 'button'; latestBtn.className = 'meeting-card'; latestBtn.dataset.id = 'latest';
-  const lTop = document.createElement('div'); lTop.className = 'meeting-card-top';
-  const lTitle = document.createElement('span'); lTitle.className = 'meeting-card-title'; lTitle.textContent = '⚡ 自動跟隨最新會議';
-  const lBadge = document.createElement('span'); lBadge.className = 'meeting-card-state live'; lBadge.textContent = '自動';
-  lTop.append(lTitle, lBadge);
-  const lMeta = document.createElement('div'); lMeta.className = 'meeting-card-meta'; lMeta.textContent = meetings[0] ? '目前最新：' + formatMeetingMeta(meetings[0]).dateStr : '點擊切換最新場次';
-  latestBtn.append(lTop, lMeta);
-  latestBtn.addEventListener('click', () => selectMeeting('latest'));
-  frag.append(latestBtn);
-  for (const m of meetings) {
+  if (sidebarFilter === 'active') {
+    const latestCard = document.createElement('div');
+    latestCard.className = 'meeting-card'; latestCard.dataset.id = 'latest';
+    const latestMain = document.createElement('button');
+    latestMain.type = 'button'; latestMain.className = 'meeting-card-select';
+    const lTop = document.createElement('div'); lTop.className = 'meeting-card-top';
+    const lTitle = document.createElement('span'); lTitle.className = 'meeting-card-title'; lTitle.textContent = '⚡ 自動跟隨最新會議';
+    const lBadge = document.createElement('span'); lBadge.className = 'meeting-card-state live'; lBadge.textContent = '自動';
+    lTop.append(lTitle, lBadge);
+    const lMeta = document.createElement('div'); lMeta.className = 'meeting-card-meta';
+    lMeta.textContent = activeList[0] ? '目前最新：' + formatMeetingMeta(activeList[0]).dateStr : '點擊切換最新場次';
+    latestMain.append(lTop, lMeta);
+    latestMain.addEventListener('click', () => selectMeeting('latest'));
+    latestCard.append(latestMain);
+    frag.append(latestCard);
+  }
+  const visibleMeetings = sidebarFilter === 'archived' ? archivedList : activeList;
+  if (!visibleMeetings.length && sidebarFilter === 'archived') {
+    const empty = document.createElement('div');
+    empty.className = 'sidebar-empty';
+    empty.textContent = '目前沒有已封存的會議紀錄';
+    frag.append(empty);
+  }
+  for (const m of visibleMeetings) {
     const info = formatMeetingMeta(m);
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'meeting-card'; btn.dataset.id = m.id;
+    const card = document.createElement('div');
+    card.className = 'meeting-card'; card.dataset.id = m.id;
+    const mainBtn = document.createElement('button');
+    mainBtn.type = 'button'; mainBtn.className = 'meeting-card-select';
     const top = document.createElement('div'); top.className = 'meeting-card-top';
     const title = document.createElement('span'); title.className = 'meeting-card-title'; title.textContent = info.title;
     const badge = document.createElement('span'); badge.className = 'meeting-card-state ' + stateClass(m.state); badge.textContent = sidebarStates[m.state] || '未知';
@@ -89,9 +139,55 @@ function renderSidebar(meetings) {
     const dt = document.createElement('span'); dt.textContent = info.dateStr;
     const codeSpan = document.createElement('span'); codeSpan.textContent = m.code || '';
     meta.append(dt, codeSpan);
-    btn.append(top, meta);
-    btn.addEventListener('click', () => selectMeeting(m.id));
-    frag.append(btn);
+    mainBtn.append(top, meta);
+    mainBtn.addEventListener('click', () => selectMeeting(m.id));
+    const actions = document.createElement('div');
+    actions.className = 'meeting-card-actions';
+    const isArchived = m.state === 'archived';
+    const archiveBtn = document.createElement('button');
+    archiveBtn.type = 'button';
+    archiveBtn.className = 'card-action-btn archive';
+    archiveBtn.textContent = isArchived ? '取消封存' : '封存';
+    archiveBtn.title = isArchived ? '將此會議移回一般清單' : '將此會議移至封存區';
+    archiveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      void performMeetingAction(m.id, isArchived ? 'unarchive' : 'archive');
+    });
+    actions.append(archiveBtn);
+    if (confirmDeleteId === m.id) {
+      const confirmBtn = document.createElement('button');
+      confirmBtn.type = 'button';
+      confirmBtn.className = 'card-action-btn delete-confirm';
+      confirmBtn.textContent = '確定刪除？';
+      confirmBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        void performMeetingAction(m.id, 'delete');
+      });
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'card-action-btn cancel';
+      cancelBtn.textContent = '取消';
+      cancelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        confirmDeleteId = '';
+        renderSidebar(cachedMeetings);
+      });
+      actions.append(confirmBtn, cancelBtn);
+    } else {
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'card-action-btn delete';
+      delBtn.textContent = '刪除';
+      delBtn.title = '永久刪除此場會議紀錄';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        confirmDeleteId = m.id;
+        renderSidebar(cachedMeetings);
+      });
+      actions.append(delBtn);
+    }
+    card.append(mainBtn, actions);
+    frag.append(card);
   }
   meetingList.replaceChildren(frag);
   updateSidebarActive();
@@ -288,7 +384,7 @@ async function pollNow() {
     updateSidebarActive();
     document.dispatchEvent(new CustomEvent('meeting-status', { detail:data }));
     $('state').textContent = states[data.status?.state] || '未知狀態';
-    $('speaking').textContent = data.status?.error?.message || (data.activeSpeakers.length ? (['microphone','teams'].includes(data.status?.source) ? '語音辨識 · ' : '字幕活動 · ') + data.activeSpeakers.join('、') : (['done','failed'].includes(data.status?.state) ? '記錄已停止' : '等待新的發言…'));
+    $('speaking').textContent = data.status?.error?.message || (data.activeSpeakers.length ? (['microphone','teams'].includes(data.status?.source) ? '語音辨識 · ' : '字幕活動 · ') + data.activeSpeakers.join('、') : (['done','archived','failed'].includes(data.status?.state) ? '記錄已停止' : '等待新的發言…'));
     updateSummaryPanel(data);
     const filtered = filterRecords(data.records);
     void requestTranslations(filtered);

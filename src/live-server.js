@@ -1,7 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { listMeetings, resolveMeeting, readStatus } from './status.js';
+import { listMeetings, resolveMeeting, readStatus, writeStatus, isProcessAlive } from './status.js';
 import { MicrophoneService } from './microphone.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -357,6 +357,36 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         const data = readLiveMeeting(meetingsDir, meeting.id);
         const summary = triggerMeetingSummary(meeting.dir, data?.status, data?.records || [], { force: !!input?.force });
         json({ id: meeting.id, summary }); return;
+      }
+      if (req.method === 'POST' && url.pathname === '/api/meetings/action') {
+        if (req.headers.origin !== origin || req.headers['content-type'] !== 'application/json') { res.writeHead(403).end(); return; }
+        const input = JSON.parse((await body(req)).toString() || '{}');
+        const wantedId = String(input?.id || '').trim();
+        const action = String(input?.action || '').trim();
+        if (!wantedId || wantedId === 'latest') { json({ error: '請指定要操作的會議 ID' }, 400); return; }
+        const meeting = resolveMeeting(meetingsDir, wantedId);
+        if (!meeting || meeting.id !== wantedId) { json({ error: '找不到該會議' }, 404); return; }
+        const st = readStatus(meeting.dir) || {};
+        if (action === 'archive') {
+          writeStatus(meeting.dir, { prevState: st.state && st.state !== 'archived' ? st.state : (st.prevState || 'done'), state: 'archived', archivedAt: new Date().toISOString() });
+          json({ ok: true, id: meeting.id, state: 'archived' }); return;
+        }
+        if (action === 'unarchive') {
+          const restored = st.prevState && st.prevState !== 'archived' ? st.prevState : 'done';
+          writeStatus(meeting.dir, { state: restored, archivedAt: null });
+          json({ ok: true, id: meeting.id, state: restored }); return;
+        }
+        if (action === 'delete') {
+          if (microphone.current?.id === meeting.id) {
+            microphone.stop(microphone.current.token, 'user_delete');
+          } else if (st.pid && isProcessAlive(st.pid)) {
+            try { process.kill(st.pid); } catch { /* ignore */ }
+          }
+          summaryJobs.delete(meeting.dir);
+          fs.rmSync(meeting.dir, { recursive: true, force: true });
+          json({ ok: true, id: meeting.id, deleted: true }); return;
+        }
+        json({ error: '不支援的操作類型' }, 400); return;
       }
       if (req.method === 'POST' && url.pathname.startsWith('/api/microphone/')) {
         if (req.headers.origin !== origin) { res.writeHead(403).end(); return; }
