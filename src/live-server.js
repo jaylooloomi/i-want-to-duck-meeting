@@ -8,6 +8,24 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { sttPython } from './stt.js';
 
+const translationCache = new Map();
+async function translateText(text, target) {
+  const key = `${target}:${text}`;
+  if (translationCache.has(key)) return translationCache.get(key);
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    if (!res.ok) return '';
+    const data = await res.json();
+    const out = Array.isArray(data?.[0]) ? data[0].map((part) => part?.[0] || '').join('').trim() : '';
+    if (out) {
+      if (translationCache.size > 2000) translationCache.clear();
+      translationCache.set(key, out);
+    }
+    return out;
+  } catch { return ''; }
+}
+
 async function body(req, limit = 65536) {
   const parts = []; let length = 0;
   for await (const part of req) {
@@ -57,6 +75,14 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
     const url = new URL(req.url, origin);
     const json = (data, code = 200) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); };
     try {
+      if (req.method === 'POST' && url.pathname === '/api/translate') {
+        if (req.headers.origin !== origin || req.headers['content-type'] !== 'application/json') { res.writeHead(403).end(); return; }
+        const input = JSON.parse((await body(req)).toString() || '{}');
+        const texts = Array.isArray(input?.texts) ? input.texts.slice(0, 12).map((t) => String(t ?? '').trim()).filter(Boolean) : [];
+        const target = ['zh-TW', 'en', 'ja'].includes(input?.target) ? input.target : 'zh-TW';
+        const translations = await Promise.all(texts.map((t) => translateText(t, target)));
+        json({ translations }); return;
+      }
       if (req.method === 'POST' && url.pathname.startsWith('/api/microphone/')) {
         if (req.headers.origin !== origin) { res.writeHead(403).end(); return; }
         if (url.pathname === '/api/microphone/start' && req.headers['content-type'] === 'application/json') {

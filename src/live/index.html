@@ -17,7 +17,7 @@
 <div class="mic-controls"><label>麥克風 <select id="mic-device"><option value="">系統預設麥克風</option></select></label><button id="mic-refresh" type="button">更新裝置</button><button id="mic-start" type="button">開始收音</button><button id="mic-stop" type="button" disabled>結束記錄</button></div>
 <div class="mic-feedback"><meter id="mic-level" min="0" max="1" value="0" aria-label="麥克風音量"></meter><span id="mic-status" role="status">尚未收音；按開始後會要求麥克風權限。</span></div>
 </section>
-<section class="toolbar"><label>會議 <select id="meeting"><option value="latest">自動跟隨最新會議</option></select></label><label class="follow"><input type="checkbox" id="follow" checked> 自動捲動</label></section>
+<section class="toolbar"><div class="toolbar-group"><label>會議 <select id="meeting"><option value="latest">自動跟隨最新會議</option></select></label><label>主要語言 <select id="primary-lang"><option value="all">全部顯示（中＋英）</option><option value="zh-TW">中文優先（過濾英文空耳）</option><option value="en">英文（English）</option></select></label><label>附屬語言 <select id="secondary-lang"><option value="none">不翻譯</option><option value="zh-TW">繁體中文（zh-TW）</option><option value="en">英文（English）</option><option value="ja">日文（日本語）</option></select></label></div><label class="follow"><input type="checkbox" id="follow" checked> 自動捲動</label></section>
 <section class="activity"><span id="state">載入中</span><span id="speaking" aria-live="polite">等待字幕</span><span id="count">0 段發言</span></section>
 </div>
 <section id="transcript" aria-label="會議逐字稿"><div class="empty">尚無字幕，開始發言後會自動顯示。</div></section>
