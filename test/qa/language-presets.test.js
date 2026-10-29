@@ -1,0 +1,24 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {browserCase,record} from './harness.js';
+for(const width of [1920,390])test(`LANG-01 bilingual presets apply filters translation and persist ${width}`,{timeout:20000},t=>browserCase(t,async({page,app})=>{
+ app.seed('languages',{state:'done'},[{...record('Hello everyone'),source:'teams-native'},{...record('中文測試 Microsoft Teams'),source:'teams-native'}]);
+ await page.route('**/api/translate',r=>{const data=r.request().postDataJSON();return r.fulfill({json:{translations:data.texts.map(()=>data.target==='zh-TW'?'中文翻譯結果':'English translation result')}});});
+ await page.goto(app.url+'/?id=languages');
+ const transcript=page.getByRole('region',{name:'會議逐字稿'});
+ await transcript.getByText('中文測試 Microsoft Teams',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'英中',exact:true}).click();
+ await transcript.getByText('中文翻譯結果',{exact:true}).waitFor();
+ assert.equal(await transcript.getByText('中文測試 Microsoft Teams',{exact:true}).count(),0);
+ assert.equal(await page.getByRole('combobox',{name:'逐字稿顯示',exact:true}).inputValue(),'en');
+ assert.equal(await page.getByRole('combobox',{name:'翻譯語言',exact:true}).inputValue(),'zh-TW');
+ assert.equal(await page.getByRole('button',{name:'英中',exact:true}).getAttribute('aria-pressed'),'true');
+ await page.getByRole('button',{name:'中英',exact:true}).click();
+ await transcript.getByText('English translation result',{exact:true}).waitFor();
+ assert.equal(await transcript.getByText('Hello everyone',{exact:true}).count(),0);
+ await page.reload();await transcript.getByText('English translation result',{exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'中英',exact:true}).getAttribute('aria-pressed'),'true');
+ await page.getByRole('combobox',{name:'翻譯語言',exact:true}).selectOption('none');
+ assert.equal(await page.getByRole('button',{name:'中英',exact:true}).getAttribute('aria-pressed'),'false');
+ const size=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(size.scroll<=size.width+1);
+},{viewport:{width,height:width===390?844:1080}}));

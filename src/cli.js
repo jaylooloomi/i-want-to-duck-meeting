@@ -21,6 +21,7 @@ import { runTranscribe, setupStt, sttAvailable, sttPython } from './stt.js';
 import { WORKER_ENV_KEY } from './worker.js';
 import { parseTeamsUrl, audioDevices, saveAudioSettings } from './audio-settings.js';
 import { meetingFailureGuidance } from './meet/failure-guidance.js';
+import {followAgentMeeting,pendingAgentMeetings,enqueueFinishedAgentMeeting,completeAgentSummary} from './agent-summary.js';
 
 const TERMINAL = ['done', 'failed'];
 const LOGIN_URL = 'https://accounts.google.com/';
@@ -103,7 +104,9 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   audio-devices                                           列出本機收音裝置
   audio-confirm <id>                                      確認雙方內容後保存該場成功裝置
   notes-list                                              盤點所有會議與是否已整理會議紀錄（供「會議紀錄整理」指令使用）
-  notes-status <id> <generating|ready|idle> [--progress N] [--stage 文字]  同步更新網頁面板的會議紀錄整理進度
+  notes-follow <id>                                        將本場交給目前 Codex 對話自動追蹤收尾
+  notes-pending                                           列出目前 Codex 對話待接手的會議
+  notes-status <id> <generating|ready|failed|idle> [--progress N] [--stage 文字]  同步更新網頁面板的 Agent 整理階段
   transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
 
 /**
@@ -816,6 +819,7 @@ async function cmdJoin(ctx, pos, flags) {
   writeStatus(dir, {
     id, code: parsed.code, url: parsed.url, displayName, pid: null, state: 'starting',
     startedAt: new Date().toISOString(), joinedAt: null, endedAt: null, endReason: null, error: null, stats: emptyStats(),
+      ...(ctx.env.CODEX_THREAD_ID ? {summaryAgentThread:ctx.env.CODEX_THREAD_ID} : {}),
       ...(teamsUrl ? {source:'teams',audioOverrides,teamsBrowserEnabled:!flags['no-open']} : {}),
   });
 
@@ -1266,7 +1270,12 @@ export async function main(argv, io = {}) {
         const m = findMeeting(ctx, positionals[0]);
         if (!m) return 1;
         const mode = String(positionals[1] || 'generating').toLowerCase();
-        if (mode === 'ready' || mode === 'idle') {
+        if(mode==='ready'){completeAgentSummary(m.dir);out('NOTES_STATUS=ready');return 0;}
+        if(mode==='failed'){
+          writeStatus(m.dir,{summaryJob:{state:'failed',provider:'agent',progress:0,error:typeof flags.stage==='string'?flags.stage:'Agent 整理未完成',updatedAt:new Date().toISOString()}});
+          out('NOTES_STATUS=failed');return 0;
+        }
+        if (mode === 'idle') {
           writeStatus(m.dir, { summaryJob: null });
           out('NOTES_STATUS=' + mode);
           return 0;
@@ -1274,10 +1283,20 @@ export async function main(argv, io = {}) {
         const progress = flags.progress !== undefined ? num(flags.progress, 35) : 35;
         const stage = typeof flags.stage === 'string' && flags.stage.trim() ? flags.stage.trim() : 'AI Agent 正在深度整理會議記錄…';
         writeStatus(m.dir, {
-          summaryJob: { state: 'generating', progress, stage, updatedAt: new Date().toISOString() },
+          summaryJob: {...readStatus(m.dir)?.summaryJob,state:'generating',provider:'agent',progress,stage,updatedAt:new Date().toISOString()},
         });
         out('NOTES_STATUS=generating');
         return 0;
+      }
+      case 'notes-follow': {
+        const m=findMeeting(ctx,positionals[0]);if(!m)return 1;
+        followAgentMeeting(m.dir,env.CODEX_THREAD_ID);out('AGENT_FOLLOW=enabled');return 0;
+      }
+      case 'notes-pending': {
+        for(const m of listMeetings(ctx.config.meetingsDir))if(env.CODEX_THREAD_ID && m.status?.summaryAgentThread===env.CODEX_THREAD_ID){
+          const s=reconcileStatus(m.dir,m.status);if(['done','failed'].includes(s?.state))enqueueFinishedAgentMeeting(m.dir);
+        }
+        out(JSON.stringify(pendingAgentMeetings(ctx.config.meetingsDir,env.CODEX_THREAD_ID),null,2));return 0;
       }
       case 'leave': return await cmdLeave(ctx, positionals, flags);
       case 'transcript': return await cmdTranscript(ctx, positionals);

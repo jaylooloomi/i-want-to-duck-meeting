@@ -1,5 +1,5 @@
 const $ = (id) => document.getElementById(id);
-const selector = $('meeting'), primaryLang = $('primary-lang'), secondaryLang = $('secondary-lang');
+const primaryLang = $('primary-lang'), secondaryLang = $('secondary-lang');
 const meetingList = $('meeting-list'), meetingTotal = $('meeting-total'), archivedCountEl = $('archived-count');
 const workspaceGrid = $('workspace-grid'), paneCount = $('pane-count');
 const summaryPanel = $('summary-panel'), summaryProgressWrap = $('summary-progress-wrap'), summaryBody = $('summary-body');
@@ -12,6 +12,9 @@ let selected = params.get('id') || 'latest';
 if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
 if (secondaryLang && params.get('secondary')) secondaryLang.value = params.get('secondary');
 let signature = '', summarySignature = '', translating = false, summaryCollapsed = false, activeMeetingId = '';
+let meetingOptionsSignature = '', currentRecord = null, ownedRecordId = '', setupOpen = false, endingRecordId = '', stopRequestedFor = '';
+const setupPanel = document.querySelector('.mic-panel');
+const recordingStates = new Set(['starting','launching','joining','waiting_login','selecting_account','waiting_admission','in_call','leaving','transcribing']);
 let sidebarFilter = 'active', cachedMeetings = [], confirmDeleteId = '';
 const translations = new Map(), autoTriggeredIds = new Set();
 function syncSelection() {
@@ -23,7 +26,10 @@ function syncSelection() {
 function selectMeeting(id) {
   if (!id) return;
   selected = id;
-  if (selector) selector.value = selected;
+  $('record-action-status').textContent = '';
+  setupOpen = false;
+  setupPanel.hidden = true;
+  $('follow-latest').checked = selected === 'latest';
   signature = ''; summarySignature = '';
   syncSelection();
   updateSidebarActive();
@@ -45,7 +51,8 @@ document.querySelectorAll('.sidebar-filter').forEach((btn) => {
   });
 });
 document.addEventListener('microphone-started', ({ detail }) => {
-  selected = detail.id; signature = ''; summarySignature = ''; selector.dataset.signature = '';
+  ownedRecordId = detail.id; setupOpen = false; setupPanel.hidden = true;
+  selectMeeting(detail.id); meetingOptionsSignature = '';
   syncSelection();
 });
 const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', archived:'已封存', failed:'記錄失敗' };
@@ -81,7 +88,7 @@ async function performMeetingAction(id, action) {
       selected = 'latest';
       syncSelection();
     }
-    selector.dataset.signature = '';
+    meetingOptionsSignature = '';
     signature = '';
     summarySignature = '';
     await pollNow();
@@ -104,22 +111,6 @@ function renderSidebar(meetings) {
   if (archivedCountEl) archivedCountEl.textContent = String(archivedList.length);
   if (!meetingList) return;
   const frag = document.createDocumentFragment();
-  if (sidebarFilter === 'active') {
-    const latestCard = document.createElement('div');
-    latestCard.className = 'meeting-card'; latestCard.dataset.id = 'latest';
-    const latestMain = document.createElement('button');
-    latestMain.type = 'button'; latestMain.className = 'meeting-card-select';
-    const lTop = document.createElement('div'); lTop.className = 'meeting-card-top';
-    const lTitle = document.createElement('span'); lTitle.className = 'meeting-card-title'; lTitle.textContent = '⚡ 自動跟隨最新會議';
-    const lBadge = document.createElement('span'); lBadge.className = 'meeting-card-state live'; lBadge.textContent = '自動';
-    lTop.append(lTitle, lBadge);
-    const lMeta = document.createElement('div'); lMeta.className = 'meeting-card-meta';
-    lMeta.textContent = activeList[0] ? '目前最新：' + formatMeetingMeta(activeList[0]).dateStr : '點擊切換最新場次';
-    latestMain.append(lTop, lMeta);
-    latestMain.addEventListener('click', () => selectMeeting('latest'));
-    latestCard.append(latestMain);
-    frag.append(latestCard);
-  }
   const visibleMeetings = sidebarFilter === 'archived' ? archivedList : activeList;
   if (!visibleMeetings.length && sidebarFilter === 'archived') {
     const empty = document.createElement('div');
@@ -206,8 +197,8 @@ function renderSidebar(meetings) {
 }
 function filterRecords(records) {
   const mode = primaryLang ? primaryLang.value : 'all';
-  if (mode === 'zh-TW') return records.filter((r) => r.source !== 'teams-native' || hasCjk(r.text));
-  if (mode === 'en') return records.filter((r) => !hasCjk(r.text) || r.source === 'teams-native');
+  if (mode === 'zh-TW') return records.filter((r) => hasCjk(r.text));
+  if (mode === 'en') return records.filter((r) => !hasCjk(r.text));
   return records;
 }
 async function requestTranslations(records) {
@@ -347,7 +338,7 @@ function buildIssueMarkdown() {
     `- **會議 ID**：\`${activeMeetingId || selected || 'none'}\``,
     `- **收音來源模式**：\`${modeVal}\``,
     `- **目前狀態**：${stateVal}（${countVal}）`,
-    `- **語言設定**：主要 \`${primaryLang?.value || 'all'}\` / 附屬 \`${secondaryLang?.value || 'none'}\``,
+    `- **語言設定**：主要 \`${primaryLang?.value || 'all'}\` / 翻譯 \`${secondaryLang?.value || 'none'}\``,
     `- **時間**：${new Date().toISOString()}`,
   ].join('\n');
 }
@@ -407,13 +398,18 @@ function updateSummaryPanel(data) {
   const nextSig = JSON.stringify([data.id, st, sum.state, sum.progress, sum.stage, sum.updatedAt, summaryCollapsed, data.records?.length || 0]);
   if (nextSig === summarySignature) return;
   summarySignature = nextSig;
+  if(sum.state==='waiting_agent'){
+    summaryBadge.textContent='等待 Codex／Claude 接手';summaryBadge.className='summary-badge';summaryProgressWrap.hidden=true;
+    summaryRegen.disabled=true;summaryBody.hidden=false;
+    const message=document.createElement('div');message.className='empty';message.textContent='已排入 AI Agent 整理佇列。不使用 Ollama；此對話的背景追蹤啟動後，會由 Agent 親自讀取逐字稿並整理。';summaryBody.replaceChildren(message);return;
+  }
   if (st === 'leaving' || st === 'transcribing' || sum.state === 'generating') {
-    const pct = sum.state === 'generating' ? Math.max(8, Number(sum.progress) || 10) : 15;
+    const pct = sum.state === 'generating' ? Math.max(0, Math.min(100,Number(sum.progress) || 0)) : 0;
     summaryBadge.textContent = '正在整理中';
     summaryBadge.className = 'summary-badge generating';
     summaryProgressWrap.hidden = false;
     summaryStage.textContent = sum.state === 'generating' ? (sum.stage || '正在整理會議記錄…') : '正在收尾並準備整理會議記錄…';
-    summaryPercent.textContent = pct + '%';
+    summaryPercent.textContent = sum.state==='generating' ? pct+'%' : '收尾中';
     summaryFill.style.width = pct + '%';
     summaryFill.parentElement?.setAttribute('aria-valuenow', String(pct));
     summaryRegen.disabled = true;
@@ -461,22 +457,23 @@ function row(record, pending) {
   }
   card.append(avatar, body); return card;
 }
-selector.addEventListener('change', () => selectMeeting(selector.value));
-primaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); });
-secondaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); });
+
+primaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); syncLanguagePresets(); void pollNow(); });
+secondaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); syncLanguagePresets(); void pollNow(); });
 async function get(url) { const response = await fetch(url); if (!response.ok) throw new Error('讀取失敗'); return response.json(); }
 async function pollNow() {
   try {
     const meetings = await get('/api/meetings');
     const optionSignature = JSON.stringify(meetings);
-    if (selector.dataset.signature !== optionSignature) {
-      const options = [new Option('自動跟隨最新會議', 'latest'), ...meetings.map((m) => new Option(m.id + ' · ' + (states[m.state] || '未知'), m.id))];
-      selector.replaceChildren(...options); selector.value = selected;
-      if (!selector.value) { selected = 'latest'; selector.value = selected; syncSelection(); }
-      selector.dataset.signature = optionSignature;
+    if (meetingOptionsSignature !== optionSignature) {
+      meetingOptionsSignature = optionSignature;
+      if (selected !== 'latest' && !meetings.some(m=>m.id === selected)) { selected='latest'; syncSelection(); }
       renderSidebar(meetings);
     }
+    cachedMeetings = meetings;
+    updateRecordControls();
     if (!meetings.length) {
+      currentRecord = null; activeMeetingId = ''; updateRecordControls();
       $('state').textContent = '尚無會議'; $('speaking').textContent = '加入會議後將自動顯示';
       $('transcript').replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無字幕，開始發言後會自動顯示。' }));
       if (summaryBody) summaryBody.replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無會議記錄可供整理。' }));
@@ -485,8 +482,11 @@ async function pollNow() {
       $('updated').textContent = ''; signature = ''; summarySignature = '';
       $('connection').textContent = '● 已連線'; return;
     }
-    const data = await get('/api/transcript?id=' + encodeURIComponent(selected));
+    const requestedId = selected;
+    const data = await get('/api/transcript?id=' + encodeURIComponent(requestedId));
+    if (selected !== requestedId) return;
     activeMeetingId = data.id || '';
+    currentRecord = data; updateRecordControls();
     updateSidebarActive();
     document.dispatchEvent(new CustomEvent('meeting-status', { detail:data }));
     $('state').textContent = states[data.status?.state] || '未知狀態';
@@ -522,3 +522,75 @@ async function poll() {
   setTimeout(poll, 750);
 }
 poll();
+
+function updateRecordControls() {
+  const data = currentRecord, st = data?.status || {};
+  const active = cachedMeetings.find(m=>recordingStates.has(m.state));
+  $('follow-latest').checked = selected === 'latest';
+  $('current-meeting-title').textContent = data ? (st.source === 'microphone' ? '現場錄音' : st.source === 'teams' ? '電腦會議收音' : 'Google Meet') + ' · ' + (st.code || data.id) : '尚未選擇會議';
+  $('current-meeting-detail').textContent = data ? '狀態：' + (states[st.state] || '未知狀態') + (st.source === 'microphone' && st.state === 'in_call' ? ' · 請保持此錄音分頁開啟；關閉分頁會停止收音。' : '') : '從左側選擇會議，或新增記錄。';
+  const canStop = data && recordingStates.has(st.state) && !['leaving','transcribing'].includes(st.state);
+  $('end-record').hidden = !canStop;
+  $('live-audio-health').hidden = st.state !== 'in_call';
+  const levels = st.stats?.levels;
+  $('record-mic-level').value = levels ? Math.min(1,(levels.mic || 0)/12000) : 0;
+  $('record-system-level').value = levels ? Math.min(1,(levels.system || 0)/12000) : 0;
+  $('record-system-meter').hidden = st.source !== 'teams';
+  $('record-mic-meter').hidden = !['microphone','teams'].includes(st.source);
+  $('record-audio-message').textContent = st.source === 'meet' ? '會議字幕與音訊由記錄端擷取；有訊號不代表辨識完成。' : '音量僅代表收到訊號，辨識結果稍後顯示。';
+  $('end-record').disabled = endingRecordId === data?.id || stopRequestedFor === data?.id;
+  if (data && stopRequestedFor === data.id && ['done','failed'].includes(st.state)) {
+    $('record-action-status').textContent = st.state === 'done' ? '記錄已保存' : '記錄收尾失敗，請查看下方錯誤。';
+    stopRequestedFor = '';
+  }
+  $('end-record').title = '只停止這場記錄；線上會議的記錄端會離開，其他與會者不受影響。';
+  $('return-record').hidden = !active || active.id === data?.id;
+  $('return-record').onclick = ()=>selectMeeting(active.id);
+  setupPanel.hidden = !setupOpen;
+  $('capture-feedback').hidden = !(setupOpen || (ownedRecordId && ownedRecordId === data?.id));
+}
+$('follow-latest').addEventListener('change', event=>selectMeeting(event.target.checked ? 'latest' : activeMeetingId));
+$('new-record').addEventListener('click', async()=>{
+  await pollNow();
+  const active = cachedMeetings.find(m=>recordingStates.has(m.state));
+  if (active) { selectMeeting(active.id); $('record-action-status').textContent='已有進行中的記錄，已返回該場。'; return; }
+  setupOpen = true; setupPanel.hidden = false; $('capture-feedback').hidden=false; $('record-action-status').textContent='';
+  $('audio-mode').focus();
+});
+$('cancel-record').addEventListener('click',()=>{setupOpen=false;updateRecordControls();});
+$('end-record').addEventListener('click',async()=>{
+  const id = currentRecord?.id;
+  if (!id || endingRecordId === id) return;
+  endingRecordId=id; stopRequestedFor=id; updateRecordControls();
+  $('record-action-status').textContent='正在停止並保存記錄…';
+  try {
+    if (id === ownedRecordId) {
+      document.dispatchEvent(new CustomEvent('record-stop',{detail:{id}}));
+    } else {
+      const response=await fetch('/api/meetings/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action:'stop'})});
+      const result=await response.json(); if (!response.ok) throw new Error(result.error || '停止失敗');
+    }
+  } catch(error) { stopRequestedFor=''; $('record-action-status').textContent='停止失敗：'+error.message; }
+  finally { endingRecordId=''; await pollNow(); }
+});
+document.addEventListener('record-finished',({detail})=>{
+  if (ownedRecordId === detail.id) ownedRecordId='';
+  if (detail.error) stopRequestedFor='';
+  if (currentRecord?.id === detail.id) $('record-action-status').textContent=detail.error || '已停止收音，正在完成剩餘辨識。';
+  void pollNow();
+});
+if (params.get('source') === 'teams') { setupOpen=true; setupPanel.hidden=false; }
+
+document.addEventListener('record-level',({detail})=>{if(currentRecord?.id===detail.id) $('record-mic-level').value=detail.value;});
+
+function syncLanguagePresets() {
+  $('lang-en-zh').setAttribute('aria-pressed',String(primaryLang.value === 'en' && secondaryLang.value === 'zh-TW'));
+  $('lang-zh-en').setAttribute('aria-pressed',String(primaryLang.value === 'zh-TW' && secondaryLang.value === 'en'));
+}
+for (const [id,primary,secondary] of [['lang-en-zh','en','zh-TW'],['lang-zh-en','zh-TW','en']]) {
+  $(id).addEventListener('click',()=>{
+    primaryLang.value=primary; secondaryLang.value=secondary;
+    signature=''; syncSelection(); syncLanguagePresets(); void pollNow();
+  });
+}
+syncLanguagePresets();

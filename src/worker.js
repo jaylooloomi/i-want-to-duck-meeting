@@ -19,9 +19,11 @@ import { pathToFileURL } from 'node:url';
 import { getConfig } from './config.js';
 import { readStatus, writeStatus } from './status.js';
 import { createLogger } from './log.js';
+import {enqueueFinishedAgentMeeting} from './agent-summary.js';
 
 /** Terminal status states (same as session.js TERMINAL_STATES; session.js is imported lazily). */
 const TERMINAL_STATES = Object.freeze(['done', 'failed']);
+let keepAliveForViewer = false;
 
 /**
  * Environment variables `join` hands to a WMI-launched worker through the env file: every
@@ -239,6 +241,7 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
     if (status.source === 'teams') {
       const { runTeamsRecording } = await import('./teams-recording.js');
       const final = await runTeamsRecording({config,dir,id,url,status});
+      enqueueFinishedAgentMeeting(dir);
       return final?.state === 'done' ? 0 : 1;
     }
     const { runSession } = await import('./session.js');
@@ -253,6 +256,7 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
       log: log.child('session'),
       foreground: false,
     });
+    enqueueFinishedAgentMeeting(dir);
     return final && final.state === 'done' ? 0 : 1;
   } catch (err) {
     log.error('session threw', err);
@@ -260,7 +264,10 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
     markCrashed(err);
     return 1;
   } finally {
-    try { await liveServer?.shutdown(); } catch { /* ignore */ }
+    // GUI meetings keep their local viewer alive so Agent-written notes can appear
+    // after the call ends. Headless/test workers retain the original exit lifecycle.
+    keepAliveForViewer=!!liveServer && !config.headless;
+    if(!keepAliveForViewer)try { await liveServer?.shutdown(); } catch { /* ignore */ }
   }
 }
 
@@ -268,7 +275,7 @@ const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(pat
 if (invokedDirectly) {
   workerMain(process.argv.slice(2), process.env, { crashHandlers: true, captureStdio: true }).then((code) => {
     // Playwright / timers may keep handles open; the session is over, so exit explicitly.
-    setTimeout(() => process.exit(code), 100).unref();
+    if(!keepAliveForViewer)setTimeout(() => process.exit(code), 100).unref();
     process.exitCode = code;
   });
 }

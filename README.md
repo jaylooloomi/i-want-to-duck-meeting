@@ -31,7 +31,7 @@
 | 🎙️ **Saved audio** | Meet records received meeting audio; Teams saves the local microphone, playback audio, and an aligned mix separately |
 | 🇹🇼 **Local Chinese ASR** | Microphone and Teams modes use Paraformer Chinese int8, Traditional Chinese conversion, and spoken digit formatting; Whisper provides whole-recording fallback transcription |
 | 👀 **Live workspace & history** | Joining a meeting automatically opens the local web panel (`http://127.0.0.1:8791`) with a persistent left sidebar of all meetings (supporting **one-click ZIP Export / Archive / Unarchive / Delete**), side-by-side live transcript & structured summary panes, primary language filtering, and real-time bilingual translation (`zh-TW` / `en` / `ja`) |
-| ✅ **Structured meeting notes** | When a meeting ends, the web panel automatically generates a 4-section structured summary (`summary.md`) with an animated progress bar, or you can ask Codex / Claude Code to summarize the transcript |
+| ✅ **Structured meeting notes** | When a meeting ends, the owning Codex conversation receives an Agent handoff request; the Agent reads the transcript and writes `summary.md`. The backend does not call Ollama or a fallback model |
 
 Recording and local ASR do not require an additional cloud speech API key. **Summaries are processed by your chosen AI service**; the entire workflow is not necessarily offline.
 
@@ -343,3 +343,21 @@ Application code is in `src/`, audio tools in `stt/`, the Codex skill in `codex/
 README structure and octopus illustration direction were inspired by [i-want-to-sleep](https://github.com/jaylooloomi/i-want-to-sleep). The two new illustrations were generated with built-in imagegen; see [prompts and sources](docs/readme-assets.md). Paraformer model selection was informed by [SpeakSlow](https://github.com/Jeffrey0117/SpeakSlow).
 
 Code is licensed under [MIT](LICENSE). Third-party packages and models retain their respective licenses.
+
+### Agent-owned meeting summaries
+
+Meetings launched from Codex carry CODEX_THREAD_ID. On completion, the worker queues a waiting_agent request; /api/summarize only requests Agent work and does not call Ollama. The Codex conversation must have an actual app heartbeat follow-up to resume after a turn ends. The skill creates/reuses this follow-up after join; it polls notes-pending and personally reviews the transcript, writes summary.md and reports notes-status ready. No heartbeat means no autonomous wake-up. App/computer availability and polling cadence apply; this is not instantaneous event delivery. Only that conversation's explicitly tracked meetings are processed. Historical notes remain untouched unless regeneration was requested.
+
+Commands: notes-follow <id> binds an existing meeting to the current chat, notes-pending lists its pending requests, and notes-status <id> generating|ready updates real Agent stages. No generated summary is marked complete without a nonempty newly written file. GUI workers keep their local viewer alive after meeting end so Agent-written notes can appear; headless workers retain their prior lifecycle.
+
+### Streamlined recording panel
+
+- Select meetings from the sidebar. The **Follow latest meeting** switch follows new sessions; manually selecting a meeting turns it off.
+- Agent-managed Google Meet/Teams sessions show their current status without requiring another recording start in the web panel.
+- **＋ 新增記錄** opens setup for a local microphone or computer audio plus microphone. Device selection and refresh are under **裝置設定**. Computer audio includes other applications playing through the selected output; headphones are recommended.
+- If a recording or its finalization is already active, the new-record entry returns to that session rather than starting another one.
+- **結束記錄** targets only the displayed active session. Historical sessions instead offer a return to the ongoing recording. Wait for finalization/transcription after stopping.
+- Browser microphone recording requires keeping the original recording tab open. Audio levels indicate signal, not transcription accuracy.
+- **逐字稿顯示** filters displayed text; it does not configure the platform's caption recognition language. Translation selection retains its existing behavior.
+
+The **英中** shortcut sets English transcript display plus Traditional Chinese translation; **中英** sets Chinese transcript display plus English translation. These are one-click display presets, not changes to Google/Teams caption recognition language. Chinese display includes mixed Chinese/English utterances; filtering is based on CJK characters, not a full language classifier. Translation still waits for finalized utterances. Automatic summary monitoring is scoped to the tracked session(s) and should be removed after those sessions complete or fail; it is recreated for the next meeting.

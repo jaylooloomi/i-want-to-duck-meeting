@@ -43,7 +43,7 @@ spec(test,'FE-04 network abort recovers with visible feedback and zero console',
 
 spec(test,'FE-05 microphone component permission denial restores controls',async({page,app,ui})=>{
   await page.addInitScript(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('QA permission denied','NotAllowedError');};});
-  await ui.open(app);await ui.start.click();await ui.text('無法開始收音：QA permission denied');
+  await ui.open(app);await ui.capture();await ui.start.click();await ui.text('無法開始收音：QA permission denied');
   assert.equal(await ui.start.isEnabled(),true);assert.equal(await ui.source.isEnabled(),true);assert.equal(app.calls.start.length,0);
 },{component:'microphone'});
 
@@ -71,12 +71,12 @@ spec(test,'FE-07 delayed start prevents duplicate submit and then stops',async({
   const clicked=ui.start.click();await request;
   assert.equal(await ui.start.isDisabled(),true);await ui.start.evaluate(button=>button.click());assert.equal(starts,1);
   gate.resolve();await clicked;await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
-  await ui.stop.click();await ui.text('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');assert.equal(app.calls.stop.length,1);
+  await ui.stop.click();await ui.text('記錄已保存');assert.equal(app.calls.stop.length,1);
 },{component:'microphone'});
 
 spec(test,'FE-08 outdated Teams response cannot overwrite current microphone feedback',async({page,app,ui})=>{
   const gate=defer();await page.route('**/api/audio-devices',async route=>{await gate.promise;await route.fulfill({json:devices});});
-  await ui.open(app);const request=page.waitForRequest(r=>r.url().endsWith('/api/audio-devices'));
+  await ui.open(app);await ui.capture();const request=page.waitForRequest(r=>r.url().endsWith('/api/audio-devices'));
   await ui.source.selectOption('teams');await request;await ui.source.selectOption('microphone');const response=page.waitForResponse(r=>r.url().endsWith('/api/audio-devices'));gate.resolve();
   await (await response).finished();await ui.text('尚未收音；按開始後會要求麥克風權限。');
   assert.equal(await page.getByText('Windows 雙路收音已就緒；請選擇與 Teams 相同的裝置。',{exact:true}).isVisible(),false);

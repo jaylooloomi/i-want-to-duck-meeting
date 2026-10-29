@@ -9,7 +9,7 @@ spec(test,'E2E-01 live HTTP transcript update finalization and meeting selection
   app.seed('qa-second',{},[record('第二場發言','乙')]);
   await ui.open(app,'?id=qa-first');await ui.text('第一場發言');
   assert.equal(await page.getByRole('link',{name:'進入 Meet ↗'}).getAttribute('href'),'https://meet.google.com/abc-defg-hij');
-  await ui.meeting.selectOption('qa-second');await ui.text('第二場發言');
+  await page.getByRole('complementary').getByRole('button',{name:/qa-second/}).click();await ui.text('第二場發言');
   assert.equal(new URL(page.url()).searchParams.get('id'),'qa-second');
   await page.reload();await ui.text('第二場發言');
   app.seed('qa-second',{state:'done'},[record('最終發言','乙')]);await ui.text('最終發言');await ui.text('記錄已停止');
@@ -40,24 +40,24 @@ spec(test,'E2E-05 unknown deep link cannot silently display latest under a stale
   assert.equal(new URL(page.url()).searchParams.get('id'),'latest','Fallback must synchronize the URL or show a not-found state');
 },{});
 for(const width of [1920,390])spec(test,`E2E-06 transcript viewport ${width} semantic controls and overflow`,async({page,app,ui})=>{
-  app.seed('qa-'+ 'long-meeting-'.repeat(10),{},[record('長段落'.repeat(100),'非常長的發言者姓名'.repeat(15))]);
+  app.seed('qa-'+ 'long-meeting-'.repeat(10),{state:'done'},[record('長段落'.repeat(100),'非常長的發言者姓名'.repeat(15))]);
   await ui.open(app);await ui.text('1 段發言');
   await page.getByLabel('自動捲動',{exact:true}).uncheck();await page.getByLabel('自動捲動',{exact:true}).check();
   const size=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
-  assert.ok(size.scroll<=size.width+1,JSON.stringify(size));await ui.start.click({trial:true});
+  assert.ok(size.scroll<=size.width+1,JSON.stringify(size));await ui.capture();await ui.start.click({trial:true});
 },{viewport:{width,height:width===390?844:1080}});
 
 spec(test,'E2E-07 real browser AudioWorklet PCM to HTTP and graceful stop',async({page,app,ui})=>{
   await ui.open(app);
   const pcm=page.waitForRequest(r=>r.url().endsWith('/api/microphone/audio'));
-  await ui.start.click();await pcm;await ui.text('QA adapter transcript');
+  await ui.capture();await ui.start.click();await pcm;await ui.text('QA adapter transcript');
   assert.ok(app.calls.audio.length>=2);assert.deepEqual(app.calls.audio.map(x=>x.sequence),app.calls.audio.map((_,i)=>i));
-  await ui.stop.click();await ui.text('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');
-  assert.equal(app.calls.start.length,1);assert.equal(app.calls.stop.length,1);assert.equal(await ui.start.isEnabled(),true);
+  await ui.stop.click();await ui.text('記錄已保存');
+  assert.equal(app.calls.start.length,1);assert.equal(app.calls.stop.length,1);assert.equal(await page.getByRole('button',{name:'＋ 新增記錄',exact:true}).isEnabled(),true);
 });
 spec(test,'E2E-08 denied microphone never creates a backend session',async({page,app,ui})=>{
   await page.addInitScript(()=>{navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('Permission denied','NotAllowedError');};});
-  await ui.open(app);await ui.start.click();await ui.text('無法開始收音：Permission denied');
+  await ui.open(app);await ui.capture();await ui.start.click();await ui.text('無法開始收音：Permission denied');
   assert.equal(await ui.start.isEnabled(),true);assert.deepEqual(app.calls.start,[]);
 });
 spec(test,'E2E-09 in-flight start is disabled and stop issues one request',async({page,app,ui})=>{
@@ -66,45 +66,45 @@ spec(test,'E2E-09 in-flight start is disabled and stop issues one request',async
   const sent=page.waitForRequest(r=>r.url().endsWith('/api/microphone/start'));const clicked=ui.start.click();await sent;
   try{assert.equal(await ui.start.isDisabled(),true);assert.equal(await ui.source.isDisabled(),true);}finally{gate.resolve();}
   await clicked;await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
-  await ui.stop.click();await ui.text('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');assert.equal(app.calls.start.length,1);assert.equal(app.calls.stop.length,1);
+  await ui.stop.click();await ui.text('記錄已保存');assert.equal(app.calls.start.length,1);assert.equal(app.calls.stop.length,1);
 });
 for(const code of [400,401,403,500])spec(test,`E2E-10 start HTTP ${code} recovers controls with strict console`,async({page,app,ui})=>{
   await page.route('**/api/microphone/start',route=>route.fulfill({status:code,json:{error:'QA model unavailable'}}));
   await ui.open(app,'?source=teams');await page.getByRole('option',{name:'QA headphones',exact:true}).waitFor({state:'attached'});
-  await ui.start.click();await ui.text('無法開始收音：QA model unavailable');assert.equal(await ui.start.isEnabled(),true);
+  await ui.capture();await ui.start.click();await ui.text('無法開始收音：QA model unavailable');assert.equal(await ui.start.isEnabled(),true);
 },{bug:'BUG-004'});
 spec(test,'E2E-10 stop failure restores start controls and reports incomplete finalization',async({page,app,ui})=>{
   await page.route('**/api/microphone/stop',route=>route.fulfill({status:500,json:{error:'QA stop failed'}}));
   await ui.open(app,'?source=teams');await page.getByRole('option',{name:'QA headphones',exact:true}).waitFor({state:'attached'});
-  await ui.start.click();await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
+  await ui.capture();await ui.start.click();await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
   await ui.stop.click();await ui.text('收音已停止；收尾失敗：QA stop failed');assert.equal(await ui.start.isEnabled(),true);
 },{bug:'BUG-004'});
 spec(test,'E2E-10 upload failure stops capture and shows the packet error',async({page,app,ui})=>{
   await page.route('**/api/microphone/audio',route=>route.fulfill({status:500,json:{error:'QA packet rejected'}}));
-  await ui.open(app);await ui.start.click();await ui.text('收音已停止：QA packet rejected');
+  await ui.open(app);await ui.capture();await ui.start.click();await ui.text('收音已停止：QA packet rejected');
   assert.equal(await ui.start.isEnabled(),true);assert.equal(app.calls.stop.length,1);
 },{bug:'BUG-004'});
 spec(test,'E2E-11 pagehide sends stop beacon and reload has no active capture claim',async({page,app,ui})=>{
   await ui.open(app);const pcm=page.waitForRequest(r=>r.url().endsWith('/api/microphone/audio'));
-  await ui.start.click();await pcm;
+  await ui.capture();await ui.start.click();await pcm;
   const stopped=defer();app.server.on('request',(request,response)=>{
     if(request.url==='/api/microphone/stop')response.once('finish',()=>stopped.resolve());
   });
-  await page.reload();await stopped.promise;await ui.text('尚未收音；按開始後會要求麥克風權限。');assert.equal(app.calls.stop.length,1);
+  await page.reload();await stopped.promise;await ui.capture();await ui.text('尚未收音；按開始後會要求麥克風權限。');assert.equal(app.calls.stop.length,1);
 });
 for(const width of [1920,390])spec(test,`E2E-12 microphone controls actionable viewport ${width}`,async({page,app,ui})=>{
-  await ui.open(app);await ui.start.click();await ui.text('● 正在本機收音 · 依聲音區分講者 A、B · 請告知與會者正在記錄');
-  await ui.stop.click();await ui.text('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');
-  const box=await ui.start.boundingBox();assert.ok(box.x>=0 && box.x+box.width<=width);
+  await ui.open(app);await ui.capture();await ui.start.click();await ui.text('● 正在本機收音 · 依聲音區分講者 A、B · 請告知與會者正在記錄');
+  await ui.stop.click();await ui.text('記錄已保存');
+  const box=await page.getByRole('button',{name:'＋ 新增記錄',exact:true}).boundingBox();assert.ok(box.x>=0 && box.x+box.width<=width);
 },{viewport:{width,height:width===390?844:1080}});
 
 spec(test,'E2E-13 Teams device IDs start heartbeat levels and stop',async({page,app,ui})=>{
   await ui.open(app,'?source=teams');await page.getByRole('option',{name:'QA headphones',exact:true}).waitFor({state:'attached'});
-  await ui.start.click();await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
+  await ui.capture();await ui.start.click();await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
   await page.waitForRequest(r=>r.url().endsWith('/api/microphone/heartbeat'));
   assert.deepEqual(app.calls.start,[{mode:'teams',input:11,output:22}]);
   assert.equal(await page.evaluate(()=>globalThis.qaXss),undefined);await ui.stop.click();
-  await ui.text('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');assert.equal(app.calls.stop.length,1);
+  await ui.text('記錄已保存');assert.equal(app.calls.stop.length,1);
 });
 spec(test,'E2E-14 absent Teams devices block start with a readable message',async({page,app,ui})=>{
   await page.route('**/api/audio-devices',route=>route.fulfill({json:{inputs:[],outputs:[],defaultInput:null,defaultOutput:null}}));
@@ -124,15 +124,16 @@ spec(test,'E2E-16 Teams device API failure has visible feedback and zero console
 },{bug:'BUG-004'});
 spec(test,'E2E-17 Teams mode query survives start stop and reload',async({page,app,ui})=>{
   await ui.open(app,'?source=teams');await page.getByRole('option',{name:'QA headphones',exact:true}).waitFor({state:'attached'});
-  await ui.start.click();await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
-  await ui.stop.click();await ui.text('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');
+  await ui.capture();await ui.start.click();await ui.text('● Teams 雙路收音中 · 自己：講者 A · 遠端：講者 B 起 · 全部留在本機');
+  await ui.stop.click();await ui.text('記錄已保存');
   await page.reload();assert.equal(await ui.source.inputValue(),'teams');
 },{});
 for(const width of [1920,390])spec(test,`E2E-18 long Teams device labels viewport ${width}`,async({page,app,ui})=>{
   await page.route('**/api/audio-devices',route=>route.fulfill({json:{...devices,inputs:[{id:11,name:'Very long microphone '.repeat(20)}]}}));
   await ui.open(app,'?source=teams');await page.getByRole('option',{name:'QA headphones',exact:true}).waitFor({state:'attached'});
+  await page.getByText('裝置設定',{exact:true}).click();
   await page.getByRole('combobox',{name:/^自己的麥克風/}).selectOption('11');
-  await ui.start.click({trial:true});const size=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
+  await ui.capture();await ui.start.click({trial:true});const size=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
   assert.ok(size.scroll<=size.width+1,JSON.stringify(size));
 },{viewport:{width,height:width===390?844:1080}});
 spec(test,'E2E-19 root query routes browser back forward and 404',async({page,app,ui})=>{

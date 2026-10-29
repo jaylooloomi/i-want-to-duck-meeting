@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-30",
+  "timezone": "Asia/Taipei",
+  "scope": "Streamlined meeting sidebar and recording controls",
+  "unit": {
+    "tests": 516,
+    "pass": 516,
+    "fail": 0,
+    "skip": 0,
+    "log": "test-ui-unit-final.log"
+  },
+  "browser_and_contract_regression": {
+    "tests": 57,
+    "pass": 41,
+    "fail": 0,
+    "skip": 16,
+    "skip_reason": "Existing BUG-004 HTTP/network console-error cases remain skipped; not counted as passing.",
+    "log": "test-flow-complete.log"
+  },
+  "changes": [
+    "Removed duplicate meeting selector",
+    "Sidebar follow-latest checkbox",
+    "Explicit new-record setup with collapsed device settings",
+    "Exact-session stop and return-to-active controls",
+    "Concurrent start guard and terminal/finalization stop rejection",
+    "Desktop/mobile cards and actionable controls"
+  ],
+  "evidence": "test/.tmp/qa/manual",
+  "limitations": [
+    "No new real Google Meet or Teams service meeting was joined",
+    "Physical microphone and ASR accuracy are outside this UI verification",
+    "Translation latency unchanged",
+    "Existing BUG-004 cases are not fixed by this task"
+  ],
+  "private_meeting_data_used": false,
+  "dependencies_added": false
+}

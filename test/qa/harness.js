@@ -67,7 +67,7 @@ export async function browserCase(t,run,{component,viewport={width:1920,height:1
     await context.route('**/favicon.ico',route=>route.fulfill({status:204}));
     await context.route('**/api/audio-devices',route=>route.fulfill({json:devices}));
     if(component==='transcript')await context.route('**/microphone.js',route=>route.fulfill({body:''}));
-    if(component==='microphone')await context.route('**/app.js',route=>route.fulfill({body:''}));
+
     await context.route(url=>!['127.0.0.1','localhost'].includes(url.hostname),route=>route.abort());
     await run({page,context,app,guard,dir,ui:new Viewer(page)});
     guard.assertClean();
@@ -85,12 +85,14 @@ export async function browserCase(t,run,{component,viewport={width:1920,height:1
   }
 }
 export class Viewer {
-  constructor(page){this.page=page;this.source=page.getByRole('combobox',{name:/^會議來源/});
-    this.meeting=page.getByRole('combobox',{name:'會議',exact:true});
+  constructor(page){this.page=page;this.source=page.getByRole('combobox',{name:/^收音方式/});
     this.transcript=page.getByRole('region',{name:'會議逐字稿'});
     this.start=page.getByRole('button',{name:'開始收音',exact:true});
     this.stop=page.getByRole('button',{name:'結束記錄',exact:true});}
   async text(value){await this.page.getByText(value,{exact:true}).waitFor({state:'visible',timeout:5000});}
+  async capture(){
+    if(!await this.source.isVisible()) await this.page.getByRole('button',{name:'＋ 新增記錄',exact:true}).click();
+  }
   async open(app,query=''){await this.page.goto(app.url+'/'+query);await this.page.getByRole('heading',{name:'每個人的話，都跟得上。'}).waitFor();}
 }
 export function spec(test,id,body,options={}) {

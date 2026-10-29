@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-30",
+  "targetedTests": 90,
+  "passed": 90,
+  "failed": 0,
+  "ollamaSummaryCallsRemoved": true,
+  "waitingAgentHasNoFakeProgress": true,
+  "threadScopedPersistentQueueTested": true,
+  "currentLocalMeetingPersonallySummarized": true,
+  "recordingSeconds": 65.2,
+  "localTranscriptionVerified": true,
+  "liveSummaryState": "ready",
+  "heartbeatIntervalMinutes": 1,
+  "newLiveMeetingAfterChangeTested": true,
+  "privateArtifactsCommitted": false,
+  "heartbeatActiveAtOriginalVerification": true,
+  "heartbeatCurrentlyActive": false,
+  "newLiveMeetingRecordingSeconds": 35.7,
+  "newLiveMeetingAutomaticallySummarized": true,
+  "monitorCleanupPolicy": "Delete session-scoped monitoring after all tracked sessions complete or fail; recreate for the next meeting."
+}

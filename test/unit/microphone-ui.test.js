@@ -16,6 +16,7 @@ test('browser microphone sends ordered PCM and stops tracks; API rejects cross-o
     fs.rmSync(root, { recursive:true, force:true });
   });
   const packets = []; let stopped = false;
+  let resolvePackets; const receivedPackets=new Promise(resolve=>{resolvePackets=resolve;});
   const id = '20261024-160000-local-microphone';
   const microphone = {
     async start() {
@@ -25,7 +26,7 @@ test('browser microphone sends ordered PCM and stops tracks; API rejects cross-o
     },
     audio(token, sequence, audio) {
       assert.equal(token, 'test-token'); assert.equal(sequence, packets.length);
-      assert.equal(audio.length % 2, 0); packets.push(audio);
+      assert.equal(audio.length % 2, 0); packets.push(audio); if(packets.length>=2)resolvePackets();
     },
     stop(token) {
       assert.equal(token, 'test-token'); stopped = true;
@@ -41,18 +42,19 @@ test('browser microphone sends ordered PCM and stops tracks; API rejects cross-o
   browser = await chromium.launch({ channel:'chrome', headless:true, args:['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] });
   const page = await browser.newPage();
   const errors = []; page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
+  await page.route('**/favicon.ico',route=>route.fulfill({status:204}));
+  await page.addInitScript(()=>{const original=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);navigator.mediaDevices.getUserMedia=async(...args)=>{const stream=await original(...args);globalThis.qaCaptureTracks=stream.getTracks();return stream;};});
   await page.goto(url);
+  await page.getByRole('button',{name:'＋ 新增記錄',exact:true}).click();
   await page.getByRole('button', { name:'開始收音', exact:true }).click();
-  await page.waitForFunction(() => /正在本機收音|無法開始收音/.test(document.getElementById('mic-status').textContent), { timeout:10000 });
-  assert.match(await page.locator('#mic-status').textContent(), /正在本機收音/);
-  await page.waitForTimeout(1100);
-  assert.ok(packets.length >= 2, 'AudioWorklet emitted audio, not just UI state');
+  await page.getByText('● 正在本機收音 · 依聲音區分講者 A、B · 請告知與會者正在記錄',{exact:true}).waitFor();
+  await receivedPackets;
+  assert.ok(packets.length>=2,'AudioWorklet emitted actual PCM');
   await page.getByRole('button', { name:'結束記錄', exact:true }).click();
-  await page.waitForFunction(() => document.getElementById('mic-status').textContent.includes('已停止收音'));
+  await page.getByText('記錄已保存',{exact:true}).waitFor();
   assert.ok(stopped);
-  const count = packets.length;
-  await page.waitForTimeout(400);
-  assert.equal(packets.length, count, 'capture stopped');
+  assert.deepEqual(await page.evaluate(()=>globalThis.qaCaptureTracks.map(track=>track.readyState)),['ended']);
   assert.ok(packets.at(-1).length <= 8000, 'last partial packet delivered');
   assert.deepEqual(errors, []);
 });

@@ -44,6 +44,7 @@
     const samples = new Float32Array(analyser.fftSize); analyser.getFloatTimeDomainData(samples);
     const rms = Math.sqrt(samples.reduce((sum, s) => sum + s * s, 0) / samples.length);
     byId('mic-level').value = Math.min(1, rms * 5);
+    if(session) document.dispatchEvent(new CustomEvent('record-level',{detail:{id:session.id,value:Math.min(1,rms*5)}}));
     meterFrame = requestAnimationFrame(meter);
   }
   async function release() {
@@ -65,6 +66,8 @@
   }
   async function finish(reason) {
     if (stopping) return;
+    const finishedId = session?.id;
+    let finishError = '';
     stopping = true; stop.disabled = true;
     clearInterval(heartbeatTimer);
     message(reason || '停止收音，正在保存最後一段並完成辨識…');
@@ -74,8 +77,8 @@
       await release(); await upload.catch(() => {});
       if (session) await post('/api/microphone/stop', { token:session.token });
       if (!reason) message('已停止收音，剩餘辨識在本機完成；可查看下方會議狀態。');
-    } catch (error) { message('收音已停止；收尾失敗：' + error.message); }
-    finally { session = null; starting = false; device.disabled = false; mode.disabled = false; byId('teams-input').disabled = false; byId('teams-output').disabled = false; byId('teams-mic-level').value = 0; byId('teams-system-level').value = 0; stopping = false; updateStart(); }
+    } catch (error) { finishError='收音已停止；收尾失敗：' + error.message; message(finishError); }
+    finally { session = null; starting = false; device.disabled = false; mode.disabled = false; byId('teams-input').disabled = false; byId('teams-output').disabled = false; byId('teams-mic-level').value = 0; byId('teams-system-level').value = 0; stopping = false; updateStart(); document.dispatchEvent(new CustomEvent('record-finished',{detail:{id:finishedId,error:finishError}})); }
   }
   start.addEventListener('click', async () => {
     if (start.disabled || starting || session || stopping) return;
@@ -110,6 +113,7 @@
     } finally { starting = false; updateStart(); }
   });
   stop.addEventListener('click', () => finish());
+  document.addEventListener('record-stop',({detail})=>{if(session?.id === detail.id) void finish();});
   document.addEventListener('meeting-status', ({ detail }) => {
     if (session?.id === detail.id && detail.status?.source === 'teams') {
       byId('teams-mic-level').value = Math.min(1, (detail.status.stats?.levels?.mic || 0) / 12000);
@@ -123,7 +127,7 @@
   mode.addEventListener('change', () => {
     byId('teams-devices').hidden = mode.value !== 'teams';
     device.closest('label').hidden = mode.value === 'teams';
-    document.querySelector('.mic-panel strong').textContent = mode.value === 'teams' ? 'Teams · 會議聲音＋自己的麥克風' : '現場會議 · 本機麥克風';
+    byId('capture-description').textContent = mode.value === 'teams' ? '錄製電腦播放的所有聲音與自己的麥克風，建議使用耳機。' : '錄製這台電腦麥克風收到的聲音。';
     devices();
   });
   addEventListener('pagehide', () => {

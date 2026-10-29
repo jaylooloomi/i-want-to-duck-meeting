@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-30",
+  "timezone": "Asia/Taipei",
+  "scope": [
+    "All previously uncommitted Agent summary handoff changes",
+    "Recording page simplification and sidebar fix",
+    "English/Chinese translation display shortcuts",
+    "Session monitor cleanup instructions"
+  ],
+  "regression": {
+    "tests": 610,
+    "pass": 594,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 16
+  },
+  "command": "node --test --test-concurrency=1 \"test/unit/**/*.test.js\" \"test/qa/*.test.js\"",
+  "log": "test-release-regression.log",
+  "repeat": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "log": "test-release-presets-repeat.log"
+  },
+  "existing_skips": "16 pre-existing BUG-004 HTTP/network browser console-error cases; not counted as passing.",
+  "local_installation": {
+    "codex_skill_matches_repo": true,
+    "claude_plugin_enabled": true,
+    "claude_plugin_content_updated": true,
+    "plugin_manifest_version": "0.1.0"
+  },
+  "limits": [
+    "No new real-service Meet or Teams meeting joined for this release",
+    "Translation responses mocked in shortcut tests",
+    "Shortcuts do not change platform caption recognition language",
+    "Translation still updates after finalized utterances",
+    "No private recordings or meeting transcripts committed"
+  ]
+}

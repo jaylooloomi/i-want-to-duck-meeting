@@ -17,6 +17,21 @@ const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const ROOT = path.join(REPO, 'test', '.tmp', 'cli-unit');
 let n = 0;
 
+test('agent follow and pending are chat-scoped; completion requires a written summary',async()=>{
+  const home=newHome(),id='20261030-000000-abc-defg-hij';const dir=fakeMeeting(home,id,{state:'done'},[['A','確認測試']]);
+  const env={CODEX_THREAD_ID:'synthetic-chat-a'};
+  assert.equal((await run(['notes-follow',id],{home,env})).code,0);
+  const pending=await run(['notes-pending'],{home,env});assert.equal(pending.code,0);assert.equal(JSON.parse(pending.text)[0].id,id);
+  assert.deepEqual(JSON.parse((await run(['notes-pending'],{home,env:{CODEX_THREAD_ID:'chat-b'}})).text),[]);
+  assert.equal((await run(['notes-status',id,'ready'],{home,env})).code,1);
+  assert.equal((await run(['notes-status',id,'generating'],{home,env})).code,0);
+  fs.writeFileSync(path.join(dir,'summary.md'),'Agent 根據實際測試整理。');
+  assert.equal((await run(['notes-status',id,'ready'],{home,env})).code,0);
+  assert.deepEqual(JSON.parse((await run(['notes-pending'],{home,env})).text),[]);
+  assert.equal((await run(['notes-status',id,'failed','--stage','沒有可核對內容'],{home,env})).code,0);
+  assert.equal(readStatus(dir).summaryJob.state,'failed');
+});
+
 before(() => {
   fs.rmSync(ROOT, { recursive: true, force: true });
   fs.mkdirSync(ROOT, { recursive: true });

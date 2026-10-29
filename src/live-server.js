@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { sttPython } from './stt.js';
 
 const translationCache = new Map();
-const summaryJobs = new Map();
+import {requestAgentSummary} from './agent-summary.js';
 
 const CRC32_TABLE = new Uint32Array(256);
 for (let i = 0; i < 256; i++) {
@@ -284,52 +284,11 @@ ${transcriptText}`;
   return { systemPrompt, userPrompt, combined };
 }
 
-async function generateWithLlm(status, transcriptText) {
-  const { systemPrompt, userPrompt } = buildAiPromptPackage(status, transcriptText);
-
-  const models = [
-    process.env.OPENMEETING_SUMMARY_MODEL,
-    'gemma4:31b-cloud',
-    'qwen3-chat:latest',
-    'qwen3:8b',
-  ].filter(Boolean);
-
-  for (const model of models) {
-    try {
-      const res = await fetch('http://127.0.0.1:11434/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(45000),
-        body: JSON.stringify({
-          model,
-          stream: false,
-          think: false,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-      });
-      if (!res.ok) continue;
-      const data = await res.json();
-      let content = String(data?.message?.content || '').trim();
-      content = content
-        .replace(/^```(?:markdown|md)?\r?\n/i, '')
-        .replace(/\r?\n```$/, '')
-        .replace(/\$\\rightarrow\$/g, '→')
-        .replace(/\\rightarrow/g, '→')
-        .trim();
-      if (content && content.length > 60) return content + '\n';
-    } catch {
-      /* try next model */
-    }
-  }
-  return null;
-}
-
 export function getMeetingSummaryState(dir, status, records = []) {
   const summaryPath = path.join(dir, 'summary.md');
-  const job = summaryJobs.get(dir) || (status?.summaryJob?.state === 'generating' ? status.summaryJob : null);
+  const job = readStatus(dir)?.summaryJob || null;
+  if(job?.state==='failed')return {state:'failed',progress:0,stage:job.error || 'Agent 整理未完成',markdown:null,updatedAt:job.updatedAt};
+  if(job && (job.state === 'waiting_agent' || (job.state === 'generating' && job.provider !== 'agent')))return {state:'waiting_agent',progress:0,stage:'等待 AI Agent 接手整理（不使用 Ollama）',markdown:null,updatedAt:job.requestedAt || job.updatedAt};
   if (job && job.state === 'generating') {
     return {
       state: 'generating',
@@ -366,83 +325,15 @@ export function getMeetingSummaryState(dir, status, records = []) {
   return {
     state: 'idle',
     progress: 0,
-    stage: status?.state === 'done' && records.length > 0 ? '尚待整理會議記錄' : '等待會議結束後自動整理',
+    stage: status?.state === 'done' && records.length > 0 ? '等待 AI Agent 整理' : '會議結束後交由 AI Agent 整理',
     markdown: null,
     updatedAt: null,
   };
 }
 
 export function triggerMeetingSummary(dir, status, records = [], { force = false } = {}) {
-  const existing = summaryJobs.get(dir);
-  if (existing && existing.state === 'generating') return getMeetingSummaryState(dir, status, records);
-  const summaryPath = path.join(dir, 'summary.md');
-  if (!force && fs.existsSync(summaryPath)) {
-    try {
-      if (fs.readFileSync(summaryPath, 'utf8').trim()) return getMeetingSummaryState(dir, status, records);
-    } catch { /* ignore */ }
-  }
-
-  const job = {
-    state: 'generating',
-    progress: 8,
-    stage: '正在讀取會議逐字稿與基本資訊…',
-    updatedAt: new Date().toISOString(),
-    error: null,
-  };
-  summaryJobs.set(dir, job);
-
-  const stages = [
-    { at: 22, text: '正在過濾語音雜訊與辨識出席人員…' },
-    { at: 45, text: '正在分析討論議題（案由 → 討論要點 → 最終決議）…' },
-    { at: 68, text: '正在提取行動方案（待辦事項、負責人、完成時限）…' },
-    { at: 86, text: '正在排版與校對會議記錄結構…' },
-  ];
-  let stageIdx = 0;
-  const timer = setInterval(() => {
-    if (job.state !== 'generating') { clearInterval(timer); return; }
-    if (stageIdx < stages.length && job.progress >= stages[stageIdx].at - 6) {
-      job.stage = stages[stageIdx].text;
-      stageIdx++;
-    }
-    if (job.progress < 94) {
-      job.progress = Math.min(94, job.progress + Math.max(1, Math.round((95 - job.progress) * 0.14)));
-      job.updatedAt = new Date().toISOString();
-    }
-  }, 600);
-  timer.unref?.();
-
-  (async () => {
-    try {
-      const minAnimPromise = new Promise((r) => setTimeout(r, 2600));
-      const currentStatus = readStatus(dir) || status || {};
-      const transcriptText = cleanTranscriptForPrompt(dir, records);
-      let markdown = await generateWithLlm(currentStatus, transcriptText);
-      if (!markdown) {
-        markdown = buildFallbackSummary(currentStatus, records);
-      }
-      await minAnimPromise;
-      if (!fs.existsSync(dir)) {
-        job.state = 'failed';
-        job.error = '會議資料夾已不存在';
-        return;
-      }
-      const tmp = `${summaryPath}.tmp`;
-      fs.writeFileSync(tmp, markdown, 'utf8');
-      fs.renameSync(tmp, summaryPath);
-      job.state = 'ready';
-      job.progress = 100;
-      job.stage = '會議記錄整理完成';
-      job.updatedAt = new Date().toISOString();
-    } catch (err) {
-      job.state = 'failed';
-      job.error = err?.message || '整理會議記錄時發生錯誤';
-      job.updatedAt = new Date().toISOString();
-    } finally {
-      clearInterval(timer);
-    }
-  })();
-
-  return getMeetingSummaryState(dir, status, records);
+  requestAgentSummary(dir,{force});
+  return getMeetingSummaryState(dir,readStatus(dir) || status,records);
 }
 
 async function body(req, limit = 65536) {
@@ -521,6 +412,13 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         const meeting = resolveMeeting(meetingsDir, wantedId);
         if (!meeting || meeting.id !== wantedId) { json({ error: '找不到該會議' }, 404); return; }
         const st = readStatus(meeting.dir) || {};
+        if (action === 'stop') {
+          if (!['starting','launching','joining','waiting_login','selecting_account','waiting_admission','in_call'].includes(st.state)) { json({ error:'這場記錄已結束或正在收尾' },409); return; }
+          if (microphone.current?.id === meeting.id) microphone.stop(microphone.current.token);
+          else if (st.pid && isProcessAlive(st.pid)) fs.writeFileSync(path.join(meeting.dir,'STOP'),new Date().toISOString()+'\n');
+          else { json({ error:'找不到仍在執行的記錄程序' },409); return; }
+          json({ok:true,id:meeting.id,state:'leaving'}); return;
+        }
         if (action === 'archive') {
           writeStatus(meeting.dir, { prevState: st.state && st.state !== 'archived' ? st.state : (st.prevState || 'done'), state: 'archived', archivedAt: new Date().toISOString() });
           json({ ok: true, id: meeting.id, state: 'archived' }); return;
@@ -536,7 +434,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
           } else if (st.pid && isProcessAlive(st.pid)) {
             try { process.kill(st.pid); } catch { /* ignore */ }
           }
-          summaryJobs.delete(meeting.dir);
+
           fs.rmSync(meeting.dir, { recursive: true, force: true });
           json({ ok: true, id: meeting.id, deleted: true }); return;
         }
@@ -550,6 +448,8 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
           // Worker-owned identity and lifetime are internal; HTTP callers may only
           // choose the capture mode and device IDs, never filesystem paths or leases.
           const { mode, input, output } = options;
+          const active = listMeetings(meetingsDir).find(m=>!['done','failed','archived'].includes(m.status?.state) && (microphone.current?.id === m.id || (m.status?.pid && isProcessAlive(m.status.pid))));
+          if (active) { json({error:'已有進行中的記錄，請先返回該場。',id:active.id},409); return; }
           json(await microphone.start({ mode, input, output })); return;
         }
         if (url.pathname === '/api/microphone/audio' && req.headers['content-type'] === 'application/octet-stream') {
