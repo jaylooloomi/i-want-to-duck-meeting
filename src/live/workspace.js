@@ -30,7 +30,7 @@
   function renderNotes(data){
     const sum=data?.summary||{},ready=sum.state==='ready'&&!!sum.markdown;
     for(const button of document.querySelectorAll('[data-notes-tab]'))button.setAttribute('aria-pressed',String(button.dataset.notesTab===tab));
-    const mail=tab==='mail';$('mail-panel').hidden=!mail;$('summary-body').hidden=mail||summaryCollapsed;document.getElementsByClassName('comparison-panel')[0].hidden=mail;$('notes-copy').hidden=$('notes-download').hidden=mail;
+    const mail=tab==='mail';$('mail-panel').hidden=!mail;$('summary-body').hidden=mail||summaryCollapsed;document.getElementsByClassName('comparison-panel')[0].hidden=mail;$('notes-copy').hidden=$('notes-download').hidden=false;
     if(mail){for(const button of document.querySelectorAll('[data-notes-tab]')){const key=button.dataset.notesTab;button.textContent=uiText(key==='mail'?'郵件':key==='actions'?'待辦':key==='decisions'?'決議':'摘要');button.setAttribute('aria-label',button.textContent);}notesSignature='';return;}
     $('notes-copy').disabled=$('notes-download').disabled=!ready;
     const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions]);
@@ -135,8 +135,8 @@
   document.addEventListener('workspace-rendered',event=>render(event.detail));
   document.addEventListener('workspace-empty',()=>{current=null;render({records:[],workspace:{}});});
   document.querySelectorAll('[data-notes-tab]').forEach(button=>button.addEventListener('click',()=>{tab=button.dataset.notesTab;const url=new URL(location.href);url.searchParams.set('notes',tab);history.replaceState(null,'',url);document.querySelectorAll('[data-notes-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderNotes(current);}));
-  $('notes-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(current.summary.markdown);message(uiText('已複製會議紀錄'));}catch{message(uiText('無法存取剪貼簿，請使用下載會議紀錄。'));}});
-  $('notes-download').addEventListener('click',()=>{if(current?.summary?.markdown)saveFile(current.summary.markdown,current.id+'-summary.md');});
+  $('notes-copy').addEventListener('click',async()=>{if(tab==='mail'){$('mail-copy').click();return;}try{await navigator.clipboard.writeText(current.summary.markdown);message(uiText('已複製會議紀錄'));}catch{message(uiText('無法存取剪貼簿，請使用下載會議紀錄。'));}});
+  $('notes-download').addEventListener('click',()=>{if(tab==='mail'){$('mail-download').click();return;}if(current?.summary?.markdown)saveFile(current.summary.markdown,current.id+'-summary.md');});
   $('workspace-export').addEventListener('click',()=>{if(current?.id)exportMeeting(current.id);});
   $('archive-current').addEventListener('click',()=>{$('meeting-menu').open=false;if(current?.id)void performMeetingAction(current.id,current.status.state==='archived'?'unarchive':'archive');});
   $('rename-meeting').addEventListener('click',()=>{if(!current)return;$('meeting-menu').open=false;renameMeetingId=current.id;$('rename-input').value=current.workspace.title;$('rename-error').textContent='';$('rename-dialog').showModal();$('rename-input').focus();});

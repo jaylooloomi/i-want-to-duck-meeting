@@ -119,3 +119,8 @@ Two unit + QA runs passed: 692 tests / 676 passed / 0 failed / 16 existing BUG-0
 Additional integration run: 81 tests, 72 passed, 4 failed, 5 existing environment/opt-in skips. All four failures were `spawnSync powershell.exe ENOENT` caused by the invocation PATH, not changed product logic. With Windows PowerShell on PATH, the entire Chrome-launch file passed 7/7 and the TTS/STT file passed 1/1 (`test-mail-release-chrome.log`, `test-mail-release-stt.log`). All failed cases therefore passed targeted replay; the full integration suite was not rerun afterward. Use the normal Windows shell PATH (including WindowsPowerShell/v1.0) when running it.
 
 Included earlier UI changes: vertically centered notes tabs, plain utterance overflow button, and wider highlighted utterance background. Design evidence uses synthetic content. Private meeting folders, recordings, local mail drafts, browser profiles and model files are excluded from this commit. No real mailbox creation or sending was tested.
+
+
+## Mail layout release follow-up — 2026-10-31
+
+Final browser/API/integrity replay: **13 passed, 0 failed, 0 skipped**, 37.9 s (`test-mail-layout-release.log`). Covers centered action labels, stable tab/header geometry, shared mail copy, and 80-line mail expansion without inner scrollbars across desktop/mobile and both themes. This focused layout validation supplements the prior 692-case regression; it is not a new full-suite run. README and synthetic screenshots updated.

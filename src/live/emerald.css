@@ -379,7 +379,7 @@ html:not([lang=zh-Hant]) .pane-transcript>.pane-header{grid-template-rows:auto 3
 #mail-form input{min-height:36px}#mail-form textarea{min-height:220px;resize:vertical}
 .mail-recipient-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mail-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0;border-top:1px solid #dce6ed}
-.mail-actions button{min-height:36px;padding:8px 12px;font-size:12px;border:1px solid #d3e1e6;border-radius:6px;background:#f3f8f6;color:#226e5d}
+.mail-actions button{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:36px;padding:7px 12px;line-height:20px;margin:0;text-align:center;font-size:12px;border:1px solid #d3e1e6;border-radius:6px;background:#f3f8f6;color:#226e5d}
 #mail-save{background:#008572;color:#fff;border-color:#008572}
 :root[data-theme=dark] .mail-panel{background:#0f2032;color:#c7daec}
 :root[data-theme=dark] #mail-form input,:root[data-theme=dark] #mail-form textarea{background:#0d1c2c;color:#d3e4f3;border-color:#30485e}
@@ -391,4 +391,9 @@ html:not([lang=zh-Hant]) .pane-transcript>.pane-header{grid-template-rows:auto 3
 :root[data-theme=dark] #mail-stale{background:#3a321e;color:#f2d797}
 @media(max-width:520px){.mail-panel{padding:12px}.mail-recipient-grid{grid-template-columns:1fr}.mail-actions button{flex:1;padding-inline:6px}}
 
-.summary-actions:has(#notes-copy[hidden]):has(#notes-download[hidden]){display:none!important}
+/* One workspace scroll surface; notes and mail expand without nested scrollbars. */
+main{overflow-y:auto;overflow-x:hidden}
+.workspace-grid{flex:none;overflow:visible;align-items:start}
+#summary-panel{overflow:visible;min-height:0;height:auto}
+#summary-panel>.pane-body{flex:none;max-height:none;overflow:visible}
+#mail-form textarea{overflow-y:hidden;resize:none;min-height:220px}

@@ -441,3 +441,5 @@ Agent 完成會議整理後，開啟 **會議紀錄整理 → 郵件**。每次�
 你要求 Agent 建立或寄送信件時，Agent 透過 `node bin/openmeeting.js mail-draft <ID> --json` 讀取指定場次的 `draft.to/cc/bcc/subject/body`，再使用已連接的信箱工具處理。缺少收件人必須確認，不從發言者姓名猜測信箱；不使用 Ollama。
 
 Agent 寫入時，以 UTF-8 JSON 提供 `to/cc/bcc` 陣列、`subject/body`，以及讀取所得的 `expectedRevision`（目前 revision，初次為 null）、`sourceRevision`，執行 `node bin/openmeeting.js mail-draft <ID> --file <JSON絕對路徑> --json`。有對話擁有者的場次會檢查歸屬。正式資料是 `mail-draft.json`，另存可讀的 `mail-draft.md`。版本衝突會保留編輯，請先複製再重新核對；來源紀錄變動會提示草稿需重新核對。原會議紀錄與逐字稿不會被改寫。本次未對真實信箱建立或寄送信件。
+
+切換「郵件」時，會議紀錄的標題、工具列與頁籤位置保持一致；上方複製／下載會處理目前分頁內容。紀錄隨內容延伸，由工作區統一捲動，郵件內文自動增高，避免面板與文字框出現雙重捲軸。

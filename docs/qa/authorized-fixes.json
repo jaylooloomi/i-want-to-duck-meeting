@@ -19,16 +19,16 @@
   "src/teams-recording.js": "543d16b072d85038de0da20b19e4f2ea1516fa25327470efcf92155783378946",
   "src/worker.js": "436da11896106cb1567f42f275bfa600584117d4700d6f2db805e77e78b556c8",
   "src/agent-summary.js": "46dba8cfe1031a62f400454dce6076324a4f70ee8355b4cf803d786014b2cc13",
-  "src/live/workspace.js": "ea16a22ce8a0fa11ede5d6f6ecd135b27f3c7b8b3c2707e0f1b9f4b0f5cf109d",
+  "src/live/workspace.js": "f90dbff4fe7591e62c60985aab328aeaadeffabbf3ee753277518a65f090cd56",
   "src/workspace-data.js": "42d737f8c5352dd37b296f62be82d8a6f6ad9af252efd6a5c5f4de9793d4ce15",
   "src/highlights.js": "365f052b9a2977b718741ea96b25aad57168f336988bd46263da5d007af6df68",
   "src/workspace-actions.js": "235621778ee4fa1914c47dcb707a6aea26374df894f5bbed8a5b4deb3b22c495",
-  "src/live/emerald.css": "84453d042ec197e9f390b8fcc86b6d3501b84c0214331ee3730e1320c52b65fa",
+  "src/live/emerald.css": "108a0a45ac8d99bcd608394d62cf0f06b6fd458f022bc8bd85abb6ec4d69afca",
   "src/live/theme.js": "41e57ec459fb145feee19d1614e374e5fc604e96853c569154dc62f9560c3824",
   "src/live/i18n.js": "fcfb28d75c74f9cc75d04c3d20959b930d942b0f5ea791b304cde08288d675b7",
   "src/live/locales.js": "a23b3f2be98239971d2fa4f75c8f48d8d64a97420a3f9c5bcfcf87177528901e",
   "package-lock.json": "dae178614dde3ec436403932fcea576749b8e8e4902d25ee2471ed39111e0bcd",
   "plugin/.claude-plugin/plugin.json": "bb78371040f7190f85c6f2e6ff4b8b9439198562c2fe862c30e2a6199fe7c038",
   "src/mail-draft.js": "f892fb8560d1901ed18e240999e0801bd2d7dcdf24d836e3baaa0aa355c168a0",
-  "src/live/mail.js": "652ddd48a62065444b75c10972e0634af0e5b039309c335c2b8eda95e38a9684"
+  "src/live/mail.js": "186016bdca905408b0467c8c31f66706f7eb72db14b808bdbf9df702e6ae907c"
 }

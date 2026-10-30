@@ -48,3 +48,13 @@ Two unit + QA runs passed: 692 tests / 676 passed / 0 failed / 16 existing BUG-0
 Additional integration run: 81 tests, 72 passed, 4 failed, 5 existing environment/opt-in skips. All four failures were `spawnSync powershell.exe ENOENT` caused by the invocation PATH, not changed product logic. With Windows PowerShell on PATH, the entire Chrome-launch file passed 7/7 and the TTS/STT file passed 1/1 (`test-mail-release-chrome.log`, `test-mail-release-stt.log`). All failed cases therefore passed targeted replay; the full integration suite was not rerun afterward. Use the normal Windows shell PATH (including WindowsPowerShell/v1.0) when running it.
 
 Included earlier UI changes: vertically centered notes tabs, plain utterance overflow button, and wider highlighted utterance background. Design evidence uses synthetic content. Private meeting folders, recordings, local mail drafts, browser profiles and model files are excluded from this commit. No real mailbox creation or sending was tested.
+
+
+## Stable tab controls follow-up
+
+Mail keeps the shared header copy/download toolbar in place and delegates these actions to the current mail draft. Switching overview/decisions/actions/mail retains exact control rectangles in desktop/mobile and both themes. Mail button text is flex-centered. Browser/API/integrity replay: 13 passed, zero failures/skips (29.7 s).
+
+
+## Single-scroll notes layout
+
+The workspace owns vertical scrolling; notes/mail panels expand naturally without independent overflow. Mail body height follows its text and viewport width. An 80-line input was verified without textarea or mail-panel overflow at 1280/390 in light/dark; existing control-position and mail functionality checks still pass. Browser/API/integrity replay: 13 passed, zero failures/skips (29.8 s).
