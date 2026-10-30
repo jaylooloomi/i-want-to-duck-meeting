@@ -8,9 +8,8 @@
  const snapshot=()=>({to:split($('mail-to').value),cc:split($('mail-cc').value),bcc:split($('mail-bcc').value),subject:$('mail-subject').value.trim(),body:$('mail-body').value});
  const text=draft=>[(draft.to.length?'To: '+draft.to.join(', '):'To: (not specified)'),...(draft.cc.length?['Cc: '+draft.cc.join(', ')]:[]),...(draft.bcc.length?['Bcc: '+draft.bcc.join(', ')]:[]),'Subject: '+draft.subject,'',draft.body].join('\n');
  function valid(draft){if(!draft.subject||/[\r\n\0]/.test(draft.subject)||!draft.body.trim())return false;return [...draft.to,...draft.cc,...draft.bcc].every(address=>(/^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/).test(address));}
- function fitBody(){const field=$('mail-body');if(!field.getClientRects().length)return;field.style.height='auto';field.style.height=(field.scrollHeight+2)+'px';}
  function render(){
-  const info=current?.mailDraft||{},hasText=valid(snapshot());requestAnimationFrame(fitBody);
+  const info=current?.mailDraft||{},hasText=valid(snapshot());
   $('mail-empty').hidden=!!info.draft;
   $('mail-state').textContent=uiText(busy?'正在儲存…':dirty?'尚未儲存':info.draft?'已儲存於本機':'尚未產生');
   $('mail-stale').hidden=!(info.stale||(dirty&&baseSource!==info.sourceRevision));
@@ -41,7 +40,6 @@
  });
  $('mail-copy').addEventListener('click',async()=>{if(!valid(snapshot()))return;try{await navigator.clipboard.writeText(text(snapshot()));warning='已複製郵件內容。';}catch{warning='無法存取剪貼簿，請下載草稿。';}render();});
  $('mail-download').addEventListener('click',()=>{if(!valid(snapshot()))return;const url=URL.createObjectURL(new Blob([text(snapshot())],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=(current?.id||'meeting')+'-mail-draft.txt';a.click();URL.revokeObjectURL(url);warning='已下載郵件草稿。';render();});
- window.addEventListener('resize',fitBody);
  window.addEventListener('beforeunload',event=>{if(dirty||unsaved.size){event.preventDefault();event.returnValue='';}});
  document.addEventListener('mail-meeting',event=>receive(event.detail));
  document.addEventListener('ui-language-change',render);

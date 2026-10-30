@@ -94,7 +94,9 @@ function parseMs(raw, fallback) {
  * @returns {Config}
  */
 export function getConfig(env = process.env) {
-  const home = env.OPENMEETING_HOME ? path.resolve(env.OPENMEETING_HOME) : REPO_ROOT;
+  let installedHome, installedPort;
+  try { const installed = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'installation.json'), 'utf8')); installedHome = installed.dataRoot; installedPort = installed.port; } catch { /* source checkouts keep their existing data root */ }
+  const home = env.OPENMEETING_HOME ? path.resolve(env.OPENMEETING_HOME) : typeof installedHome === 'string' && path.isAbsolute(installedHome) ? installedHome : REPO_ROOT;
   /** @type {Record<string, number>} */
   const timeouts = {};
   for (const [key, def] of Object.entries(TIMEOUT_DEFAULTS)) {
@@ -102,6 +104,7 @@ export function getConfig(env = process.env) {
   }
   return {
     repoRoot: REPO_ROOT,
+    livePort: Number.isInteger(installedPort) && installedPort > 0 && installedPort <= 65535 ? installedPort : 8791,
     home,
     meetingsDir: path.join(home, 'meetings'),
     profileDir: env.OPENMEETING_PROFILE ? path.resolve(env.OPENMEETING_PROFILE) : path.join(home, 'chrome-profile'),

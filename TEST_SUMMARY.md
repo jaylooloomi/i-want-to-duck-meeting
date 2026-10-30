@@ -124,3 +124,13 @@ Included earlier UI changes: vertically centered notes tabs, plain utterance ove
 ## Mail layout release follow-up — 2026-10-31
 
 Final browser/API/integrity replay: **13 passed, 0 failed, 0 skipped**, 37.9 s (`test-mail-layout-release.log`). Covers centered action labels, stable tab/header geometry, shared mail copy, and 80-line mail expansion without inner scrollbars across desktop/mobile and both themes. This focused layout validation supplements the prior 692-case regression; it is not a new full-suite run. README and synthetic screenshots updated.
+
+
+Final locale/layout/mail/integrity regression: **46 passed, 0 failed, 0 skipped**, 172.3 s (`test-locale-unified-verified.log`). Includes 8 same-page cross-locale geometry cases across four widths and both themes.
+
+
+## Release 0.3.0 final validation — 2026-10-31
+
+Final unit + QA regression: **704 tests, 688 passed, 0 failed, 16 pre-existing BUG-004 skips**, 546.4 seconds (`test-release-030-final.log`). Focused installer/integrity/Korean replay: **8 passed, zero failed/skipped** (`test-release-030-focused.log`). The initial development runs exposed a duplicate Korean archived-label dictionary entry and an integrity snapshot taken during edits; both were corrected before the final full run. No new skips or console-error exclusions were introduced.
+
+Actual installer evidence: `test-windows-release-smoke.log` passed bundled runtime without a global Node path, isolated Codex/Claude integration, HTTP workspace, synthetic previous-version upgrade, downgrade refusal, uninstall and data preservation. The final EXE was the one exercised. Payload audit: 217 files, no meeting/profile/model/token/runtime-marker directories. SHA256SUMS.txt accompanies the release asset. Local host isolation does not substitute for a fresh Windows VM; unsigned-installer/SmartScreen and first-model-download limits are documented in [Windows installer QA](docs/qa/reports/windows-installer-030.md).

@@ -3,7 +3,7 @@ function seed(app,id='mail'){const dir=app.seed(id,{state:'done',title:'郵件�
 test('MAIL-API source/revision validation, exact scope and same-origin boundary',async t=>{const app=await fixture();t.after(()=>app.close());const dir=seed(app);const get=()=>readMailDraft(dir);const post=(body,origin=app.url)=>fetch(app.url+'/api/mail-draft',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body)});const input={id:'mail',subject:'Subject',body:'Original notes only.',to:[],cc:[],bcc:[],sourceRevision:get().sourceRevision,expectedRevision:null};assert.equal((await post(input,'https://evil.example')).status,403);assert.equal((await post({...input,id:'latest'})).status,400);assert.equal((await post({...input,id:'../outside'})).status,404);assert.equal((await post({...input,to:['bad']})).status,400);assert.equal((await post(input)).status,200);const conflict=await post(input);assert.equal(conflict.status,200);assert.deepEqual(await conflict.json(),{ok:false,error:'mail_conflict'});assert.equal(get().draft.subject,'Subject');});
 for(const width of [1280,390])for(const theme of ['light','dark'])test(`MAIL-UI edit save copy download and source privacy ${width} ${theme}`,{timeout:25000},t=>browserCase(t,async({page,context,app,dir})=>{
  const folder=seed(app);const original=fs.readFileSync(path.join(folder,'summary.md'),'utf8');await context.grantPermissions(['clipboard-read','clipboard-write']);await page.addInitScript(theme=>localStorage.setItem('duck-meeting:theme',theme),theme);await page.goto(app.url+'/?id=mail&primary=all&secondary=none');await page.getByText('原文不可更動。',{exact:true}).waitFor();
- const controls=()=>page.evaluate(()=>[...document.querySelectorAll('[data-notes-tab],#notes-copy,#notes-download')].map(b=>{const r=b.getBoundingClientRect();return [r.x,r.y,r.width,r.height];}));const baseline=await controls();
+ const controls=()=>page.evaluate(()=>[...document.querySelectorAll('[data-notes-tab],#notes-copy,#notes-download')].map(b=>{const r=b.getBoundingClientRect();return [r.x+scrollX,r.y+scrollY,r.width,r.height];}));const baseline=await controls();
  for(const name of ['決議','待辦','郵件','摘要','郵件']){await page.getByRole('button',{name,exact:true}).click();assert.deepEqual(await controls(),baseline,'Notes controls must not move on tab switch');}
 
  const panel=page.getByRole('region',{name:'郵件草稿',exact:true});await panel.waitFor();
@@ -16,7 +16,8 @@ assert.equal(await page.getByRole('button',{name:'建立信件草稿',exact:true
  await panel.getByRole('button',{name:'儲存草稿',exact:true}).click();await panel.getByText('草稿或來源已更新；編輯已保留，請先複製內容再重新核對。',{exact:true}).waitFor();assert.equal(await panel.getByRole('textbox',{name:'郵件內文',exact:true}).inputValue(),'User edit must survive polling.');
  assert.equal(fs.readFileSync(path.join(folder,'summary.md'),'utf8'),original);
  await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill('長篇會議郵件內容\n'.repeat(80));
- await page.waitForFunction(()=>{const body=document.getElementById('mail-body');return body.clientHeight>=body.scrollHeight;});
+ await page.waitForFunction(()=>{const body=document.getElementById('mail-body');return body.clientHeight<body.scrollHeight&&body.clientHeight<=220;});
+ const action=panel.getByRole('button',{name:'下載草稿',exact:true});await action.scrollIntoViewIfNeeded();const bounds=await action.boundingBox();assert.ok(bounds.y>=0&&bounds.y+bounds.height<=900);
  const scroll=await panel.evaluate(panel=>({height:panel.clientHeight,content:panel.scrollHeight,overflow:getComputedStyle(panel).overflowY}));assert.equal(scroll.overflow,'visible');assert.ok(scroll.content<=scroll.height+2,JSON.stringify(scroll));
  await page.screenshot({path:dir+'/mail.png',fullPage:true});
 },{viewport:{width,height:900}}));
@@ -42,4 +43,12 @@ test('MAIL unsaved changes survive switching meetings',{timeout:20000},t=>browse
 for(const [language,tab,label,subject,body] of [['en','Mail','Mail draft','Subject','Email body'],['ja','メール','メール原稿','件名','メール本文'],['ko','메일','메일 초안','제목','메일 본문']])test(`MAIL localized tab preserves source content ${language}`,{timeout:15000},t=>browserCase(t,async({page,app})=>{
  const folder=seed(app),read=readMailDraft(folder);saveMailDraft(folder,{to:[],cc:[],bcc:[],subject:'郵件',body:'原文內容不得翻譯。',expectedRevision:null,sourceRevision:read.sourceRevision},{actor:'agent'});
  await page.addInitScript(language=>localStorage.setItem('duck-meeting:ui-language',language),language);await page.goto(app.url+'/?id=mail&secondary=none');await page.getByRole('button',{name:tab,exact:true}).click();const panel=page.getByRole('region',{name:label,exact:true});await panel.waitFor();assert.equal(await panel.getByRole('textbox',{name:subject,exact:true}).inputValue(),'郵件');assert.equal(await panel.getByRole('textbox',{name:body,exact:true}).inputValue(),'原文內容不得翻譯。');
+}));
+
+
+test('MAIL tab retains decision and action counts through switching and polling',{timeout:20000},t=>browserCase(t,async({page,app})=>{
+ const folder=seed(app);fs.writeFileSync(path.join(folder,'summary.md'),'# 計數測試\n\n## 重要決議\n\n1. 保留原文。\n2. 核對來源。\n\n## 行動項目\n\n| 事項 | 負責人 | 期限 |\n| --- | --- | --- |\n| 檢查頁面 | Alice | 未指定 |\n| 檢查匯出 | Bob | 未指定 |\n');
+ await page.goto(app.url+'/?id=mail&secondary=none');const decisions=page.getByRole('button',{name:'決議',exact:true}),actions=page.getByRole('button',{name:'待辦',exact:true});await decisions.getByText('決議 (2)',{exact:true}).waitFor();await actions.getByText('待辦 (2)',{exact:true}).waitFor();
+ for(const tab of ['郵件','決議','待辦','摘要','郵件']){await page.getByRole('button',{name:tab,exact:true}).click();assert.equal(await decisions.textContent(),'決議 (2)');assert.equal(await actions.textContent(),'待辦 (2)');}
+ const response=await fetch(app.url+'/api/transcript?id=mail');const data=await response.json();await page.evaluate(data=>document.dispatchEvent(new CustomEvent('workspace-rendered',{detail:data})),data);assert.equal(await decisions.textContent(),'決議 (2)');assert.equal(await actions.textContent(),'待辦 (2)');
 }));

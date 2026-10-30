@@ -202,3 +202,19 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] MAIL-RACE FE-E2E: double-submit blocking, stale poll response, conflicting Agent edit, dirty content retained across meeting switches.
 - [x] MAIL-I18N FE-E2E: English/Japanese/Korean labels preserve source content.
 - [x] MAIL-GUARD FE-E2E: every browser case uses the shared console/pageerror failure guard and semantic locators.
+
+
+## Shared locale geometry — 2026-10-31
+
+- [x] LOCALE-GEOMETRY FE-E2E: switch zh-TW → en → ja → ko → zh-TW on the same page at 390/900/1280/1920 and light/dark; sidebar, footer, segmented navigation, pane headers, tabs, source status and form-control dimensions remain within one pixel of the Chinese baseline.
+- [x] I18N-LAYOUT FE-E2E: English/Korean selected option text fits, source labels stay readable, no page horizontal overflow.
+- [x] I18N FE-E2E: settings dialogs, archive navigation, storage denial, cross-tab synchronization, recording/playback and original content survive switching.
+
+
+## Windows installer lifecycle — 0.3.0
+
+- [x] WIN-UNIT: stable update selection, trusted assets, checksum tampering and missing assets.
+- [x] WIN-OWNERSHIP: owned skill detection, recording guard and installed data-root overrides.
+- [x] WIN-INSTALL: actual silent Setup with bundled Node and isolated Codex/Claude configs, CLI and HTTP workspace.
+- [x] WIN-UPGRADE: repair and synthetic previous-version upgrade preserve data; downgrade rejected.
+- [x] WIN-UNINSTALL: remove owned integrations/application, retain data by default; developer settings unchanged.

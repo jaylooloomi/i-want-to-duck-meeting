@@ -10,3 +10,7 @@ audio-settings.json
 audio-settings.json.*.tmp
 tools/
 plugin/skills/meet/SKILL.md
+
+dist/
+installation.json
+integration-receipt.json

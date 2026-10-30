@@ -1207,7 +1207,7 @@ export async function main(argv, io = {}) {
   try {
     switch (command) {
       case 'live': {
-        const port = flags.port === undefined ? 8791 : Number(flags.port);
+        const port = flags.port === undefined ? ctx.config.livePort : Number(flags.port);
         if (!Number.isInteger(port) || port < 0 || port > 65535) {
           out('ERROR=invalid_arguments'); err('port 必須是 0–65535 的整數'); return 1;
         }

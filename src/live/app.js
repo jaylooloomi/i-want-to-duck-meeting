@@ -60,7 +60,7 @@ document.addEventListener('microphone-started', ({ detail }) => {
   syncSelection();
 });
 const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已完成', archived:'已封存', failed:'記錄失敗' };
-const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'已完成', archived:'📦 已封存', failed:'✕ 異常' };
+const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'已完成', archived:'已封存', failed:'✕ 異常' };
 const recordingClock=value=>{const base=Date.parse(currentRecord?.status?.joinedAt||currentRecord?.status?.startedAt),at=Date.parse(value);if(!Number.isFinite(base)||!Number.isFinite(at))return clock(value);const seconds=Math.max(0,Math.floor((at-base)/1000));return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');};
 const clock = (value) => { const date = new Date(value); return Number.isNaN(+date) ? '' : date.toLocaleTimeString(window.DuckI18n.language, { hour12:false }); };
 const hasCjk = (s) => /[\u3400-\u9FFF\uF900-\uFAFF]/.test(s);
@@ -492,7 +492,7 @@ function updateSummaryPanel(data) {
   summaryProgressWrap.hidden = true;
   const empty = document.createElement('div'); empty.className = 'empty';
   empty.textContent = data.records?.length
-    ? (st === 'in_call' ? uiText('會議正在進行中。結束後可在 AI 對話框輸入「會議紀錄整理」交由 Agent 深度整理，或點擊右上角按鈕整理／匯出。') : uiText('此場會議尚未整理。您可以在 AI 對話框輸入「會議紀錄整理」交由 Agent 親自深度整理，或點擊上方「✨ 匯出逐字稿交由自訂 AI 整理」／「重新整理會議記錄」。'))
+    ? (st === 'in_call' ? uiText('會議正在進行中。結束後可在 AI 對話框輸入「會議紀錄整理」交由 Agent 深度整理，或點擊右上角按鈕整理／匯出。') : uiText('此場會議尚未整理。您可以在 AI 對話框輸入「會議紀錄整理」交由 Agent 親自深度整理，或點擊上方「匯出逐字稿交由自訂 AI 整理」／「重新整理會議記錄」。'))
     : uiText('本場會議尚無有效對話字幕，累積發言後即可產生結構化會議記錄。');
   summaryBody.replaceChildren(empty);
   summaryBody.hidden = summaryCollapsed;

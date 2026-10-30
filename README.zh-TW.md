@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.2.0-informational" alt="版本 0.2.0">
+  <img src="https://img.shields.io/badge/version-0.3.0-informational" alt="版本 0.3.0">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -19,6 +19,20 @@
 
 <p align="center"><img src="docs/images/meeting-hero-zh.png" alt="左側：參與者一邊開會一邊忙著寫筆記。右側：戴耳機的橘色章魚協助保存兩路音訊、逐字稿與待辦，讓參與者專心討論。" width="900"></p>
 <p align="center"><sub>功能情境插畫，非實際介面截圖。</sub></p>
+
+## Windows 安裝包（建議）
+
+從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.0-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
+
+- 支援 Windows 10/11 x64；按使用者安裝至 `%LOCALAPPDATA%\Programs\DuckMeeting`，不需管理員權限。
+- 會議、錄音、登入設定及模型獨立存於 `%LOCALAPPDATA%\DuckMeeting\data`，升級預設保留。原始碼版的舊資料不會自動搬移。安裝包使用本機 8792 埠，原始碼版維持 8791。
+- 首次需要音訊辨識時才下載 Python／模型。也可執行「開始功能表 → Duck Meeting → Prepare speech recognition」，觀看準備進度並等完成。
+- 更新：執行「Check for updates」，確認後才下載，經 SHA-256 檢查再開啟安裝精靈。私人 Repo 需要存取權；API 無法取得時改開 Releases 頁面，登入後手動下載。不內嵌或保存 GitHub Token。
+- 升級：執行新版 Setup，保留資料。升級或解除安裝前須結束錄音。
+- 解除安裝：Windows「設定 → 應用程式 → Duck Meeting」或開始功能表捷徑。只清除仍屬於本安裝的技能；預設保留資料，互動式移除可經第二次確認後刪除，靜默移除永遠保留資料。
+- 第一版安裝包尚未購買程式碼簽章憑證，Windows 可能顯示未知發行者／SmartScreen 提示；校驗碼不等同發行者簽章。
+
+開發者可設定官方 Inno Setup 的 `ISCC_PATH`，執行 `npm ci`、`npm run build:windows` 重建；另提供手動 GitHub Actions 打包測試流程。[測試報告與限制](docs/qa/reports/windows-installer-030.md)。
 
 ## 0.2.0 更新
 
@@ -442,4 +456,6 @@ Agent 完成會議整理後，開啟 **會議紀錄整理 → 郵件**。每次�
 
 Agent 寫入時，以 UTF-8 JSON 提供 `to/cc/bcc` 陣列、`subject/body`，以及讀取所得的 `expectedRevision`（目前 revision，初次為 null）、`sourceRevision`，執行 `node bin/openmeeting.js mail-draft <ID> --file <JSON絕對路徑> --json`。有對話擁有者的場次會檢查歸屬。正式資料是 `mail-draft.json`，另存可讀的 `mail-draft.md`。版本衝突會保留編輯，請先複製再重新核對；來源紀錄變動會提示草稿需重新核對。原會議紀錄與逐字稿不會被改寫。本次未對真實信箱建立或寄送信件。
 
-切換「郵件」時，會議紀錄的標題、工具列與頁籤位置保持一致；上方複製／下載會處理目前分頁內容。紀錄隨內容延伸，由工作區統一捲動，郵件內文自動增高，避免面板與文字框出現雙重捲軸。
+切換「郵件」時，會議紀錄的標題、工具列與頁籤位置保持一致；上方複製／下載會處理目前分頁內容。紀錄隨內容延伸，由工作區統一捲動，郵件內文採固定範圍高度並可獨立捲動，下方操作列保持靠近內文，避免長內容推走按鈕。
+
+中、英、日、韓介面共用繁體中文版面尺寸：同視口下的側欄寬度、雙欄比例、工具列與頁籤位置一致。長標籤在固定元件內處理，不因切換語系改變整體布局。

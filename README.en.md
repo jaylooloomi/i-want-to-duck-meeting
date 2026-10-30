@@ -1,3 +1,17 @@
+## Windows installer (recommended)
+
+Download **DuckMeeting-0.3.0-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+
+- Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
+- Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
+- Speech models/Python audio dependencies are not bundled. First audio use prepares them online; **Start menu → Duck Meeting → Prepare speech recognition** can prepare them in advance with visible progress. Keep that window open until completion.
+- **Start menu → Duck Meeting → Check for updates** checks stable GitHub Releases, asks before downloading, verifies SHA-256 against the release checksum file and opens Setup. Private repositories require access; when API access is unavailable, it opens the Releases page for browser sign-in/manual download. It does not store a GitHub token.
+- Running a newer Setup upgrades the same installation and preserves data. Finish recordings before upgrading or uninstalling.
+- Remove via **Windows Settings → Apps → Duck Meeting**, or the Start-menu uninstall shortcut. Managed skills are removed only if still owned by this installation. Data is kept by default; interactive uninstall offers a second-confirmed deletion option. Silent uninstall always keeps data.
+- This first installer is **not code-signed**; Windows may show an unknown-publisher/SmartScreen prompt. SHA256SUMS is an integrity check, not publisher signing.
+
+Developers: install the official Inno Setup compiler, set `ISCC_PATH`, then run `npm ci` and `npm run build:windows`. The optional manual GitHub Actions workflow builds and smoke-tests the package. See [installer QA and limitations](docs/qa/reports/windows-installer-030.md).
+
 # English documentation
 
 The English README is now the default: [README.md](README.md).
@@ -13,4 +27,4 @@ When you ask the Agent to create or send an email, it reads this exact meeting u
 
 For Agent updates, save UTF-8 JSON with `to`, `cc`, `bcc` arrays, `subject`, `body`, and the returned `expectedRevision` (the current `revision`, initially null) and `sourceRevision`; run `node bin/openmeeting.js mail-draft <ID> --file <absolute-json-path> --json`. The returned fields live under `draft`. Thread ownership is enforced where the meeting has an owner. Canonical content is stored in `mail-draft.json`, with a readable `mail-draft.md` companion. Version conflicts preserve your edits; copy them before reloading and reconciling. Changed meeting notes mark the saved draft as stale. Existing notes and transcripts remain unchanged. Mailbox creation/sending requires a connected mail service and separate user instruction; it has not been exercised against a real mailbox in this implementation.
 
-The notes header and tabs keep their positions when switching to Email. Shared Copy/Download actions follow the selected tab. Notes expand in the workspace scroll area, and the email body grows with its content to avoid nested notes-panel/textbox scrollbars.
+The notes header and tabs keep their positions when switching to Email. Shared Copy/Download actions follow the selected tab. Notes expand in the workspace scroll area, while the email editor has a bounded height with its own text scrollbar and a nearby sticky action row.

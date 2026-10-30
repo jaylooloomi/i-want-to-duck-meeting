@@ -31,7 +31,8 @@
     const sum=data?.summary||{},ready=sum.state==='ready'&&!!sum.markdown;
     for(const button of document.querySelectorAll('[data-notes-tab]'))button.setAttribute('aria-pressed',String(button.dataset.notesTab===tab));
     const mail=tab==='mail';$('mail-panel').hidden=!mail;$('summary-body').hidden=mail||summaryCollapsed;document.getElementsByClassName('comparison-panel')[0].hidden=mail;$('notes-copy').hidden=$('notes-download').hidden=false;
-    if(mail){for(const button of document.querySelectorAll('[data-notes-tab]')){const key=button.dataset.notesTab;button.textContent=uiText(key==='mail'?'郵件':key==='actions'?'待辦':key==='decisions'?'決議':'摘要');button.setAttribute('aria-label',button.textContent);}notesSignature='';return;}
+    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=kind==='actions'?data?.workspace?.actions?.items.length:kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null;button.textContent=label+(count?' ('+count+')':'');}
+    if(mail){notesSignature='';return;}
     $('notes-copy').disabled=$('notes-download').disabled=!ready;
     const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions]);
     if(key===notesSignature)return;notesSignature=key;
@@ -41,7 +42,6 @@
     const cards=document.createDocumentFragment();let card=null;
     for(const node of [...fragment.childNodes]){if(!card||node.classList?.contains('summary-h')){card=document.createElement('section');card.className='note-card';cards.append(card);}card.append(node);}
     $('summary-body').replaceChildren(cards);
-    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=kind==='actions'?data.workspace?.actions?.items.length:kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null;button.textContent=label+(count?' ('+count+')':'');}
   }
 
   function transcriptText(data){return (data?.records||[]).map(record=>(record.speaker||uiText('未知發言者'))+' '+date(record.t0)+'\n'+record.text).join('\n\n');}

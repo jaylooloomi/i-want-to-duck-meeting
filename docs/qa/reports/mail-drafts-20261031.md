@@ -58,3 +58,13 @@ Mail keeps the shared header copy/download toolbar in place and delegates these 
 ## Single-scroll notes layout
 
 The workspace owns vertical scrolling; notes/mail panels expand naturally without independent overflow. Mail body height follows its text and viewport width. An 80-line input was verified without textarea or mail-panel overflow at 1280/390 in light/dark; existing control-position and mail functionality checks still pass. Browser/API/integrity replay: 13 passed, zero failures/skips (29.8 s).
+
+
+## Tab count preservation
+
+The mail-only label renderer discarded decision/action counts. All four tabs now use one label/count update before content branching. A real browser test preserves both counts across all tabs and a fresh workspace-rendered polling event. Mail/API/integrity replay: 14 passed, zero failed/skipped, 37.6 s (`test-mail-counts.log`).
+
+
+## Bounded email editor (supersedes auto-growing body)
+
+Per revised UX request, email body height is bounded to 120–220px with internal vertical scrolling. Removed auto-height writes; actions use a sticky bottom row with theme-matched background. Notes panel itself remains without an inner scroll surface. Long-text and reachable action checks pass on desktop/mobile and light/dark; 14 browser/API/integrity tests passed, zero failures/skips (37.2 s). Synthetic screenshots refreshed.

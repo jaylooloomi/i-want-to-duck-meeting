@@ -695,15 +695,15 @@ window.DuckLocaleCatalog={
     "その他の整理オプション",
     "추가 정리 옵션"
   ],
-  "✨ 匯出逐字稿交由自訂 AI 整理": [
-    "✨ Export transcript for your AI",
-    "✨ AI用に文字起こしを出力",
-    "✨ AI 정리용 대화록 내보내기"
+  "匯出逐字稿交由自訂 AI 整理": [
+    "Export transcript for your AI",
+    "AI用に文字起こしを出力",
+    "AI 정리용 대화록 내보내기"
   ],
-  "📦 匯出整場資訊": [
-    "📦 Export meeting files",
-    "📦 会議ファイルを出力",
-    "📦 회의 파일 내보내기"
+  "匯出整場資訊": [
+    "Export meeting files",
+    "会議ファイルを出力",
+    "회의 파일 내보내기"
   ],
   "重新整理會議記錄": [
     "Regenerate notes",
@@ -864,11 +864,6 @@ window.DuckLocaleCatalog={
     "● Recording",
     "● 録音中",
     "● 녹음 중"
-  ],
-  "📦 已封存": [
-    "📦 Archived",
-    "📦 アーカイブ",
-    "📦 보관됨"
   ],
   "✕ 異常": [
     "✕ Error",
@@ -1740,7 +1735,7 @@ window.DuckLocaleCatalog={
     "会議進行中です。終了後にAgentに会議ノートの整理を依頼するか、整理・出力ボタンを利用してください。",
     "회의 진행 중입니다. 종료 후 Agent에 회의록 정리를 요청하거나 정리 및 내보내기 기능을 사용하세요."
   ],
-  "此場會議尚未整理。您可以在 AI 對話框輸入「會議紀錄整理」交由 Agent 親自深度整理，或點擊上方「✨ 匯出逐字稿交由自訂 AI 整理」／「重新整理會議記錄」。": [
+  "此場會議尚未整理。您可以在 AI 對話框輸入「會議紀錄整理」交由 Agent 親自深度整理，或點擊上方「匯出逐字稿交由自訂 AI 整理」／「重新整理會議記錄」。": [
     "No notes yet. Ask the Agent to prepare meeting notes, export the transcript for your AI, or request notes again.",
     "まだ整理されていません。Agentに会議ノートの整理を依頼するか、AI用に文字起こしを出力・再整理してください。",
     "아직 회의록이 없습니다. Agent에 정리를 요청하거나 AI용 대화록 내보내기 또는 다시 정리를 사용하세요."

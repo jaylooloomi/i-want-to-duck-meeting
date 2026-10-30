@@ -37,6 +37,8 @@ export function skillPaths(repoRoot = REPO_ROOT) {
  */
 export function cliCommand(repoRoot = REPO_ROOT) {
   const bin = `${repoRoot.replace(/\\/g, '/').replace(/\/+$/, '')}/bin/openmeeting.js`;
+  const bundled = path.join(repoRoot, 'runtime', 'node.exe');
+  if (existsSync(path.join(repoRoot, 'installation.json')) && existsSync(bundled)) return `"${bundled.replace(/\\/g, '/')}" "${bin}"`;
   return `node "${bin}"`;
 }
 
@@ -60,7 +62,8 @@ export function renderSkill(template, { cli }) {
  */
 export function renderSkillFile({ repoRoot = REPO_ROOT, write = true } = {}) {
   const { templatePath, skillPath } = skillPaths(repoRoot);
-  const content = renderSkill(readFileSync(templatePath, 'utf8'), { cli: cliCommand(repoRoot) });
+  let content = renderSkill(readFileSync(templatePath, 'utf8'), { cli: cliCommand(repoRoot) });
+  try { const port = JSON.parse(readFileSync(path.join(repoRoot, 'installation.json'), 'utf8')).port; if (Number.isInteger(port) && port > 0 && port <= 65535) content = content.replaceAll('127.0.0.1:8791', '127.0.0.1:' + port); } catch { /* source install */ }
   const previous = existsSync(skillPath) ? readFileSync(skillPath, 'utf8') : null;
   const changed = previous !== content;
   if (write && changed) writeFileSync(skillPath, content, 'utf8');

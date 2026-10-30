@@ -1,0 +1,34 @@
+name: Windows installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.13.0'
+          cache: npm
+      - run: npm ci
+      - name: Prepare verified Inno Setup compiler
+        shell: pwsh
+        run: |
+          $installer = Join-Path $env:RUNNER_TEMP 'inno.exe'
+          Invoke-WebRequest 'https://github.com/jrsoftware/issrc/releases/download/is-7_1_1/innosetup-7.1.1-x64.exe' -OutFile $installer
+          $signature = Get-AuthenticodeSignature $installer
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notlike '*O=Pyrsys B.V.*') { throw 'Inno Setup signature rejected' }
+          $compiler = Join-Path $env:RUNNER_TEMP 'Inno'
+          Start-Process $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER',('/DIR="' + $compiler + '"')) -Wait -WindowStyle Hidden
+          "ISCC_PATH=$compiler\ISCC.exe" | Out-File $env:GITHUB_ENV -Append
+      - run: npm run build:windows
+      - run: node --test test/unit/windows-installer.test.js
+      - run: node scripts/test-windows-installer.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DuckMeeting-Windows-x64
+          path: |
+            dist/*Setup-x64.exe
+            dist/SHA256SUMS.txt

@@ -48,7 +48,9 @@ export function planCodex({ repoRoot = REPO_ROOT, targetDir, nodePath = process.
   const source = path.join(repoRoot, 'codex', 'skills', 'openmeeting');
   const files = new Map();
   for (const relative of ['SKILL.md', 'agents/openai.yaml', 'scripts/openmeeting.ps1']) {
-    files.set(relative, fs.readFileSync(path.join(source, relative), 'utf8'));
+    let content = fs.readFileSync(path.join(source, relative), 'utf8');
+    if (relative === 'SKILL.md') { try { const port = JSON.parse(fs.readFileSync(path.join(repoRoot, 'installation.json'), 'utf8')).port; if (Number.isInteger(port) && port > 0 && port <= 65535) content = content.replaceAll('127.0.0.1:8791', '127.0.0.1:' + port); } catch { /* source install */ } }
+    files.set(relative, content);
   }
   files.set('runtime.json', `${JSON.stringify({ managedBy: MANAGED_BY, repoRoot: path.resolve(repoRoot), nodePath: path.resolve(nodePath) }, null, 2)}\n`);
   return { targetDir, files };
