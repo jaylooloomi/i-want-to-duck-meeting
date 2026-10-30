@@ -1,10 +1,17 @@
 {
   "name": "openmeeting",
-  "version": "0.1.0",
-  "description": "貼上 Google Meet 連結，靜音機器人就會加入會議、記錄逐字稿（說話者＋時間＋內容），會議結束後由 Claude 整理摘要。Silent Google Meet notetaker: paste a link, it joins and records the transcript.",
+  "version": "0.2.0",
+  "description": "Google Meet / Teams 會議記錄：錄音、逐字稿、翻譯與 Agent 會後整理。Local meeting workspace with captions, recording, translation and Agent-authored notes.",
   "author": {
     "name": "Arthur Wang"
   },
   "license": "MIT",
-  "keywords": ["google-meet", "meeting-notes", "transcript", "captions", "zh-TW"]
+  "keywords": [
+    "google-meet",
+    "microsoft-teams",
+    "meeting-notes",
+    "transcript",
+    "captions",
+    "i18n"
+  ]
 }

@@ -12,7 +12,7 @@ const translationCache = new Map();
 import {requestAgentSummary} from './agent-summary.js';
 import {readHighlights,highlightKey,updateHighlight,renderHighlightsMarkdown} from './highlights.js';
 import {actionItems,setActionItem,storageInfo} from './workspace-actions.js';
-import {workspaceData,meetingTitle,safeAudioFile,streamAudio} from './workspace-data.js';
+import {workspaceData,meetingTitle,meetingPlatform,safeAudioFile,streamAudio} from './workspace-data.js';
 
 const CRC32_TABLE = new Uint32Array(256);
 for (let i = 0; i < 256; i++) {
@@ -510,7 +510,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         json(JSON.parse(result.stdout)); return;
       }
       if (url.pathname === '/api/meetings') {
-        json(listMeetings(meetingsDir).map(({ id,dir,status }) => ({id,state:status?.state,source:status?.source,code:status?.code,title:meetingTitle(dir,status),canArchive:['done','failed','archived'].includes(status?.state)&&!['waiting_agent','generating'].includes(status?.summaryJob?.state),startedAt:status?.startedAt || null,endedAt:status?.endedAt || null}))); return;
+        json(listMeetings(meetingsDir).map(({ id,dir,status }) => ({id,state:status?.state,source:status?.source,platform:meetingPlatform(status),code:status?.code,title:meetingTitle(dir,status),canArchive:['done','failed','archived'].includes(status?.state)&&!['waiting_agent','generating'].includes(status?.summaryJob?.state),startedAt:status?.startedAt || null,endedAt:status?.endedAt || null}))); return;
       }
       if (url.pathname === '/api/audio') {
         const meeting=resolveMeeting(meetingsDir,url.searchParams.get('id'));
@@ -544,7 +544,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         }
         json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
-      const routes = { '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const routes = { '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });

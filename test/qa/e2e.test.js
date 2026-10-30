@@ -14,7 +14,7 @@ spec(test,'E2E-01 live HTTP transcript update finalization and meeting selection
   await page.getByRole('complementary').getByRole('button',{name:/qa-second/}).click();await ui.text('第二場發言');
   assert.equal(new URL(page.url()).searchParams.get('id'),'qa-second');
   await page.reload();await ui.text('第二場發言');
-  app.seed('qa-second',{state:'done'},[record('最終發言','乙')]);await ui.text('最終發言');await ui.text('記錄已停止');
+  app.seed('qa-second',{state:'done'},[record('最終發言','乙')]);await ui.text('最終發言');await ui.text('已完成');
 });
 spec(test,'E2E-02 extreme transcript and missing speaker render as text',async({page,app,ui})=>{
   const payload=' <script>globalThis.qaXss=1</script> \u0000 \' OR 1=1 -- 🙂'.repeat(70);
@@ -141,7 +141,7 @@ for(const width of [1920,390])spec(test,`E2E-18 long Teams device labels viewpor
 spec(test,'E2E-19 root query routes browser back forward and 404',async({page,app,ui})=>{
   app.seed('qa-first',{},[record('ROUTE_A')]);app.seed('qa-second',{},[record('ROUTE_B')]);
   await ui.open(app,'?id=qa-first');await ui.text('ROUTE_A');
-  await page.goto(app.url+'/?id=qa-second');await ui.text('ROUTE_B');
+  await page.goto(app.url+'/?id=qa-second&primary=all&secondary=none');await ui.text('ROUTE_B');
   await page.goBack();await ui.text('ROUTE_A');await page.goForward();await ui.text('ROUTE_B');
   const response=await page.request.get(app.url+'/not-a-page');assert.equal(response.status(),404);
 });

@@ -42,6 +42,23 @@ export function audioInfo(dir, name) {
   } finally { if (fd !== undefined) fs.closeSync(fd); }
 }
 
+/** Platform identity is separate from the audio capture engine (teams can mean loopback). */
+export function meetingPlatform(status={}) {
+  const links=[status?.url,status?.recordingUrl].filter(value=>typeof value==='string'&&value.trim());
+  for(const value of links){
+    try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port)continue;
+      if(url.hostname==='meet.google.com')return 'meet';
+      if(['teams.live.com','teams.microsoft.com','teams.cloud.microsoft'].includes(url.hostname))return 'teams';
+    }catch{}
+  }
+  if(links.length)return 'unknown';
+  if(status?.source==='microphone')return 'microphone';
+  if(status?.source==='teams')return 'desktop';
+  if(status?.source==='meet')return 'meet';
+  if(!status?.source&&/^[a-z]{3}-[a-z]{4}-[a-z]{3}$/.test(status?.code||''))return 'meet';
+  return 'unknown';
+}
+
 export function meetingTitle(dir, status) {
   if (typeof status?.title === 'string' && status.title.trim()) return status.title.trim();
   try {

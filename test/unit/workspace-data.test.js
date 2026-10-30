@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {audioInfo,safeAudioFile,meetingTitle,compareSources} from '../../src/workspace-data.js';
+import {audioInfo,safeAudioFile,meetingTitle,meetingPlatform,compareSources} from '../../src/workspace-data.js';
 import {createWavHeader} from '../../src/audio/wav-writer.js';
 
 test('workspace reads only known valid PCM audio and derives waveform from samples',t=>{
@@ -23,4 +23,13 @@ test('advisory comparison never treats missing or unaligned evidence as verified
  compared=compareSources(status,records,{segments:[{start:5,end:10,text:'Budget 1537'}]});assert.equal(compared.pairs[0].important,true);assert.equal(compared.pairs[0].caption,'Budget 1357');
  compared=compareSources(status,[{...records[0],text:'Cost 1.35'}],{segments:[{start:5,end:10,text:'Cost 135'}]});assert.equal(compared.pairs[0].important,true);
  assert.equal(compareSources(status,[{...records[0],source:'local-audio'}],{segments:[{start:5,end:10,text:'Budget 1537'}]}).state,'unavailable');
+});
+
+test('platform identity distinguishes real meeting links from the capture engine',()=>{
+ assert.equal(meetingPlatform({url:'https://meet.google.com/abc-defg-hij'}),'meet');
+ assert.equal(meetingPlatform({source:'teams',url:'https://meet.google.com/abc-defg-hij'}),'meet');
+ for(const host of ['teams.live.com','teams.microsoft.com','teams.cloud.microsoft'])assert.equal(meetingPlatform({recordingUrl:'https://'+host+'/meet/12345?p=secret'}),'teams');
+ assert.equal(meetingPlatform({source:'teams'}),'desktop');assert.equal(meetingPlatform({source:'microphone'}),'microphone');assert.equal(meetingPlatform({source:'meet'}),'meet');
+ assert.equal(meetingPlatform({code:'abc-defg-hij'}),'meet');assert.equal(meetingPlatform({}),'unknown');
+ for(const url of ['https://meet.google.com.evil.example/abc-defg-hij','https://teams.live.com@evil.example/meet/1','http://meet.google.com/abc-defg-hij','https://meet.google.com:444/abc-defg-hij','javascript:alert(1)'])assert.equal(meetingPlatform({url}),'unknown');
 });

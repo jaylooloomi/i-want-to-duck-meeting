@@ -7,7 +7,7 @@ import {spec,record,defer,devices} from './harness.js';
 spec(test,'FE-01 transcript component revisions drafts state and speakers',async({page,app,ui})=>{
   const dir=app.seed('qa-first',{},[record('已定稿','甲')]);
   fs.writeFileSync(path.join(dir,'live.json'),JSON.stringify({pending:[{...record('草稿','乙'),t1:new Date().toISOString(),source:'local-audio'}]}));
-  await ui.open(app);await ui.text('已定稿');await ui.text('草稿');await ui.text('語音辨識中');await ui.text('字幕活動 · 乙');
+  await ui.open(app);await ui.text('已定稿');await ui.text('草稿');await ui.text('語音辨識中');assert.equal(await page.getByText('字幕活動 · 乙',{exact:true}).textContent(),'字幕活動 · 乙');
   app.seed('qa-first',{state:'done'},[record('已定稿','甲'),record('最後結果','乙')]);
   await ui.text('最後結果');await ui.text('已完成');assert.equal(await page.getByText('草稿',{exact:true}).count(),0);
 },{component:'transcript'});

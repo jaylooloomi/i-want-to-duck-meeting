@@ -20,7 +20,7 @@ test('HL-API exact session, origin checks, idempotency and AI export uses only a
 for(const width of [1920,390])test(`HL-UI mark live moment, whole utterance, filter and persist ${width}`,{timeout:20000},t=>browserCase(t,async({page,app,dir:proofDir})=>{
  const now=new Date().toISOString(),dir=app.seed('live-highlights',{state:'in_call',joinedAt:now},[record('另一句一般內容','乙',new Date(Date.now()-30000).toISOString())]);
  fs.writeFileSync(path.join(dir,'live.json'),JSON.stringify({pending:[{...record('這句是重要的話語1357','甲',now),t1:new Date().toISOString(),source:'captions'}]}));
- await page.goto(app.url+'/?id=live-highlights');await page.getByText('這句是重要的話語1357',{exact:true}).waitFor();
+ await page.goto(app.url+'/?id=live-highlights&primary=all&secondary=none');await page.getByText('這句是重要的話語1357',{exact:true}).waitFor();
  await page.getByRole('button',{name:'★ 標記此刻重點',exact:true}).click();await page.getByRole('button',{name:'查看重點（1）',exact:true}).waitFor();
  await page.getByRole('button',{name:'標記整段重點：這句是重要的話語1357',exact:true}).click();await page.getByRole('button',{name:'查看重點（2）',exact:true}).waitFor();
  await page.getByRole('checkbox',{name:'只看重點',exact:true}).check();await page.getByRole('region',{name:'會議逐字稿'}).getByText('另一句一般內容',{exact:true}).waitFor({state:'hidden'});assert.equal(await page.getByRole('region',{name:'會議逐字稿'}).getByText('另一句一般內容',{exact:true}).isVisible(),false);

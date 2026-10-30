@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.1.0-informational" alt="版本 0.1.0">
+  <img src="https://img.shields.io/badge/version-0.2.0-informational" alt="版本 0.2.0">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -19,6 +19,13 @@
 
 <p align="center"><img src="docs/images/meeting-hero-zh.png" alt="左側：參與者一邊開會一邊忙著寫筆記。右側：戴耳機的橘色章魚協助保存兩路音訊、逐字稿與待辦，讓參與者專心討論。" width="900"></p>
 <p align="center"><sub>功能情境插畫，非實際介面截圖。</sub></p>
+
+## 0.2.0 更新
+
+新增繁中／英文／日文／韓文介面與明暗模式排版，會議小卡及返回連結依 Google Meet／Teams 顯示；重新整理設定、選單與控制項，預設「中英」。原文選單新增德／日／韓，未標註語言的舊內容仍保留。介面語言、原文顯示與翻譯語言各自獨立。
+
+![Workspace demo — synthetic data](docs/design/release-0.2.0/zh-TW/actual.png)
+
 
 ## 核心功能
 
@@ -413,3 +420,15 @@ Agent 撰寫的 Markdown 紀錄可切換摘要／決議／待辦、複製及下�
 ### 白色／暗色切換
 
 工作台左下角的「深色／淺色」按鈕，或「設定 → 外觀風格」，可在翡翠白色與深色專業風格間切換。偏好保存在目前瀏覽器；同一本機網址的其他分頁也會同步。頁面啟動時先讀取已保存的選擇；切換不重新載入頁面、不改變目前會議，也不暫停錄音引擎或播放。瀏覽器禁止儲存時仍可切換，並提示偏好無法保存。詳見[主題驗證報告](docs/qa/reports/themes-20261030.md)。
+
+左側會議小卡依會議連結顯示 Google Meet 或 Microsoft Teams 圖示；本機麥克風與電腦雙路錄音使用獨立圖示，也支援舊版 Meet 紀錄。圖示使用本機向量，支援明暗模式，不需外部圖片請求。
+
+### 介面多語系
+
+左側底部的「**介面語言**」可切換 **繁體中文、English、日本語、한국어**。按鈕、對話框、狀態提示與日期會原地更新，切換不會重新載入頁面或中斷錄音、播放。設定保存在目前瀏覽器，並同步到同一瀏覽器的工作台分頁；若儲存權限受限，本次頁面仍可切換。預設為繁體中文。
+
+介面翻譯使用內建字典，不調用翻譯 API。「介面語言」和「原文顯示／翻譯語言」互相獨立：會議名稱、發言者、逐字稿和 Agent 整理內容保留原文；原始裝置名稱及未識別的後端／Agent 診斷訊息也保留原樣。切換介面不會更換語音辨識引擎，也不代表 Paraformer 新增日韓語辨識。日韓語會議請保留「全部原文」，並使用平台支援的字幕語言或適合的既有辨識引擎；逐字稿翻譯另外設定。
+
+英文／日文／韓文介面採用可容納較長文字的排版：逐字稿搜尋獨立一列、語言選單彈性寬度、側欄語言設定固定分組，來源名稱與檔名分列；手機版會自動堆疊來源狀態卡片。
+
+「原文顯示」新增德文、日文、韓文。這三種檢視依段落的 `language`／`lang` 標籤篩選；未標註語言的舊段落仍保留，畫面會提示，避免漏掉原文。不會把所有拉丁字母判定為德文，也不會藉此切換 Meet／Teams 的口說語言或辨識模型。

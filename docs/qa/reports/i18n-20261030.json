@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-30",
+  "scope": "Four interface languages; original meeting data is preserved",
+  "locales": [
+    "zh-TW",
+    "en",
+    "ja",
+    "ko"
+  ],
+  "fullRegression": {
+    "tests": 661,
+    "pass": 645,
+    "fail": 0,
+    "skipped": 16
+  },
+  "finalFocusedLocalizationAndIntegrity": {
+    "tests": 16,
+    "pass": 16,
+    "fail": 0,
+    "skipped": 0
+  },
+  "localAssetsHttpStatus": 200,
+  "screenshots": {
+    "zh-TW": "docs/design/i18n-20261030/zh-TW/actual.png",
+    "en": "docs/design/i18n-20261030/en/actual.png",
+    "ja": "docs/design/i18n-20261030/ja/actual.png",
+    "ko": "docs/design/i18n-20261030/ko/actual.png"
+  },
+  "limitations": [
+    "16 pre-existing BUG-004 skips",
+    "No claim of new multilingual ASR accuracy",
+    "Unknown backend diagnostics and user-authored content preserve original language"
+  ]
+}

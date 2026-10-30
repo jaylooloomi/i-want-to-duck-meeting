@@ -167,3 +167,27 @@ Full frozen-source regression acceptance: see docs/qa/reports/emerald-20261030.m
 - [x] EMERALD-UI | FE-E2E | Both themes, 1586/1280/390 | Replay completion, paragraph copy/seek/mark, source TXT, player expansion/restore and keyboard search with strict console guards.
 
 Full regression results: docs/qa/reports/themes-20261030.md. Prior Emerald and old-reference results remain historical.
+
+
+## Interface localization — 2026-10-30
+
+- [x] I18N-01 | FE-E2E | zh-TW/en/ja/ko × 1280/390 | Switch interface language; verify button/dialog/state labels, complete localized dates, preserved meeting names/speakers/transcripts and independent original-language settings; reload retains preference.
+- [x] I18N-02 | FE-E2E | All four locales, both themes | Open settings; use keyboard to switch archived/current categories; preserve selected category state and usable controls.
+- [x] I18N-03 | FE-E2E | Same-origin tabs | Stored choice synchronizes; invalid preference safely falls back to Traditional Chinese.
+- [x] I18N-04 | FE-E2E | Storage denied | In-place language change succeeds and reports that the preference cannot be saved.
+- [x] I18N-05 | FE-E2E | Microphone session | Switch language while real browser AudioWorklet PCM is being uploaded to the isolated HTTP fixture; one start, no automatic stop, one explicit stop and completed state.
+- [x] I18N-06 | FE-E2E | Authored markup | Every initial authored Chinese UI string has a bundled English translation; all catalog entries have English/Japanese/Korean values. Native language names and protected content destinations are excluded.
+- [x] I18N-07 | FE-E2E | Synthetic WAV + private-content fixture | Switch English→Japanese→Korean without reload or playback pause; preserve source Markdown, user title matching a default UI label, transcript and notes card structure.
+
+These are interface-localization tests; they do not establish Japanese/Korean ASR accuracy or live third-party meeting compatibility. Full result: `docs/qa/reports/i18n-20261030.md`.
+
+
+- [x] I18N-LAYOUT | FE-E2E | English/Korean × 1440/1280/390 × light/dark | Measure selected-option text width, non-overlapping language controls, search-above-controls, unbroken source labels and zero horizontal page overflow. See docs/qa/reports/i18n-layout-20261030.md.
+
+
+## Release 0.2.0 consolidation — 2026-10-31
+
+- [x] LANG-02 | FE-E2E | Explicit all/none choices | Change or retain All originals / No translation, reload and verify both survive despite the new Chinese-English default.
+- [x] LANG-03 | FE-E2E | German/Japanese/Korean originals | Filter explicit regional language metadata, preserve unknown originals, show notice and restore the selected language on reload.
+- [x] SIDEBAR-04 | FE-E2E | Meeting return links | Real exact-host Meet/Teams labels and destinations, recordingUrl fallback, hidden invalid/local links and cleared stale destinations when switching sessions.
+- [x] INSTALL-RELEASE | Local CLI | Codex runtime and Claude enabled plugin | Unified installer succeeds with existing audio assets; Claude reports 0.2.0 enabled, installed command points at current checkout; doctor OK.

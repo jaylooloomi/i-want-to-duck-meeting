@@ -90,7 +90,7 @@ test('marketplace.json declares openmeeting-local with the ./plugin source', () 
 test('plugin.json has name, version, description and author', () => {
   const pj = readJson('plugin/.claude-plugin/plugin.json');
   assert.equal(pj.name, 'openmeeting');
-  assert.equal(pj.version, '0.1.0');
+  assert.equal(pj.version, readJson('package.json').version);assert.match(pj.version,/^\d+\.\d+\.\d+$/);
   assert.equal(typeof pj.description, 'string');
   assert.ok(pj.description.length > 10);
   assert.equal(pj.author?.name, 'Arthur Wang');

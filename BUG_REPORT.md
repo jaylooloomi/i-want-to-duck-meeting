@@ -176,3 +176,12 @@ These resolved items do not waive historical BUG-004 skips. See docs/qa/reports/
 - **EM-04, state-file/revision safeguards (resolved):** null/corrupt action state falls back safely; action writes require a current summary revision and known row key, persist atomically and preserve source Markdown. Duplicate rows and nested action headings have executable unit coverage.
 
 The failed discovery logs are retained (`test-emerald-first.log`, `test-emerald-corrected.log`, `test-emerald-full-1.log`); they are not counted as final acceptance. Historical BUG-004 strict-console HTTP-error limits remain explicit skips.
+
+
+## Resolved during 0.2.0 consolidation — 2026-10-31
+
+- **Explicit all/none preferences lost after reload:** `syncSelection` omitted values that had previously been defaults. After changing the implicit default to Chinese-English, this could restore the wrong choices. Both display and translation values are now serialized explicitly. LANG-01/LANG-02 cover persistence.
+- **Teams return action absent / Meet-only wording:** return-link rendering accepted only Meet hosts. Trusted Teams hosts and correct localized labels are now supported; stale hrefs are removed. SIDEBAR-04 covers valid and hostile links and exact session switching.
+- **Localized layout truncation:** fixed-width Chinese controls truncated English and split Korean source labels. Fluid international rows, two-line file metadata and responsive footer/settings/menu layouts are covered by I18N-LAYOUT and localization tests.
+
+Known BUG-004 skips remain unchanged and are not counted as passes. No new live-meeting/ASR claims are attached to these UI fixes.

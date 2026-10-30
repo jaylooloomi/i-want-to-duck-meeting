@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.1.0-informational" alt="Version 0.1.0">
+  <img src="https://img.shields.io/badge/version-0.2.0-informational" alt="Version 0.2.0">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
@@ -19,6 +19,13 @@
 
 <p align="center"><img src="docs/images/meeting-hero-en.png" alt="Left: a participant struggles to take notes during a meeting. Right: an orange octopus with a headset helps preserve audio, transcripts, and action items. Labels: Focus on the meeting; Let AI take notes." width="900"></p>
 <p align="center"><sub>Illustrated use case, not a screenshot of the application.</sub></p>
+
+## What’s new in 0.2.0
+
+Four interface languages (Traditional Chinese, English, Japanese and Korean), responsive light/dark layouts, platform-specific meeting icons and meeting links, consistent settings and menus, and Chinese→English as the default display preset. German/Japanese/Korean original views preserve untagged legacy content. Interface language, original-text display and transcript translation are separate settings.
+
+![Workspace demo — synthetic data](docs/design/release-0.2.0/en/actual.png)
+
 
 ## Core features
 
@@ -405,3 +412,15 @@ Storage displays real meeting-directory usage and available disk space, refreshe
 ### Light and dark appearance
 
 Use **深色 / 淺色** at the bottom-left of the workspace, or **設定 → 外觀風格**, to switch between Emerald light and Midnight dark. The current browser remembers the selection; other tabs on the same local origin synchronize it. The saved palette is read before the stylesheets render. Appearance changes do not navigate, reload the recording engine or change the selected meeting. Blocked browser storage does not prevent switching; the app explains that the preference could not be saved. See [theme verification](docs/qa/reports/themes-20261030.md).
+
+Sidebar meeting cards display local Google Meet or Microsoft Teams icons based on the stored meeting link. Microphone and desktop audio recordings have separate icons; older Meet records are also recognized. Icons work in both light and dark mode without external image requests.
+
+### Interface languages
+
+Use **Interface language** in the sidebar footer to switch between **繁體中文 / English / 日本語 / 한국어**. Labels, dialogs, status messages and dates update in place; recording and playback continue. The choice is saved in this browser and synchronized across its open workspace tabs. If browser storage is blocked, the choice still applies to the current page. The default is Traditional Chinese.
+
+Interface localization uses a bundled dictionary and makes no translation API calls. It is independent of **Original text** and **Translation**: meeting names, speaker names, transcript text and Agent-authored notes remain in their original language. Raw device names and unrecognized server/Agent diagnostics are also preserved. Changing the interface language does not change the speech recognition engine or make Paraformer multilingual. For Japanese/Korean speech, retain **All originals** and use the meeting platform’s supported caption language or a suitable configured recognizer; the translation language menu is a separate feature.
+
+English/Japanese/Korean workspaces use a responsive layout for longer labels: separate transcript search, fluid language selectors, stable sidebar language controls, and two-line source-file rows.
+
+The **Original text** selector also includes German, Japanese and Korean. These views filter explicit per-segment `language`/`lang` tags; unlabeled legacy segments remain visible, with an on-screen notice. The selector does not change Meet/Teams spoken-language settings or the ASR model, and does not infer German from Latin characters.

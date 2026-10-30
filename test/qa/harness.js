@@ -93,7 +93,7 @@ export class Viewer {
   async capture(){
     if(!await this.source.isVisible()) await this.page.getByRole('button',{name:'＋ 新增記錄',exact:true}).click();
   }
-  async open(app,query=''){await this.page.goto(app.url+'/'+query);await this.page.getByRole('button',{name:'＋ 新增記錄',exact:true}).waitFor();}
+  async open(app,query=''){const url=new URL(app.url+'/'+query);if(!url.searchParams.has('primary')&&!url.searchParams.has('secondary')){url.searchParams.set('primary','all');url.searchParams.set('secondary','none');}await this.page.goto(url.href);await this.page.getByRole('button',{name:'＋ 新增記錄',exact:true}).waitFor();}
 }
 export function spec(test,id,body,options={}) {
   const bug=options.bug;

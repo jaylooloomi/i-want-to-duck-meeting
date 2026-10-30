@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-31",
+  "version": "0.2.0",
+  "fullUnitAndQA": {
+    "tests": 678,
+    "pass": 662,
+    "fail": 0,
+    "skipped": 16
+  },
+  "navigationPreferenceFollowUp": {
+    "tests": 45,
+    "pass": 34,
+    "fail": 0,
+    "skipped": 11
+  },
+  "doctor": "ok",
+  "localCodex": "Updated; runtime references this checkout",
+  "localClaudePlugin": {
+    "version": "0.2.0",
+    "enabled": true
+  },
+  "dependencyResolutionsChanged": false,
+  "privateMeetingFilesStaged": false
+}

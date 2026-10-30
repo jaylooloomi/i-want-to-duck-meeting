@@ -88,3 +88,18 @@ Current selected design: [Emerald report](docs/qa/reports/emerald-20261030.md). 
 ## 2026-10-30 light/dark appearance
 
 Current full suite: **643 tests / 627 passed / 0 failed / 16 existing BUG-004 skips**. Both palettes and all three workspace widths are replayed; five theme-specific checks include persistence, synchronization, denied storage, measured contrast and uninterrupted WAV playback. See `docs/qa/reports/themes-20261030.md`.
+
+
+## Interface localization follow-up — 2026-10-30
+
+Traditional Chinese / English / Japanese / Korean UI switching is available from the sidebar footer. Latest successful unit + QA regression: **661 tests, 645 passed, 16 pre-existing BUG-004 skips, 0 failed**. Final localization/integrity replay: **16 passed, 0 skipped, 0 failed**. These results cover the four interface locales and preserved source content; they do not establish Japanese/Korean ASR accuracy. Commands, evidence, limitations and synthetic screenshots are documented in [the localization report](docs/qa/reports/i18n-20261030.md). Earlier sections above retain their historical scopes and counts.
+
+
+## International layout follow-up — 2026-10-30
+
+Responsive English/Korean layout fixes were checked with **28 relevant browser/integrity tests: 28 passed, 0 failed, 0 skipped**. This includes 12 new geometry cases across 1440/1280/390 widths and both themes. This focused CSS follow-up does not replace or repeat the earlier full-suite count above. Evidence: [layout report](docs/qa/reports/i18n-layout-20261030.md).
+
+
+## Consolidated release 0.2.0 — 2026-10-31
+
+Latest release unit/QA regression: **678 tests, 662 passed, 0 failed, 16 existing BUG-004 skips**. Final URL preference/navigation follow-up: **45 tests, 34 passed, 0 failed, 11 existing skips**. Local Codex integration was synchronized, Claude plugin 0.2.0 is enabled, and doctor returned `DOCTOR=ok`. No dependency resolutions changed. Full scope, test commands and limitations: [release report](docs/qa/reports/release-0.2.0-20261031.md). Earlier sections above are historical snapshots.
