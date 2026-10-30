@@ -353,3 +353,42 @@ html:not([lang=zh-Hant]) .pane-transcript>.pane-header{grid-template-rows:auto 3
 #original-language-hint[hidden]{display:none!important}
 .pane-transcript>.pane-header:has(#original-language-hint:not([hidden])){grid-auto-rows:auto}
 :root[data-theme=dark] #original-language-hint{color:#a7bed2}
+
+/* Center notes-tab labels independently of inherited text padding and line height. */
+.notes-tabs>button,html:not([lang=zh-Hant]) .notes-tabs>button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:32px;padding:5px 10px;line-height:20px;text-align:center;margin:0}
+
+/* Utterance overflow keeps its hit area without a background circle. */
+.utterance-more,.utterance-more:hover,:root[data-theme=dark] .utterance-more,:root[data-theme=dark] .utterance-more:hover{background:transparent!important;border:0;box-shadow:none}
+
+/* Highlight the full transcript pane width while keeping text aligned to other rows. */
+.pane-transcript>.pane-body{--highlight-gutter:14px}
+.utterance.important-utterance,.utterance.important-utterance:nth-of-type(n){box-sizing:border-box;width:calc(100% + var(--highlight-gutter,14px)*2);max-width:none;margin-left:calc(-1*var(--highlight-gutter,14px));margin-right:calc(-1*var(--highlight-gutter,14px));padding-left:var(--highlight-gutter,14px);padding-right:var(--highlight-gutter,14px);border-radius:0;box-shadow:inset 3px 0 #e5b63c}
+@media(max-width:720px){.pane-transcript>.pane-body{--highlight-gutter:12px}}
+
+/* Mail is a local content tab; mailbox actions belong to the Agent. */
+.notes-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+#mail-panel[hidden],#summary-body[hidden],#summary-panel .comparison-panel[hidden],#notes-copy[hidden],#notes-download[hidden]{display:none!important}
+.mail-panel{padding:16px;flex:1;min-height:0;overflow:auto;background:#fff;color:#30495f}
+.mail-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:15px}
+#mail-state{font-size:11px;border-radius:12px;background:#e8f3ed;color:#137a62;padding:3px 8px}
+.mail-intro,.mail-footnote,#mail-empty,#mail-stale,#mail-feedback{font-size:12px;line-height:1.7;margin:10px 0;color:#718399;overflow-wrap:anywhere}
+#mail-stale{background:#fff4d9;color:#956c18;padding:10px;border-radius:6px}
+#mail-form{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+#mail-form label{display:flex;flex-direction:column;gap:6px;margin:0;font-size:12px;line-height:20px;min-width:0}
+#mail-form input,#mail-form textarea{width:100%;min-width:0;border:1px solid #d8e3ea;border-radius:6px;background:#fbfcfe;color:#2d455c;padding:9px 10px;font-family:inherit;font-size:13px;line-height:1.6;box-sizing:border-box}
+#mail-form input{min-height:36px}#mail-form textarea{min-height:220px;resize:vertical}
+.mail-recipient-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mail-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 0;border-top:1px solid #dce6ed}
+.mail-actions button{min-height:36px;padding:8px 12px;font-size:12px;border:1px solid #d3e1e6;border-radius:6px;background:#f3f8f6;color:#226e5d}
+#mail-save{background:#008572;color:#fff;border-color:#008572}
+:root[data-theme=dark] .mail-panel{background:#0f2032;color:#c7daec}
+:root[data-theme=dark] #mail-form input,:root[data-theme=dark] #mail-form textarea{background:#0d1c2c;color:#d3e4f3;border-color:#30485e}
+:root[data-theme=dark] #mail-state{background:#183c3b;color:#8ae4d1}
+:root[data-theme=dark] .mail-intro,:root[data-theme=dark] .mail-footnote,:root[data-theme=dark] #mail-empty,:root[data-theme=dark] #mail-feedback{color:#a3b9cb}
+:root[data-theme=dark] .mail-actions{border-color:#2b4259}
+:root[data-theme=dark] .mail-actions button{background:#1a3449;color:#c2d8e9;border-color:#355268}
+:root[data-theme=dark] #mail-save{background:#2e65e8;border-color:#2e65e8;color:#fff}
+:root[data-theme=dark] #mail-stale{background:#3a321e;color:#f2d797}
+@media(max-width:520px){.mail-panel{padding:12px}.mail-recipient-grid{grid-template-columns:1fr}.mail-actions button{flex:1;padding-inline:6px}}
+
+.summary-actions:has(#notes-copy[hidden]):has(#notes-download[hidden]){display:none!important}

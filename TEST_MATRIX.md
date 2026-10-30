@@ -191,3 +191,14 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] LANG-03 | FE-E2E | German/Japanese/Korean originals | Filter explicit regional language metadata, preserve unknown originals, show notice and restore the selected language on reload.
 - [x] SIDEBAR-04 | FE-E2E | Meeting return links | Real exact-host Meet/Teams labels and destinations, recordingUrl fallback, hidden invalid/local links and cleared stale destinations when switching sessions.
 - [x] INSTALL-RELEASE | Local CLI | Codex runtime and Claude enabled plugin | Unified installer succeeds with existing audio assets; Claude reports 0.2.0 enabled, installed command points at current checkout; doctor OK.
+
+
+## Local email drafts — 2026-10-31
+
+- [x] MAIL-BE Backend: exact meeting scope, ready notes, revisions, immutable sources, schema/header/address validation and exclusive write lock; invalid writes preserve stored content.
+- [x] MAIL-CLI Backend integration: read/write JSON via real CLI, exact ID and owner isolation.
+- [x] MAIL-API Backend integration: same-origin restriction, malformed input, traversal and optimistic concurrency.
+- [x] MAIL-UI FE-E2E: empty state → edit → save → reload → copy/download, 1280/390 and light/dark; only local draft actions.
+- [x] MAIL-RACE FE-E2E: double-submit blocking, stale poll response, conflicting Agent edit, dirty content retained across meeting switches.
+- [x] MAIL-I18N FE-E2E: English/Japanese/Korean labels preserve source content.
+- [x] MAIL-GUARD FE-E2E: every browser case uses the shared console/pageerror failure guard and semantic locators.

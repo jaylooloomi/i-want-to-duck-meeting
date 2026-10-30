@@ -103,3 +103,19 @@ Responsive English/Korean layout fixes were checked with **28 relevant browser/i
 ## Consolidated release 0.2.0 — 2026-10-31
 
 Latest release unit/QA regression: **678 tests, 662 passed, 0 failed, 16 existing BUG-004 skips**. Final URL preference/navigation follow-up: **45 tests, 34 passed, 0 failed, 11 existing skips**. Local Codex integration was synchronized, Claude plugin 0.2.0 is enabled, and doctor returned `DOCTOR=ok`. No dependency resolutions changed. Full scope, test commands and limitations: [release report](docs/qa/reports/release-0.2.0-20261031.md). Earlier sections above are historical snapshots.
+
+
+## Local email draft delivery — 2026-10-31
+
+Unit + QA regression: **692 tests, 676 passed, 0 failed, 16 pre-existing BUG-004 skips**, 488.8 seconds (`test-mail-full-verified.log`). Final focused replay against the completed mail code: **17 passed, 0 failed, 0 skipped**, 31.4 seconds (`test-mail-final.log`). The focused replay includes the late mail deep-link/CSS follow-up. No new product-bug skips or browser-console exclusions were introduced. The earlier development run is not counted as successful.
+
+`node bin/openmeeting.js doctor` returned `DOCTOR=ok`. Codex and Claude Code local skills were reinstalled and verified for the direct draft fields and stale-source handling. Four synthetic real-app screenshots cover desktop/mobile, both themes and English. A fictional local Teams draft with empty recipients was seeded using the CLI; no real mailbox action occurred. Usage and boundaries: [mail draft report](docs/qa/reports/mail-drafts-20261031.md). The App does not perform mailbox creation, delivery, attachments or provider-status tracking.
+
+
+## Consolidated mail release verification — 2026-10-31
+
+Two unit + QA runs passed: 692 tests / 676 passed / 0 failed / 16 existing BUG-004 skips, in 488.8 s and 556.9 s (`test-mail-full-verified.log`, `test-mail-release.log`). The latter includes the final default-generation skill instructions. Mail/integrity replay: 17 passed; default-generation unit/integrity follow-up: 7 passed. No new skips.
+
+Additional integration run: 81 tests, 72 passed, 4 failed, 5 existing environment/opt-in skips. All four failures were `spawnSync powershell.exe ENOENT` caused by the invocation PATH, not changed product logic. With Windows PowerShell on PATH, the entire Chrome-launch file passed 7/7 and the TTS/STT file passed 1/1 (`test-mail-release-chrome.log`, `test-mail-release-stt.log`). All failed cases therefore passed targeted replay; the full integration suite was not rerun afterward. Use the normal Windows shell PATH (including WindowsPowerShell/v1.0) when running it.
+
+Included earlier UI changes: vertically centered notes tabs, plain utterance overflow button, and wider highlighted utterance background. Design evidence uses synthetic content. Private meeting folders, recordings, local mail drafts, browser profiles and model files are excluded from this commit. No real mailbox creation or sending was tested.

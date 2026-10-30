@@ -2003,3 +2003,146 @@ Object.assign(window.DuckLocaleCatalog,{
 window.DuckLocaleCatalog['進入 Teams ↗']=['Open Teams ↗','Teams を開く ↗','Teams 열기 ↗'];
 
 window.DuckLocaleCatalog['依已標註語言篩選；未標註段落保留顯示。此設定不會切換平台字幕辨識語言。']=['Filters labeled languages; unlabeled segments stay visible. This does not change platform caption recognition.','言語ラベルで絞り込みます。未分類の発言も表示します。字幕の認識言語は変更しません。','언어 태그로 필터링하며 미분류 발언은 유지합니다. 플랫폼 자막 인식 언어는 변경하지 않습니다.'];
+
+Object.assign(window.DuckLocaleCatalog,{
+  "郵件": [
+    "Mail",
+    "メール",
+    "메일"
+  ],
+  "郵件草稿": [
+    "Mail draft",
+    "メール原稿",
+    "메일 초안"
+  ],
+  "由 Agent 撰寫郵件內容；信件建立與寄送由 Agent 處理，此頁只保存草稿。": [
+    "The Agent writes the email and handles mailbox actions. This page only saves local content.",
+    "Agentが原稿を作成し、メールの作成・送信を行います。この画面はローカル原稿のみ保存します。",
+    "Agent가 내용을 작성하고 메일 생성 및 발송을 처리합니다. 이 페이지는 로컬 원고만 저장합니다."
+  ],
+  "尚無草稿。可請 Agent 根據本場會議紀錄撰寫，或直接在下方編輯。": [
+    "No draft yet. Ask the Agent to write one from these notes, or edit below.",
+    "まだ原稿がありません。Agentに会議ノートからの作成を依頼するか、下で編集してください。",
+    "아직 초안이 없습니다. Agent에게 회의록 기반 작성을 요청하거나 아래에서 편집하세요."
+  ],
+  "會議紀錄已更新，請核對草稿；目前編輯會保留。": [
+    "Meeting notes changed. Review the draft; your edits are preserved.",
+    "会議ノートが更新されました。原稿を確認してください。編集中の内容は保持されます。",
+    "회의록이 변경되었습니다. 초안을 확인하세요. 편집 내용은 유지됩니다."
+  ],
+  "收件人": [
+    "To",
+    "宛先",
+    "받는 사람"
+  ],
+  "副本": [
+    "Cc",
+    "Cc",
+    "참조"
+  ],
+  "密件副本": [
+    "Bcc",
+    "Bcc",
+    "숨은 참조"
+  ],
+  "多個地址以逗號分隔，可暫留空白": [
+    "Comma-separated addresses; may be left blank",
+    "複数の宛先はカンマ区切り。空欄も可",
+    "여러 주소는 쉼표로 구분. 비워둘 수 있습니다"
+  ],
+  "主旨": [
+    "Subject",
+    "件名",
+    "제목"
+  ],
+  "郵件內文": [
+    "Email body",
+    "メール本文",
+    "메일 본문"
+  ],
+  "儲存草稿": [
+    "Save draft",
+    "原稿を保存",
+    "초안 저장"
+  ],
+  "複製郵件": [
+    "Copy email",
+    "メールをコピー",
+    "메일 복사"
+  ],
+  "下載草稿": [
+    "Download draft",
+    "原稿を保存する",
+    "초안 다운로드"
+  ],
+  "此處的「已儲存」僅代表本機草稿，不代表已在信箱建立或寄出。": [
+    "Saved here means local content only, not a mailbox draft or a sent email.",
+    "ここでの保存はローカル原稿のみです。メールボックスへの作成・送信は意味しません。",
+    "여기서 저장됨은 로컬 원고만 의미하며 메일함 생성 또는 발송을 의미하지 않습니다."
+  ],
+  "正在儲存…": [
+    "Saving…",
+    "保存中…",
+    "저장 중…"
+  ],
+  "尚未儲存": [
+    "Unsaved changes",
+    "未保存の変更",
+    "저장되지 않은 변경"
+  ],
+  "已儲存於本機": [
+    "Saved locally",
+    "ローカル保存済み",
+    "로컬 저장됨"
+  ],
+  "尚未產生": [
+    "Not created yet",
+    "未作成",
+    "아직 생성되지 않음"
+  ],
+  "無法讀取郵件草稿，請保留檔案並檢查。": [
+    "Cannot read the draft. Preserve the file and inspect it.",
+    "原稿を読み込めません。ファイルを保持して確認してください。",
+    "초안을 읽을 수 없습니다. 파일을 보존하고 확인하세요."
+  ],
+  "請先完成會議紀錄整理，再撰寫郵件草稿。": [
+    "Finish the meeting notes before writing an email.",
+    "会議ノートを完成させてから原稿を作成してください。",
+    "회의록 정리를 완료한 후 메일을 작성하세요."
+  ],
+  "草稿或來源已更新；編輯已保留，請先複製內容再重新核對。": [
+    "Draft or source changed. Edits preserved; copy them before reviewing the latest version.",
+    "原稿またはソースが更新されました。編集は保持しています。コピーしてから最新版を確認してください。",
+    "초안 또는 소스가 변경되었습니다. 편집 내용을 복사한 후 최신 버전을 확인하세요."
+  ],
+  "草稿儲存失敗，編輯已保留。": [
+    "Could not save. Your edits are preserved.",
+    "保存できませんでした。編集内容は保持されています。",
+    "저장 실패. 편집 내용은 유지됩니다."
+  ],
+  "草稿已儲存，文字匯出檔暫時無法更新。": [
+    "Draft saved; the readable export could not be updated.",
+    "原稿は保存しましたが、テキスト出力を更新できませんでした。",
+    "초안은 저장되었으나 텍스트 내보내기를 업데이트하지 못했습니다."
+  ],
+  "草稿已儲存，尚未建立或寄送信件。": [
+    "Saved locally. No email has been created or sent.",
+    "ローカル保存済みです。メールの作成・送信はしていません。",
+    "로컬에 저장했습니다. 메일은 생성되거나 발송되지 않았습니다."
+  ],
+  "已複製郵件內容。": [
+    "Email content copied.",
+    "メール内容をコピーしました。",
+    "메일 내용을 복사했습니다."
+  ],
+  "無法存取剪貼簿，請下載草稿。": [
+    "Clipboard unavailable. Download the draft instead.",
+    "クリップボードを使えません。原稿をダウンロードしてください。",
+    "클립보드를 사용할 수 없습니다. 초안을 다운로드하세요."
+  ],
+  "已下載郵件草稿。": [
+    "Mail draft downloaded.",
+    "メール原稿をダウンロードしました。",
+    "메일 초안을 다운로드했습니다."
+  ]
+});

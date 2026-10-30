@@ -1,3 +1,4 @@
+import {readMailDraft,saveMailDraft} from './mail-draft.js';
 /**
  * `openmeeting <command>` implementations (spec 5.15). bin/openmeeting.js only forwards argv.
  *
@@ -45,9 +46,9 @@ const HEARTBEAT_CONFIRM_MS = 60_000;
 const EXIT_ALREADY_RECORDING = 5;
 
 /** Flags that take a value (`--name X` or `--name=X`). */
-const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port', 'input', 'output', 'progress', 'stage']);
+const VALUE_FLAGS = new Set(['name', 'lang', 'timeout-min', 'model', 'threads', 'poll-ms', 'timeout-sec', 'port', 'input', 'output', 'progress', 'stage', 'file']);
 /** Boolean flags. */
-const BOOL_FLAGS = new Set(['foreground', 'help', 'no-open']);
+const BOOL_FLAGS = new Set(['foreground', 'help', 'no-open', 'json']);
 
 const STATE_TEXT = {
   starting: '準備啟動機器人…',
@@ -105,6 +106,7 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   audio-confirm <id>                                      確認雙方內容後保存該場成功裝置
   notes-list                                              盤點所有會議與是否已整理會議紀錄（供「會議紀錄整理」指令使用）
   notes-follow <id>                                        將本場交給目前 Codex 對話自動追蹤收尾
+  mail-draft <id> [--file JSON檔]                          讀取／保存本場郵件草稿（不操作信箱）
   notes-pending                                           列出目前 Codex 對話待接手的會議
   notes-status <id> <generating|ready|failed|idle> [--progress N] [--stage 文字]  同步更新網頁面板的 Agent 整理階段
   transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
@@ -1265,6 +1267,14 @@ export async function main(argv, io = {}) {
         });
         out(JSON.stringify(result, null, 2));
         return 0;
+      }
+      case 'mail-draft': {
+        const id=positionals[0];if(!id||id==='latest'){err('mail_exact_meeting_required');return 1;}
+        const m=findMeeting(ctx,id);if(!m||m.id!==id)return 1;
+        const status=readStatus(m.dir)||{};
+        if(status.summaryAgentThread&&status.summaryAgentThread!==env.CODEX_THREAD_ID){err('mail_thread_mismatch');return 1;}
+        const data=flags.file?saveMailDraft(m.dir,JSON.parse(fs.readFileSync(String(flags.file),'utf8')),{actor:'agent'}):readMailDraft(m.dir);
+        out(JSON.stringify({...data,meetingId:id,draftPath:path.join(m.dir,'mail-draft.json')},null,2));return 0;
       }
       case 'notes-status': {
         const m = findMeeting(ctx, positionals[0]);

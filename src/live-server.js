@@ -1,3 +1,4 @@
+import {readMailDraft,saveMailDraft} from './mail-draft.js';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -381,7 +382,8 @@ export function readLiveMeeting(meetingsDir, id = 'latest') {
     ? [...new Set(pending.filter((r) => Date.now() - Date.parse(r.t1) < 6000).map((r) => r.speaker || '未知發言者'))] : [];
   records.sort((a, b) => Date.parse(a.t0) - Date.parse(b.t0));
   const summary = getMeetingSummaryState(meeting.dir, status, records);
-  return { id: meeting.id, status, records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
+  let mailDraft;try{mailDraft=readMailDraft(meeting.dir);}catch(error){mailDraft={observedAt:new Date().toISOString(),available:false,draft:null,revision:null,error:error.message};}
+  return { id: meeting.id, status, mailDraft, records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
 }
 
 export async function startLiveServer({ meetingsDir, port = 8791, microphone = new MicrophoneService({ meetingsDir }) }) {
@@ -404,6 +406,14 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         const target = ['zh-TW','zh-CN','en','ja','de','fr','es','ko','it','pt','vi','th'].includes(input?.target) ? input.target : 'zh-TW';
         const translations = await Promise.all(texts.map((t) => translateText(t, target)));
         json({ translations }); return;
+      }
+      if(req.method==='POST'&&url.pathname==='/api/mail-draft'){
+        if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){json({error:'mail_forbidden'},403);return;}
+        const input=JSON.parse((await body(req)).toString()||'{}');
+        if(!input||typeof input!=='object'||Array.isArray(input)||typeof input.id!=='string'||input.id==='latest'){json({error:'mail_exact_meeting_required'},400);return;}
+        const meeting=resolveMeeting(meetingsDir,input.id);if(!meeting||meeting.id!==input.id){json({error:'mail_not_found'},404);return;}
+        const {id,...draft}=input;
+        try{json({ok:true,...saveMailDraft(meeting.dir,draft)});}catch(error){const conflict=['mail_conflict','mail_source_changed','mail_notes_not_ready','mail_busy'].includes(error.message);json({ok:false,error:error.message},conflict?200:400);}return;
       }
       if(req.method==='GET'&&url.pathname==='/api/storage'){json(storageInfo(meetingsDir));return;}
       if(req.method==='POST'&&url.pathname==='/api/action-items'){
@@ -544,7 +554,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         }
         json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
-      const routes = { '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const routes = { '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });

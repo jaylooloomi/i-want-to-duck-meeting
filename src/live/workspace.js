@@ -2,7 +2,8 @@
   const $=id=>document.getElementById(id), audio=$('meeting-audio');
   let rowSelection=null,storageSignature='',taskBusy=false,sourceFilesSignature='',storageUpdatedAt=0,storagePending=false;
   document.addEventListener('ui-language-change',()=>{notesSignature='';sourceFilesSignature='';highlightsSignature='';storageUpdatedAt=0;const select=$('audio-track');if(select)delete select.dataset.signature;$('audio-play').textContent=uiText(audio.paused?'▶ 播放錄音':'Ⅱ 暫停錄音');});
-  let current=null, tab='overview', notesSignature='', audioKey='', duration=0, pendingSeek=null,renameMeetingId='',marking=false,highlightsSignature='';
+  const requestedNotesTab=new URLSearchParams(location.search).get('notes');
+  let current=null, tab=['overview','decisions','actions','mail'].includes(requestedNotesTab)?requestedNotesTab:'overview', notesSignature='', audioKey='', duration=0, pendingSeek=null,renameMeetingId='',marking=false,highlightsSignature='';
   const terminal=state=>['done','failed','archived'].includes(state);
   const message=text=>{$('workspace-message').textContent=text;};
   const readPref=(key,fallback)=>{try{return localStorage.getItem('duck-meeting:'+key)||fallback;}catch{return fallback;}};
@@ -28,6 +29,9 @@
   }
   function renderNotes(data){
     const sum=data?.summary||{},ready=sum.state==='ready'&&!!sum.markdown;
+    for(const button of document.querySelectorAll('[data-notes-tab]'))button.setAttribute('aria-pressed',String(button.dataset.notesTab===tab));
+    const mail=tab==='mail';$('mail-panel').hidden=!mail;$('summary-body').hidden=mail||summaryCollapsed;document.getElementsByClassName('comparison-panel')[0].hidden=mail;$('notes-copy').hidden=$('notes-download').hidden=mail;
+    if(mail){for(const button of document.querySelectorAll('[data-notes-tab]')){const key=button.dataset.notesTab;button.textContent=uiText(key==='mail'?'郵件':key==='actions'?'待辦':key==='decisions'?'決議':'摘要');button.setAttribute('aria-label',button.textContent);}notesSignature='';return;}
     $('notes-copy').disabled=$('notes-download').disabled=!ready;
     const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions]);
     if(key===notesSignature)return;notesSignature=key;
@@ -37,7 +41,7 @@
     const cards=document.createDocumentFragment();let card=null;
     for(const node of [...fragment.childNodes]){if(!card||node.classList?.contains('summary-h')){card=document.createElement('section');card.className='note-card';cards.append(card);}card.append(node);}
     $('summary-body').replaceChildren(cards);
-    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=kind==='actions'?data.workspace?.actions?.items.length:kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null;button.textContent=label+(count?' ('+count+')':'');}
+    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=kind==='actions'?data.workspace?.actions?.items.length:kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null;button.textContent=label+(count?' ('+count+')':'');}
   }
 
   function transcriptText(data){return (data?.records||[]).map(record=>(record.speaker||uiText('未知發言者'))+' '+date(record.t0)+'\n'+record.text).join('\n\n');}
@@ -126,11 +130,11 @@
     $('meeting-metadata').textContent=data?.id?`${platform} · ${date(st.joinedAt||st.startedAt)}${st.endedAt?' – '+new Date(st.endedAt).toLocaleTimeString(window.DuckI18n.language,{hour:'2-digit',minute:'2-digit',hour12:false}):''} · ${uiText('{count} 位發言者',{count:workspace.speakerCount||0})}`:'';
     const seconds=workspace.audio?.[0]?.seconds||st.stats?.audioSeconds||(st.startedAt?Math.max(0,((st.endedAt?Date.parse(st.endedAt):Date.now())-Date.parse(st.joinedAt||st.startedAt))/1000):0);
     $('meeting-duration').textContent=seconds?time(seconds):'—';
-    renderAudio(data);renderSources(data);renderNotes(data);renderHighlights(data);const storageKey=JSON.stringify([data?.id,st.state]);if(storageKey!==storageSignature||Date.now()-storageUpdatedAt>60000){storageSignature=storageKey;void loadStorage();}
+    renderAudio(data);renderSources(data);renderNotes(data);renderHighlights(data);document.dispatchEvent(new CustomEvent('mail-meeting',{detail:data}));const storageKey=JSON.stringify([data?.id,st.state]);if(storageKey!==storageSignature||Date.now()-storageUpdatedAt>60000){storageSignature=storageKey;void loadStorage();}
   }
   document.addEventListener('workspace-rendered',event=>render(event.detail));
   document.addEventListener('workspace-empty',()=>{current=null;render({records:[],workspace:{}});});
-  document.querySelectorAll('[data-notes-tab]').forEach(button=>button.addEventListener('click',()=>{tab=button.dataset.notesTab;document.querySelectorAll('[data-notes-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderNotes(current);}));
+  document.querySelectorAll('[data-notes-tab]').forEach(button=>button.addEventListener('click',()=>{tab=button.dataset.notesTab;const url=new URL(location.href);url.searchParams.set('notes',tab);history.replaceState(null,'',url);document.querySelectorAll('[data-notes-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderNotes(current);}));
   $('notes-copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(current.summary.markdown);message(uiText('已複製會議紀錄'));}catch{message(uiText('無法存取剪貼簿，請使用下載會議紀錄。'));}});
   $('notes-download').addEventListener('click',()=>{if(current?.summary?.markdown)saveFile(current.summary.markdown,current.id+'-summary.md');});
   $('workspace-export').addEventListener('click',()=>{if(current?.id)exportMeeting(current.id);});
