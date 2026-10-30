@@ -14,5 +14,5 @@ test('AGENT-01 waiting handoff is visible without pretend progress; actual agent
   fs.writeFileSync(path.join(dir,'summary.md'),'## Agent 實際整理成果\n\n已根據原文確認，無指定待辦。');
   writeStatus(dir,{summaryJob:{state:'ready',provider:'agent'}});
   await page.getByText('Agent 實際整理成果',{exact:true}).waitFor();
-  await page.getByText('已完成整理',{exact:true}).waitFor();
+  await page.getByText('由 Agent 整理',{exact:true}).waitFor();
 }));

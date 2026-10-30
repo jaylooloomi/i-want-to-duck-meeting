@@ -1,0 +1,36 @@
+{
+  "text": "產品設計週會\n已完成\n2026/10/30 09:00 – 09:42",
+  "html": "<button type=\"button\" class=\"meeting-card-select\"><div class=\"meeting-card-top\"><span class=\"meeting-card-title\">產品設計週會</span><span class=\"meeting-card-state done\">已完成</span></div><div class=\"meeting-card-meta\"><span>2026/10/30 09:00 – 09:42</span><span>qa</span></div></button>",
+  "children": [
+    {
+      "text": "產品設計週會",
+      "rect": {
+        "x": 29,
+        "y": 294,
+        "width": 231,
+        "height": 22.390625,
+        "top": 294,
+        "right": 260,
+        "bottom": 316.390625,
+        "left": 29
+      },
+      "display": "block",
+      "hidden": false
+    },
+    {
+      "text": "已完成",
+      "rect": {
+        "x": 210,
+        "y": 310.578125,
+        "width": 54,
+        "height": 27,
+        "top": 310.578125,
+        "right": 264,
+        "bottom": 337.578125,
+        "left": 210
+      },
+      "display": "block",
+      "hidden": false
+    }
+  ]
+}

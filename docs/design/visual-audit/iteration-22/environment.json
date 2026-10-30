@@ -1,0 +1,22 @@
+{
+  "browser": "156.0.8078.73",
+  "node": "v24.13.0",
+  "platform": "win32",
+  "viewport": {
+    "width": 1586,
+    "height": 992
+  },
+  "timezone": "Asia/Taipei",
+  "fonts": [
+    {
+      "family": "Inter",
+      "status": "loaded",
+      "weight": "100 900"
+    },
+    {
+      "family": "Roboto",
+      "status": "loaded",
+      "weight": "100 900"
+    }
+  ]
+}

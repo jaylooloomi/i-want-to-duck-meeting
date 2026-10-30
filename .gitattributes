@@ -1,0 +1,10 @@
+* text=auto eol=lf
+
+# Keep immutable visual-audit evidence byte-for-byte, including signed JSON.
+/docs/design/** -text whitespace=cr-at-eol
+
+# Preserve upstream fonts and their original license text.
+/src/live/fonts/** -text whitespace=-blank-at-eol,cr-at-eol
+*.png -text
+*.jpg -text
+*.ttf -text

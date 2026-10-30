@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-30",
+  "feature": "Important speech markers",
+  "fullRegression": {
+    "tests": 626,
+    "passed": 610,
+    "failed": 0,
+    "skipped": 16,
+    "log": "test-highlights-full-regression.log"
+  },
+  "finalTargeted": {
+    "tests": 8,
+    "passed": 8,
+    "failed": 0,
+    "log": "test-highlights-final.log"
+  },
+  "verified": [
+    "Current moment with recent pending caption snapshot",
+    "Whole utterance marking and idempotency",
+    "Desktop/mobile UI, filtering, cancellation and reload persistence",
+    "Retain anchor when provisional speaker becomes confirmed and unique timestamp remains",
+    "Audio jump to marked time after finalization",
+    "Unknown/stale speech produces time-only marker",
+    "Exact-session and same-origin API protection",
+    "Client cannot forge stored quote text",
+    "AI export includes effective markers as evidence, not decisions",
+    "Codex and Claude Code installed instructions updated"
+  ],
+  "notes": [
+    "16 existing BUG-004 cases remain skipped",
+    "Tests use synthetic session data and PCM; no real meeting was joined",
+    "Relative audio positions are estimates from meeting start",
+    "Cancelled events remain local; effective Markdown/export omit cancelled markers",
+    "No Ollama or new dependencies"
+  ]
+}

@@ -156,3 +156,23 @@ BUG-004 保持開放為驗收限制：Chromium 在 HTTP 400/401/403/500 或連�
 已有真正 Google 原生選帳號與預備頁身分一致的唯讀證據，加入按鈕點擊 0。新帳號認證／主持人放行／真人音訊不在該證據內。NATIVE-01–12 共十四例取代歷史 ACCOUNT 表單案例。
 
 BUG-010 後續真人核對：原生選定帳號與實際身分一致，主持人放行及入會成功；核對過實際錄音與 1357。語音品牌／姓名錯字仍保留為辨識限制，不與帳號修復混為一談。去識別證據見 docs/qa/reports/native-account-live-validation.json。
+
+
+## Workspace reference follow-up — resolved during 2026-10-30 verification
+
+- **REF-UI-01 (resolved):** notes typography consumed the available pane and clipped a second action row; row sizing, source-review layout and pane geometry were corrected. The actual accepted fixture renders both rows; browser tests exercise notes tabs and action cells.
+- **REF-UI-02 (resolved):** full language labels were truncated in compact selects. A same-origin SVG arrow and explicit padding preserve the full target-language text while retaining native semantic controls.
+- **REF-CSP-01 (resolved):** the first arrow used a data URI, which strict `default-src 'self'` blocked and logged as a console error (iteration 16). Moved to `/assets/chevron.svg`; the security policy was not relaxed. Later captures pass the unchanged zero-console guard.
+- **REF-UI-03 (resolved):** completed status wording, single-track controls, known-speaker metadata and ordered decisions differed from the intended flow. The viewer uses truthful session/evidence state, hides unnecessary single-track selection and renders numbered decisions semantically as an ordered list.
+
+These resolved items do not waive historical BUG-004 skips. See docs/qa/reports/visual-reference-20261030.md for final counts and limits. No private recording or live conference was used for this UI audit.
+
+
+## Emerald style migration — resolved regressions (2026-10-30)
+
+- **EM-01, recording feedback hidden (resolved):** the first theme hid `.activity`, suppressing speaker/stopped/stale/count feedback. Moved the existing live status nodes into the meeting metadata line and explicitly kept them visible. Affected FE-01/FE-03/E2E-01/E2E-06 checks pass after correction. Locations: `src/live/index.html`, final activity rule in `src/live/emerald.css`.
+- **EM-02, search accessible name polluted (resolved):** a CSS-generated decorative suffix became part of the search label. Removed the pseudo text and set explicit searchbox accessible labels. Actual semantic fill and Ctrl/Cmd focus tests now pass.
+- **EM-03, outdated test contracts (updated):** source-platform icons need the non-sensitive `source` list field; the whitelist test was updated while continuing to forbid token/pid leakage. Search is now persistent, so tests focus the real searchbox instead of a removed expand-search affordance. The current geometry check targets the newly selected 1280×800 design.
+- **EM-04, state-file/revision safeguards (resolved):** null/corrupt action state falls back safely; action writes require a current summary revision and known row key, persist atomically and preserve source Markdown. Duplicate rows and nested action headings have executable unit coverage.
+
+The failed discovery logs are retained (`test-emerald-first.log`, `test-emerald-corrected.log`, `test-emerald-full-1.log`); they are not counted as final acceptance. Historical BUG-004 strict-console HTTP-error limits remain explicit skips.

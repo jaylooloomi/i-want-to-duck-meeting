@@ -89,11 +89,11 @@ export class Viewer {
     this.transcript=page.getByRole('region',{name:'會議逐字稿'});
     this.start=page.getByRole('button',{name:'開始收音',exact:true});
     this.stop=page.getByRole('button',{name:'結束記錄',exact:true});}
-  async text(value){await this.page.getByText(value,{exact:true}).waitFor({state:'visible',timeout:5000});}
+  async text(value){await (value==='已完成'?this.page.getByRole('region',{name:'目前會議'}).getByText('已完成',{exact:true}):this.page.getByText(value,{exact:true})).waitFor({state:'visible',timeout:5000});}
   async capture(){
     if(!await this.source.isVisible()) await this.page.getByRole('button',{name:'＋ 新增記錄',exact:true}).click();
   }
-  async open(app,query=''){await this.page.goto(app.url+'/'+query);await this.page.getByRole('heading',{name:'每個人的話，都跟得上。'}).waitFor();}
+  async open(app,query=''){await this.page.goto(app.url+'/'+query);await this.page.getByRole('button',{name:'＋ 新增記錄',exact:true}).waitFor();}
 }
 export function spec(test,id,body,options={}) {
   const bug=options.bug;

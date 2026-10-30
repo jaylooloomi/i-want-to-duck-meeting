@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-30",
+  "fullRegression": {
+    "tests": 621,
+    "pass": 605,
+    "fail": 0,
+    "skipped": 16
+  },
+  "log": "test-reference-full-regression.log",
+  "sameSizeReplay": {
+    "pass": 3,
+    "fail": 0,
+    "log": "test-reference-precision.log"
+  },
+  "referenceGeometry": {
+    "viewport": {
+      "width": 1586,
+      "height": 992
+    },
+    "transcriptPane": {
+      "x": 308,
+      "y": 228,
+      "width": 725.8125,
+      "height": 746
+    }
+  },
+  "liveTranslation": {
+    "pendingCaptionTranslationVerifiedBeforeFinalization": true,
+    "lateResponsesCannotRestoreDisabledTranslation": true,
+    "finalTranslationReplacesDraft": true,
+    "requestThrottleMs": 1400,
+    "failureBackoffMs": 5000,
+    "mockedProviderInAutomatedTests": true,
+    "realGoogleMeetAfterThisFixVerified": false,
+    "ollamaUsed": false
+  },
+  "limitations": [
+    "16 pre-existing BUG-004 cases remain skipped",
+    "The draft pipeline depends on caption provider emitting pending text; translation requires network/provider availability",
+    "Variable meeting content is not fabricated to reproduce example text",
+    "Fonts, browser rendering and actual session content can differ from the raster concept"
+  ]
+}

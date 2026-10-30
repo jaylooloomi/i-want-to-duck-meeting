@@ -129,3 +129,41 @@ Phase 2建立時間：任何新測試程式撰寫之前。判定依使用者合�
 | [x] NATIVE-12 | FE-E2E | 未登入時在原生登入頁按 Enter 可接續，不讀取欄位值 |
 
 證據分開保存：早期 Google 唯讀檢查為零加入點擊；2026-10-26 後續使用者實際選帳號、主持人放行與約 121.7 秒錄音成功，字幕及錄音轉錄均含 1357。Google Meet／Arthur 仍有錯字，完整測試句未通過。見 [去識別真人結果](docs/qa/reports/native-account-live-validation.json)，不得把受控案例數當真人測試數。
+
+
+## Workspace reference follow-up — 2026-10-30
+
+- [x] VISUAL-REF-01 | FE-E2E | 1586×992 workspace | Frozen whole-region structure/geometry/color audit. Render the reference scene through the real local server, compare the unmodified screenshot, require ≥90 composite, every region ≥80 and zero console/page errors. Evidence: iteration-21, 90.1619245994.
+- [x] VISUAL-ASSETS | Backend/FE-E2E | Local fonts and select arrow | GET font/SVG assets; validate media type, real font bytes and SIL OFL licenses. Native selects retain complete labels without relaxing CSP.
+- [x] VISUAL-NOTES | FE-E2E | Notes/source metadata | Ready Agent notes show ordered decisions, actual owner identity hints, source platform and recorded-speaker count. Missing evidence never invents participant totals or audio availability.
+- [x] WORK-UI | FE-E2E | Sidebar/transcript/audio/notes | Search/select/rename/archive/export, bilingual presets, real PCM playback/seek/rate/volume/tracks, copy/download, source comparison, settings/help, persistence and no horizontal overflow at 1920/1280/390 widths.
+- [x] HL-UI / LIVE-TRANSLATE | FE-E2E | Live content | Mark moment/utterance, filter/reload/unmark/seek; pending text receives incremental translations and stale responses cannot replace the selected language/session.
+- [x] VISUAL-SCORE | QA tooling | Metric correctness | Decode all five PNG filters and RGBA, SSIM identity/difference, downsampling/IoU, reject a blank page under the frozen protocol. Five executable Python tests.
+
+Full regression results and acceptance limitations: docs/qa/reports/visual-reference-20261030.md. Provider services and real speech are boundary-stubbed in UI replay, not labelled live-service validation.
+
+
+## Emerald selected-style implementation — 2026-10-30
+
+This replaces the current layout target; the old 90.16% audit remains historical and is not reused as the new design's score.
+
+- [x] EMERALD-API | Backend | Action completion | Exact id/origin, boolean and SHA-shaped keys, stale-summary rejection, unknown task rejection, persistent completion and original Markdown unchanged.
+- [x] EMERALD-UNIT | Backend | Overlay parser/storage | Duplicate/escaped-pipe rows stay distinct, nested action headings parse, corrupt completion JSON is safe, actual file bytes and disk availability, symlink directories excluded.
+- [x] EMERALD-UI | FE-E2E | 1586/1280/390 | Check/uncheck/reload task status, copy paragraph, mark speech, source transcript review/TXT download, expand player/Escape, Ctrl/Cmd search shortcuts, real storage display and no horizontal overflow.
+- [x] WORK-UI / HL-UI / LIVE-TRANSLATE | FE-E2E | Existing workflows | Playback/range/track/rate/volume, history/search/rename/archive/export, notes/copy/download, highlights and incremental translation retained.
+- [x] EMERALD-REFERENCE | FE-E2E | Selected layout | 1280×800 sidebar 224px; pane origin around 239×164, two working columns, status cards, source rows; real-app capture, zero console errors.
+- [x] EMERALD-REG-ACTIVITY | FE-Unit/E2E | Live status | Recording activity, speaker feedback and record count remain visible after the visual migration; no hidden stale/error status.
+
+Full frozen-source regression acceptance: see docs/qa/reports/emerald-20261030.md for the two final runs, rather than the earlier failed diagnostic run.
+
+
+## Light/dark theme follow-up — 2026-10-30
+
+- [x] THEME-01 | FE-E2E | 1280/390 | Footer toggle and settings selection synchronize; local preference survives reload; current meeting unchanged; no overflow.
+- [x] THEME-02 | FE-E2E | Multi-tab | Another same-origin tab restores/synchronizes preference; invalid values safely use light.
+- [x] THEME-03 | FE-E2E | Storage denied | Read/write exceptions do not crash; appearance changes and persistence warning stays visible.
+- [x] THEME-04 | FE-E2E | Media | Switch both directions during actual synthetic WAV playback; no navigation, pause or selected-meeting change.
+- [x] THEME-05 | FE-E2E | Contrast | Measure rendered transcript, main title, activity feedback and selected settings button contrast; minimum 4.5:1 on measured backgrounds.
+- [x] EMERALD-UI | FE-E2E | Both themes, 1586/1280/390 | Replay completion, paragraph copy/seek/mark, source TXT, player expansion/restore and keyboard search with strict console guards.
+
+Full regression results: docs/qa/reports/themes-20261030.md. Prior Emerald and old-reference results remain historical.

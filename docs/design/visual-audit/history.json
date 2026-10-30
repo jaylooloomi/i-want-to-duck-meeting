@@ -1,0 +1,181 @@
+{
+  "protocolSha256": "def9a39c59a95d58f49bd81fa7c574a0cd79d3a0280cf448d745aeabc1de01a2",
+  "iterations": [
+    {
+      "iteration": "iteration-01",
+      "score": 70.53622989434032,
+      "passed": false,
+      "actualSha256": "767c0d368a20b570391ce97f57da8daa9dcf4f873cd28043e4704bc4699fbb0d",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-02",
+      "score": 75.5584009191532,
+      "passed": false,
+      "actualSha256": "23ca538ebe94022062ba1e6c9d7436634a69fe28e0dbe02c8087c33af8997a73",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-03",
+      "score": 77.65203256678153,
+      "passed": false,
+      "actualSha256": "580a3bd5d176f41780fac995e0fe07a7274bedaef2d22e4c2ed57591fa439d99",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-04",
+      "score": 80.27133924461823,
+      "passed": false,
+      "actualSha256": "e940c331b7a3f0a75b523c7155941a3430e3fbfb42b5509738560f8b2350c7be",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-05",
+      "score": 80.75584669481944,
+      "passed": false,
+      "actualSha256": "43172257c1331a20c93d3e71072b89f22f6efb4f4778723adbc7d78c8f61a301",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-06",
+      "score": 77.49077737081609,
+      "passed": false,
+      "actualSha256": "b333db7211989242b333fc0ef1cb52e0abb0e131605769e8047cff53b4311a5e",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-07",
+      "score": 83.7337067863596,
+      "passed": false,
+      "actualSha256": "a65daf729594cc88f76e6c8f8344925dc3334782a039dc69f9f2cf72bf6c792c",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-08",
+      "score": 84.685596325617,
+      "passed": false,
+      "actualSha256": "8b301c642f04404b91f31142ea5c8c7140c5acef50aba952a542564a2b24cf9b",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-09",
+      "score": 87.51421750586987,
+      "passed": false,
+      "actualSha256": "c1359daf6f5cee0516094f30167731a75c6af65cf3e86ea5e8a185d6537da732",
+      "consoleClean": true,
+      "note": "Diagnostic PCM-amplitude variant; original restored in 10"
+    },
+    {
+      "iteration": "iteration-10",
+      "score": 87.63774527615102,
+      "passed": false,
+      "actualSha256": "7b9922f32333883729cf1b4d1500882b6db28ec69ddb9dbdc71923ab2a71e4b4",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-11",
+      "score": 87.91644442836247,
+      "passed": false,
+      "actualSha256": "3d7b6abbddf2ed63c4af17b78322803935011739d0d7b0eb6ee00570e2cd6a7e",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-12",
+      "score": 86.9425067229774,
+      "passed": false,
+      "actualSha256": "7874a34466ec5dadcc11aa397c9a734d7249e0452f6fad0a109d33b1346006fd",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-13",
+      "score": 87.64338181321108,
+      "passed": false,
+      "actualSha256": "aaebc01da9ea23a4a7664b52d00c76e3e824bbc661d206123a81f5c98e5fe776",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-14",
+      "score": 87.9423213370668,
+      "passed": false,
+      "actualSha256": "3afb19b7b81aeaa220508e95eed8d0fac5736184dae29c6e4698c22b081f0d71",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-15",
+      "score": 88.37241526861598,
+      "passed": false,
+      "actualSha256": "d24f3d0896467bf804058f48a083c69630deef2675d06d04a7ec90d11d465ac9",
+      "consoleClean": true,
+      "note": "Canonical volume/focus corrected; see method"
+    },
+    {
+      "iteration": "iteration-16",
+      "score": 88.70368921467335,
+      "passed": false,
+      "actualSha256": "a633e50784dda9c3310f773fdcc4aac1411b43a218625a4754417be1ba4d7d47",
+      "consoleClean": false,
+      "note": "Rejected: CSP console error"
+    },
+    {
+      "iteration": "iteration-17",
+      "score": 89.11158414996942,
+      "passed": false,
+      "actualSha256": "923d21de7702f886adcd8bfbaa13830595e471fc76ec0102cd9519f9d5dcf909",
+      "consoleClean": true,
+      "note": "Canonical volume/focus corrected; see method"
+    },
+    {
+      "iteration": "iteration-18",
+      "score": 89.52322316070833,
+      "passed": false,
+      "actualSha256": "38a13ed0d49e164342163719c38165628dc20c70393c29d730be45551654e331",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-19",
+      "score": 89.40032741208908,
+      "passed": false,
+      "actualSha256": "101d8d1cabaabd1e9c33ce8cafcf9de03fce0a6975482ecfb940480d5164f5f2",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-20",
+      "score": 89.62708501146521,
+      "passed": false,
+      "actualSha256": "03ceef59c84828e38b0e52e32127ef5c94720d8d66d81f3750f4414c84cd1bde",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-21",
+      "score": 90.1619245994198,
+      "passed": true,
+      "actualSha256": "33e483717e96609b77d3e50491a5621f6bc468d62b840cd7803e0b35a4bf9390",
+      "consoleClean": true,
+      "note": ""
+    },
+    {
+      "iteration": "iteration-22",
+      "score": 90.1619245994198,
+      "passed": true,
+      "actualSha256": "33e483717e96609b77d3e50491a5621f6bc468d62b840cd7803e0b35a4bf9390",
+      "consoleClean": true,
+      "note": ""
+    }
+  ]
+}

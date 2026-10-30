@@ -1,0 +1,33 @@
+{
+  "state": "complete",
+  "date": "2026-10-30",
+  "fullSuite": {
+    "tests": 643,
+    "pass": 627,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 16,
+    "todo": 0
+  },
+  "durationMs": 327688.1453,
+  "log": "test-theme-verified.log",
+  "logSha256": "c7480f97b66a90c9ab894e5eadbc34dff58d66a213057b43690ad6c576c0a9cb",
+  "themeCases": 5,
+  "strictConsole": true,
+  "appearanceControls": [
+    "sidebar footer",
+    "settings appearance select"
+  ],
+  "storageKey": "duck-meeting:theme",
+  "sourceHashes": {
+    "src/live/theme.js": "1ef94a6f13ff78f2a4ec43627421612c16ae9f603ab1415628eade1645bc31b0",
+    "src/live/emerald.css": "2a20d599a7cae1906b13b792602e8accd37108def0f828f530efd6e3335b937e",
+    "src/live/index.html": "a151ecde31e6e5b29a4cff4b3df89fddc788a057f8d0581bae4cc5197e3f74fd",
+    "src/live-server.js": "be115c5e8775454cc991a27a03d1f503d44ea5bdfb7347ab93b80799ef8cf62c"
+  },
+  "screenshots": {
+    "light": "f526b3a3f8597ca75dc83eddb8f82696dc22d45ed967e0be14559d79c7574e0d",
+    "dark": "d93b32b919c33289b4e006b289965d6a41137bdf7f18fb566d38a329ec10a69c"
+  },
+  "liveMeetingTested": false
+}

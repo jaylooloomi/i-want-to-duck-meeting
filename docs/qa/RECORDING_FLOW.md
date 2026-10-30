@@ -41,5 +41,7 @@ All new browser cases use semantic locators, event-driven waits and a shared str
 - 英中: English transcript filter + Traditional Chinese translation.
 - 中英: Chinese/CJK (including mixed-language utterances) filter + English translation.
 - Both dropdowns and URL query parameters change together. Reload preserves settings; manual changes update the pressed state.
-- These controls do not change Google/Teams recognition language or translate partial captions. English display excludes CJK-containing utterances; this is a simple display filter rather than language identification.
+- These controls do not change Google/Teams recognition language. Pending captions are provisionally translated with throttled requests and corrected after finalization. English display excludes CJK-containing utterances; this is a simple display filter rather than language identification.
 - LANG-01 verifies both directions, native Teams records, reload, manual override and mobile overflow with deterministic translation responses. Live third-party translation service quality is not certified by this controlled test.
+
+Follow-latest, view mode, auto-scroll and advanced notes actions are available from Settings. Transcript search expands from the magnifying-glass button.

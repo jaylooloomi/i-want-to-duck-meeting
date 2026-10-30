@@ -32,7 +32,7 @@ test('BE-03 empty list and public list excludes sensitive status fields',async t
   const app=await api(t);assert.deepEqual(await (await fetch(app.url+'/api/meetings')).json(),[]);
   app.seed('qa-first',{token:'never-public',pid:123});app.seed('qa-second',{state:'done'});
   const rows=await (await fetch(app.url+'/api/meetings')).json();assert.equal(rows.length,2);
-  for(const row of rows)assert.deepEqual(Object.keys(row).sort(),['code','id','state']);
+  for(const row of rows)assert.deepEqual(Object.keys(row).sort(),['canArchive','code','endedAt','id','source','startedAt','state','title']);
   assert.ok(!JSON.stringify(rows).includes('never-public'));
 });
 test('BE-04 malformed partial JSON sorted transcript and terminal pending suppression',async t=>{

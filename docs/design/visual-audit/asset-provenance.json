@@ -1,0 +1,22 @@
+{
+  "src/live/fonts/inter-variable.ttf": {
+    "source": "https://github.com/google/fonts/tree/main/ofl/inter",
+    "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+  },
+  "src/live/fonts/Inter-OFL.txt": {
+    "source": "https://github.com/google/fonts/blob/main/ofl/inter/OFL.txt",
+    "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+  },
+  "src/live/fonts/roboto-variable.ttf": {
+    "source": "https://github.com/google/fonts/tree/main/ofl/roboto",
+    "sha256": "d7598e12c5dbef095ff8272cfc55da0250bd07fbdecbac8a530b9b277872a134"
+  },
+  "src/live/fonts/Roboto-OFL.txt": {
+    "source": "https://github.com/google/fonts/blob/main/ofl/roboto/OFL.txt",
+    "sha256": "061402327a96aadb0bfb694a960ed289ecd38d383e396243831ab81feb109c41"
+  },
+  "src/live/assets/chevron.svg": {
+    "source": "Original inline path moved to a same-origin static SVG; no third-party image",
+    "sha256": "06908136bc9c7946b2e67cbc8328ec656f2581e7fccb26892a765dcbdad1753f"
+  }
+}

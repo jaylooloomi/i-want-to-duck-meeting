@@ -360,4 +360,48 @@ Commands: notes-follow <id> binds an existing meeting to the current chat, notes
 - Browser microphone recording requires keeping the original recording tab open. Audio levels indicate signal, not transcription accuracy.
 - **逐字稿顯示** filters displayed text; it does not configure the platform's caption recognition language. Translation selection retains its existing behavior.
 
-The **英中** shortcut sets English transcript display plus Traditional Chinese translation; **中英** sets Chinese transcript display plus English translation. These are one-click display presets, not changes to Google/Teams caption recognition language. Chinese display includes mixed Chinese/English utterances; filtering is based on CJK characters, not a full language classifier. Translation still waits for finalized utterances. Automatic summary monitoring is scoped to the tracked session(s) and should be removed after those sessions complete or fail; it is recreated for the next meeting.
+The **英中** shortcut sets English transcript display plus Traditional Chinese translation; **中英** sets Chinese transcript display plus English translation. These are one-click display presets, not changes to Google/Teams caption recognition language. Chinese display includes mixed Chinese/English utterances; filtering is based on CJK characters, not a full language classifier. Pending captions now receive throttled provisional translations, followed by finalized paragraph translations. Automatic summary monitoring is scoped to the tracked session(s) and should be removed after those sessions complete or fail; it is recreated for the next meeting.
+
+### Duck Meeting workspace
+
+The local web panel now includes searchable meeting history with date grouping, persistent meeting names, source/status indicators, transcript search, bilingual display presets and translation targets including Japanese and German. **All original text** is the default; the English/Chinese presets are display filters, not recognition-language controls. Keep all originals for multilingual meetings.
+
+Saved PCM WAV recordings have an actual-sample waveform, playback, seeking, track selection (mixed/microphone/system where available), speed and volume controls. Clicking a transcript timestamp or comparison item selects the mixed recording and seeks approximately from the recorded meeting start. Live recording files are not offered for playback before finalization. A saved file does not establish speaker identity or ASR accuracy.
+
+Agent-authored Markdown notes can be viewed as overview, decisions or actions, copied or downloaded. Full-session ZIP export and the custom-AI export remain available. Missing decision/action sections remain empty; the UI does not invent items or call Ollama. Sidebar settings persist display density and playback speed in this browser.
+
+**Sources and review** compares existing platform captions with `transcript-whisper.json` when present. It aligns using estimated meeting-relative timestamps and highlights wording, segmentation and digit/decimal differences without rewriting either source. Unaligned/missing evidence is disclosed. This is advisory review, not a proof of accuracy; if no recording transcription exists, ask the Agent to transcribe the saved recording first. Recording/Agent handoff must finish before archive/delete actions are enabled.
+
+Translation sends text to the existing Google translation service and can fail or require an internet connection. Failed translations show retry feedback; pending text is translated on a roughly 1.4-second request cadence (plus caption, polling and provider latency), then corrected at utterance finalization. Adding a target language does not certify that platform subtitles or a local speech model recognize that language correctly. No real-service Japanese/German recognition certification is claimed.
+
+
+### Live translation and reference layout
+
+Live translation uses the existing Google translation HTTP endpoint; no Ollama or new summary model is involved. Pending caption text is translated before the meeting or paragraph ends, labelled **暫譯 · 持續更新**. Requests are throttled, stale language/meeting responses cannot overwrite the current view, failures back off, and final text receives a fresh translation. Network/provider latency means this is incremental translation, not guaranteed zero-latency word-by-word output.
+
+The workspace now follows the supplied 1586×992 reference geometry: sidebar branding, a single breadcrumb header, larger reading type, compact inline language controls, expandable transcript search, circular playback control and owner/date table chips. Follow-latest, view mode, auto-scroll and advanced notes operations are under **設定**; **說明 → 回報問題** preserves issue reporting without cluttering the main workspace. All controls remain HTML/CSS/SVG elements with keyboard-accessible names rather than static screenshot controls. Meeting-specific titles, people, durations and notes are always real session data.
+
+### Mark important speech
+
+During recording, **★ 標記此刻重點** saves the current time and a recent caption snapshot when available. Each transcript row also has a star to mark the whole utterance. **查看重點** lists time, speaker and the saved snapshot; **只看重點** filters the transcript. After finalization, a marker can seek to its approximate mixed-recording position. A time-only marker never invents text when captions are absent or stale.
+
+Markers persist as local `highlights.jsonl` events plus an effective `highlights.md` view. Cancelling a marker removes it from the effective list while retaining the local event history. Original transcript/audio files are not rewritten. Pending snapshots remain labelled as provisional, including after speaker labels change. Exported custom-AI prompts and the installed Agent skill include effective highlights and require context review: marking indicates attention, not a decision, assigned responsibility or tool authorization. Existing notes are not silently regenerated when markers are added later.
+
+
+### Historical reference workspace audit
+
+The previous 1586×992 layout reached **90.16% under the frozen project comparison protocol**, with every region above 80% and no console/page errors in the accepted capture. See the [actual screenshot](docs/design/visual-audit/iteration-21/actual.png), [comparison method and replay commands](docs/design/visual-audit/README.md), and [functional verification report](docs/qa/reports/visual-reference-20261030.md). This is a controlled synthetic-data UI check, not a new live-meeting ASR certification. Inter/Roboto fonts are served locally with their SIL OFL licenses; the strict content security policy remains unchanged.
+
+
+### Emerald meeting workspace
+
+The selected emerald design is now a working HTML/CSS/SVG interface: three evidence cards, persistent transcript search, bilingual controls, visible speech stars/paragraph menus, compact player, Agent notes cards and source-file review. History dates are compact; full date/time remains in the meeting tooltip. Speaker avatars use actual name initials when no profile image is supplied.
+
+Action-table checkboxes persist to a separate local `action-items.json`; they never rewrite the Agent’s Markdown, assign owners or change deadlines. A summary revision check rejects stale writes. The overlay is included in a full meeting ZIP. Paragraph menus copy the original, seek the mixed recording and mark/unmark speech. Source review opens a readable transcript with TXT download; audio-source actions position the player. The player can expand and restore with Escape. Ctrl/Cmd+K focuses meeting search; Ctrl/Cmd+F focuses transcript search outside input fields.
+
+Storage displays real meeting-directory usage and available disk space, refreshed on meeting-state changes and periodically. No storage quota, MP3 format, recognition accuracy or participant total is fabricated. Saved audio currently uses PCM WAV; the count is recorded speakers. All summary handling retains the no-Ollama Agent handoff. See [Emerald implementation and test report](docs/qa/reports/emerald-20261030.md). The old 90.16% result is historical evidence for the previous reference, not a score for this new design.
+
+
+### Light and dark appearance
+
+Use **深色 / 淺色** at the bottom-left of the workspace, or **設定 → 外觀風格**, to switch between Emerald light and Midnight dark. The current browser remembers the selection; other tabs on the same local origin synchronize it. The saved palette is read before the stylesheets render. Appearance changes do not navigate, reload the recording engine or change the selected meeting. Blocked browser storage does not prevent switching; the app explains that the preference could not be saved. See [theme verification](docs/qa/reports/themes-20261030.md).

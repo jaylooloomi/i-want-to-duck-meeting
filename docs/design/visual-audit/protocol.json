@@ -1,0 +1,151 @@
+{
+  "reference": "C:\\Users\\User\\AppData\\Local\\Temp\\codex-clipboard-68a832cb-dbb7-4aff-a0f2-58f234217dd8.png",
+  "referenceSha256": "3a21e733295e08088171bf91cd257fc8cdb75321cbdaddf85783624dc5e063ae",
+  "viewport": [
+    1586,
+    992
+  ],
+  "threshold": 90,
+  "minimumRegionStructure": 80,
+  "method": "Fixed composite UI score: 70% region-weighted grayscale SSIM over 1x/2x/4x box scales (20/30/50%), 20% component rectangle IoU, 10% mean RGB agreement. All unmodified screenshot pixels in every declared region are scored; no empty-space-only scoring or post-render screenshot edits.",
+  "regions": [
+    {
+      "name": "sidebar",
+      "box": [
+        0,
+        0,
+        284,
+        870
+      ],
+      "weight": 0.15
+    },
+    {
+      "name": "sidebar_footer",
+      "box": [
+        0,
+        870,
+        284,
+        992
+      ],
+      "weight": 0.05
+    },
+    {
+      "name": "title_header",
+      "box": [
+        284,
+        0,
+        1586,
+        169
+      ],
+      "weight": 0.1
+    },
+    {
+      "name": "source_strip",
+      "box": [
+        284,
+        169,
+        1586,
+        230
+      ],
+      "weight": 0.05
+    },
+    {
+      "name": "transcript_header",
+      "box": [
+        307,
+        230,
+        1034,
+        352
+      ],
+      "weight": 0.1
+    },
+    {
+      "name": "transcript_body",
+      "box": [
+        307,
+        352,
+        1034,
+        859
+      ],
+      "weight": 0.25
+    },
+    {
+      "name": "audio_player",
+      "box": [
+        307,
+        859,
+        1034,
+        976
+      ],
+      "weight": 0.1
+    },
+    {
+      "name": "notes_header",
+      "box": [
+        1047,
+        230,
+        1570,
+        345
+      ],
+      "weight": 0.05
+    },
+    {
+      "name": "notes_body",
+      "box": [
+        1047,
+        345,
+        1570,
+        852
+      ],
+      "weight": 0.1
+    },
+    {
+      "name": "source_review",
+      "box": [
+        1047,
+        852,
+        1570,
+        976
+      ],
+      "weight": 0.05
+    }
+  ],
+  "geometry": {
+    "sidebar": [
+      0,
+      0,
+      284,
+      992
+    ],
+    "heading": [
+      284,
+      0,
+      1302,
+      58
+    ],
+    "source_strip": [
+      309,
+      169,
+      1259,
+      46
+    ],
+    "transcript_pane": [
+      307,
+      230,
+      727,
+      746
+    ],
+    "notes_pane": [
+      1047,
+      230,
+      523,
+      746
+    ],
+    "audio_player": [
+      327,
+      870,
+      687,
+      88
+    ]
+  }
+}

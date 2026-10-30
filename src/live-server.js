@@ -10,6 +10,9 @@ import { sttPython } from './stt.js';
 
 const translationCache = new Map();
 import {requestAgentSummary} from './agent-summary.js';
+import {readHighlights,highlightKey,updateHighlight,renderHighlightsMarkdown} from './highlights.js';
+import {actionItems,setActionItem,storageInfo} from './workspace-actions.js';
+import {workspaceData,meetingTitle,safeAudioFile,streamAudio} from './workspace-data.js';
 
 const CRC32_TABLE = new Uint32Array(256);
 for (let i = 0; i < 256; i++) {
@@ -233,7 +236,7 @@ function buildFallbackSummary(status, records) {
   return lines.join('\n') + '\n';
 }
 
-export function buildAiPromptPackage(status, transcriptText) {
+export function buildAiPromptPackage(status,transcriptText,highlightText='') {
   const timeRange = formatTimeRange(status?.startedAt, status?.endedAt);
   const location = status?.url || (status?.source === 'teams' ? 'Microsoft Teams 線上會議' : status?.source === 'microphone' ? '現場會議（本機收音）' : 'Google Meet 線上會議');
   const recorder = status?.displayName || 'Arthur Wang';
@@ -278,7 +281,7 @@ export function buildAiPromptPackage(status, transcriptText) {
 - 記錄人：${recorder}
 
 【會議逐字稿內容】
-${transcriptText}`;
+${transcriptText}${highlightText?'\n\n【使用者標記重點：請優先核對上下文，不等同正式決議】\n'+highlightText:''}`;
 
   const combined = `${systemPrompt}\n\n---\n\n${userPrompt}\n`;
   return { systemPrompt, userPrompt, combined };
@@ -363,14 +366,22 @@ export function readLiveMeeting(meetingsDir, id = 'latest') {
       });
   } catch { /* not created yet */ }
   const live = readJson(path.join(meeting.dir, 'live.json'), {});
-  const terminal = ['done', 'failed'].includes(status?.state);
+  const terminal = ['done', 'failed','archived'].includes(status?.state);
   const pending = !terminal && Array.isArray(live.pending) ? live.pending : [];
+  const highlights=readHighlights(meeting.dir);
+  const timeCounts=new Map();for(const record of [...records,...pending])timeCounts.set(record.t0,(timeCounts.get(record.t0)||0)+1);
+  const decorate=record=>{
+    const key=highlightKey(record);
+    const markers=highlights.filter(m=>m.anchorKey===key || (m.pending && m.quoteAt===record.t0 && timeCounts.get(record.t0)===1));
+    const whole=markers.find(m=>m.kind==='utterance');
+    return {...record,highlightKey:whole?.key||key,highlighted:!!whole,highlightCount:markers.length};
+  };
   // Recent text changes indicate caption activity, not an audio-based speaker detector.
   const activeSpeakers = status?.state === 'in_call'
     ? [...new Set(pending.filter((r) => Date.now() - Date.parse(r.t1) < 6000).map((r) => r.speaker || '未知發言者'))] : [];
   records.sort((a, b) => Date.parse(a.t0) - Date.parse(b.t0));
   const summary = getMeetingSummaryState(meeting.dir, status, records);
-  return { id: meeting.id, status, records, pending, activeSpeakers, summary };
+  return { id: meeting.id, status, records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
 }
 
 export async function startLiveServer({ meetingsDir, port = 8791, microphone = new MicrophoneService({ meetingsDir }) }) {
@@ -379,7 +390,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
     const origin = `http://127.0.0.1:${server.address().port}`;
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; media-src 'self'; connect-src 'self'; frame-ancestors 'none'");
     if (req.headers.host !== new URL(origin).host || (req.headers.origin && req.headers.origin !== origin)) {
       res.writeHead(403).end(); return;
     }
@@ -390,9 +401,30 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         if (req.headers.origin !== origin || req.headers['content-type'] !== 'application/json') { res.writeHead(403).end(); return; }
         const input = JSON.parse((await body(req)).toString() || '{}');
         const texts = Array.isArray(input?.texts) ? input.texts.slice(0, 12).map((t) => String(t ?? '').trim()).filter(Boolean) : [];
-        const target = ['zh-TW', 'en', 'ja'].includes(input?.target) ? input.target : 'zh-TW';
+        const target = ['zh-TW','zh-CN','en','ja','de','fr','es','ko','it','pt','vi','th'].includes(input?.target) ? input.target : 'zh-TW';
         const translations = await Promise.all(texts.map((t) => translateText(t, target)));
         json({ translations }); return;
+      }
+      if(req.method==='GET'&&url.pathname==='/api/storage'){json(storageInfo(meetingsDir));return;}
+      if(req.method==='POST'&&url.pathname==='/api/action-items'){
+        if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){res.writeHead(403).end();return;}
+        const input=JSON.parse((await body(req)).toString()||'{}');
+        if(!input||typeof input.id!=='string'||input.id==='latest'){json({error:'請指定確切會議'},400);return;}
+        if(typeof input.completed!=='boolean'||typeof input.key!=='string'||!(/^[a-f0-9]{64}$/).test(input.key)||typeof input.revision!=='string'||!(/^[a-f0-9]{64}$/).test(input.revision)){json({error:'待辦狀態或版本格式不正確'},400);return;}
+        const meeting=resolveMeeting(meetingsDir,input.id);
+        if(!meeting||meeting.id!==input.id){json({error:'找不到會議'},404);return;}
+        const data=readLiveMeeting(meetingsDir,meeting.id);
+        if(data.summary.state!=='ready'){json({error:'請等候會議紀錄整理完成'},409);return;}
+        try{json({id:meeting.id,actions:setActionItem(meeting.dir,data.summary.markdown,input)});}catch(error){json({error:error.message},409);}return;
+      }
+      if (req.method === 'POST' && url.pathname === '/api/highlights') {
+        if(req.headers.origin!==origin || req.headers['content-type']!=='application/json'){res.writeHead(403).end();return;}
+        const input=JSON.parse((await body(req)).toString()||'{}');
+        if(!input || typeof input.id!=='string' || input.id==='latest'){json({error:'請指定確切會議'},400);return;}
+        const meeting=resolveMeeting(meetingsDir,input.id);
+        if(!meeting || meeting.id!==input.id){json({error:'找不到會議'},404);return;}
+        const data=readLiveMeeting(meetingsDir,meeting.id);
+        const highlights=updateHighlight(meeting.dir,data,input);json({id:meeting.id,highlights});return;
       }
       if (req.method === 'POST' && url.pathname === '/api/summarize') {
         if (req.headers.origin !== origin || req.headers['content-type'] !== 'application/json') { res.writeHead(403).end(); return; }
@@ -412,6 +444,10 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         const meeting = resolveMeeting(meetingsDir, wantedId);
         if (!meeting || meeting.id !== wantedId) { json({ error: '找不到該會議' }, 404); return; }
         const st = readStatus(meeting.dir) || {};
+        if (action === 'rename') {
+          if (typeof input.title !== 'string' || !input.title.trim() || input.title.trim().length > 100) { json({error:'會議名稱須為 1–100 個字元'},400); return; }
+          const title=input.title.trim();writeStatus(meeting.dir,{title});json({ok:true,id:meeting.id,title});return;
+        }
         if (action === 'stop') {
           if (!['starting','launching','joining','waiting_login','selecting_account','waiting_admission','in_call'].includes(st.state)) { json({ error:'這場記錄已結束或正在收尾' },409); return; }
           if (microphone.current?.id === meeting.id) microphone.stop(microphone.current.token);
@@ -419,6 +455,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
           else { json({ error:'找不到仍在執行的記錄程序' },409); return; }
           json({ok:true,id:meeting.id,state:'leaving'}); return;
         }
+        if (['archive','delete'].includes(action) && (!['done','failed','archived'].includes(st.state) || ['waiting_agent','generating'].includes(st.summaryJob?.state))) {json({error:'請先等候記錄收尾與會議整理完成'},409);return;}
         if (action === 'archive') {
           writeStatus(meeting.dir, { prevState: st.state && st.state !== 'archived' ? st.state : (st.prevState || 'done'), state: 'archived', archivedAt: new Date().toISOString() });
           json({ ok: true, id: meeting.id, state: 'archived' }); return;
@@ -473,7 +510,14 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         json(JSON.parse(result.stdout)); return;
       }
       if (url.pathname === '/api/meetings') {
-        json(listMeetings(meetingsDir).map(({ id, status }) => ({ id, state: status?.state, code: status?.code }))); return;
+        json(listMeetings(meetingsDir).map(({ id,dir,status }) => ({id,state:status?.state,source:status?.source,code:status?.code,title:meetingTitle(dir,status),canArchive:['done','failed','archived'].includes(status?.state)&&!['waiting_agent','generating'].includes(status?.summaryJob?.state),startedAt:status?.startedAt || null,endedAt:status?.endedAt || null}))); return;
+      }
+      if (url.pathname === '/api/audio') {
+        const meeting=resolveMeeting(meetingsDir,url.searchParams.get('id'));
+        if(!meeting || meeting.id !== url.searchParams.get('id')){json({error:'找不到會議'},404);return;}
+        const file=safeAudioFile(meeting.dir,url.searchParams.get('file') || 'audio.wav');
+        if(!file){json({error:'找不到錄音'},404);return;}
+        streamAudio(req,res,file);return;
       }
       if (url.pathname === '/api/transcript') {
         const data = readLiveMeeting(meetingsDir, url.searchParams.get('id') || 'latest');
@@ -489,7 +533,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         if (!meeting) { json({ error: '找不到會議' }, 404); return; }
         const data = readLiveMeeting(meetingsDir, meeting.id);
         const transcriptText = cleanTranscriptForPrompt(meeting.dir, data?.records || []);
-        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id }, transcriptText);
+        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id },transcriptText,renderHighlightsMarkdown(data?.highlights || []));
         if (url.searchParams.get('download') === '1') {
           res.writeHead(200, {
             'Content-Type': 'text/markdown; charset=utf-8',
@@ -500,7 +544,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         }
         json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
-      const routes = { '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const routes = { '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });

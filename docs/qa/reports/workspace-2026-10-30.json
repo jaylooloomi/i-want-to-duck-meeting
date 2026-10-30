@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-30",
+  "timezone": "Asia/Taipei",
+  "full_regression": {
+    "tests": 617,
+    "pass": 601,
+    "fail": 0,
+    "skipped": 16,
+    "log": "test-workspace-final-regression.log"
+  },
+  "final_targeted": {
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "log": "test-workspace-final-repeat.log"
+  },
+  "viewport": [
+    {
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "browser": "Real headless Chrome with synthetic PCM; strict console/pageerror guard",
+  "implemented": [
+    "Searchable grouped history and persistent rename",
+    "Truthful metadata and source status",
+    "Transcript search and bilingual layout",
+    "Japanese/German and additional translation targets",
+    "PCM waveform, range-enabled streaming, play/pause/seek/speed/volume/tracks",
+    "Markdown overview/decision/action views including native Agent format",
+    "Copy/download Markdown and full ZIP export",
+    "Advisory caption/recording comparison including decimal differences",
+    "Settings/help and browser-persisted preferences",
+    "Active/finalizing/Agent-pending archive/delete protection"
+  ],
+  "limitations": [
+    "16 existing BUG-004 HTTP/network console-error cases remain skipped",
+    "No new real-service meeting joined during implementation",
+    "Translation provider requests are mocked in deterministic tests; actual service availability varies",
+    "No recording transcription is created automatically by comparison UI; existing transcript-whisper.json is required",
+    "Timestamp alignment is estimated; neither source is silently corrected",
+    "Japanese/German ASR quality remains a separate real-service acceptance test"
+  ],
+  "ollama_used": false,
+  "private_recordings_used_for_tests": false,
+  "new_dependencies": false
+}

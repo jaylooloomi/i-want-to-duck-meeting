@@ -16,6 +16,7 @@ let meetingOptionsSignature = '', currentRecord = null, ownedRecordId = '', setu
 const setupPanel = document.querySelector('.mic-panel');
 const recordingStates = new Set(['starting','launching','joining','waiting_login','selecting_account','waiting_admission','in_call','leaving','transcribing']);
 let sidebarFilter = 'active', cachedMeetings = [], confirmDeleteId = '';
+const translationRetryAt = new Map(), translationNextAt = new Map(), draftTranslations = new Map();
 const translations = new Map(), autoTriggeredIds = new Set();
 function syncSelection() {
   const url = new URL(location.href); url.searchParams.set('id', selected);
@@ -55,18 +56,23 @@ document.addEventListener('microphone-started', ({ detail }) => {
   selectMeeting(detail.id); meetingOptionsSignature = '';
   syncSelection();
 });
-const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已結束', archived:'已封存', failed:'記錄失敗' };
-const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'✓ 完成', archived:'📦 已封存', failed:'✕ 異常' };
+const states = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'等待 Google 登入', selecting_account:'等待選擇記錄帳號', waiting_admission:'等待放行', in_call:'記錄中', leaving:'收尾中', transcribing:'轉錄中', done:'已完成', archived:'已封存', failed:'記錄失敗' };
+const sidebarStates = { starting:'準備中', launching:'啟動中', joining:'加入中', waiting_login:'待登入', selecting_account:'待選帳號', waiting_admission:'待放行', in_call:'● 收音中', leaving:'收尾中', transcribing:'轉錄中', done:'已完成', archived:'📦 已封存', failed:'✕ 異常' };
+const recordingClock=value=>{const base=Date.parse(currentRecord?.status?.joinedAt||currentRecord?.status?.startedAt),at=Date.parse(value);if(!Number.isFinite(base)||!Number.isFinite(at))return clock(value);const seconds=Math.max(0,Math.floor((at-base)/1000));return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');};
 const clock = (value) => { const date = new Date(value); return Number.isNaN(+date) ? '' : date.toLocaleTimeString('zh-TW', { hour12:false }); };
 const hasCjk = (s) => /[\u3400-\u9FFF\uF900-\uFAFF]/.test(s);
 function formatMeetingMeta(m) {
-  const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.+)$/.exec(m.id || '');
-  const codeLabels = { 'teams-audio':'Teams 會議收音', 'local-mic':'現場麥克風收音', 'teams':'Teams 線上會議' };
-  if (!match) return { title: m.code || m.id, dateStr: m.id };
-  const [, y, mo, d, h, mi, , slug] = match;
-  const rawCode = m.code || slug;
-  const title = codeLabels[rawCode] || rawCode;
-  return { title, dateStr: `${y}-${mo}-${d} ${h}:${mi}` };
+  const match=/^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})-(.+)$/.exec(m.id||'');
+  const labels={'teams-audio':'Teams 會議收音','local-mic':'現場麥克風收音',teams:'Teams 線上會議'};
+  const title=m.title||labels[m.code]||m.code||m.id;
+  const start=new Date(m.startedAt),end=new Date(m.endedAt);
+  if(m.startedAt && Number.isFinite(+start)){
+    const date=start.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+    const clock=d=>d.toLocaleTimeString('zh-TW',{hour12:false,hour:'2-digit',minute:'2-digit'});
+    return {title,dateStr:date+' '+clock(start)+(m.endedAt&&Number.isFinite(+end)?' – '+clock(end):'')};
+  }
+  if(!match)return {title,dateStr:m.id};
+  const [,y,mo,d,h,mi]=match;return {title,dateStr:`${y}/${mo}/${d} ${h}:${mi}`};
 }
 function stateClass(st) {
   if (st === 'in_call' || st === 'starting' || st === 'joining' || st === 'launching') return 'live';
@@ -82,7 +88,7 @@ async function performMeetingAction(id, action) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, action }),
     });
-    if (!res.ok) return;
+    if (!res.ok) {const error=await res.json();$('workspace-message').textContent=error.error||'會議操作未完成';return;}
     confirmDeleteId = '';
     if (action === 'delete' && (selected === id || activeMeetingId === id)) {
       selected = 'latest';
@@ -108,17 +114,23 @@ function renderSidebar(meetings) {
   const activeList = meetings.filter((m) => m.state !== 'archived');
   const archivedList = meetings.filter((m) => m.state === 'archived');
   if (meetingTotal) meetingTotal.textContent = activeList.length + ' 場';
-  if (archivedCountEl) archivedCountEl.textContent = String(archivedList.length);
+  if (archivedCountEl) {archivedCountEl.textContent = String(archivedList.length);archivedCountEl.hidden=archivedList.length===0;}
   if (!meetingList) return;
   const frag = document.createDocumentFragment();
-  const visibleMeetings = sidebarFilter === 'archived' ? archivedList : activeList;
+  const query=$('meeting-search').value.trim().toLocaleLowerCase();
+  const visibleMeetings = (sidebarFilter === 'archived' ? archivedList : activeList).filter(m=>[m.title,m.code,m.id,formatMeetingMeta(m).dateStr].join(' ').toLocaleLowerCase().includes(query));
   if (!visibleMeetings.length && sidebarFilter === 'archived') {
     const empty = document.createElement('div');
     empty.className = 'sidebar-empty';
     empty.textContent = '目前沒有已封存的會議紀錄';
     frag.append(empty);
   }
+  if(query && !visibleMeetings.length){const empty=document.createElement('p');empty.className='sidebar-empty';empty.textContent='找不到符合的會議';frag.append(empty);}
+  let lastDay='';
   for (const m of visibleMeetings) {
+    const date=new Date(m.startedAt || m.id.slice(0,8).replace(/(....)(..)(..)/,'$1-$2-$3'));
+    const day=Number.isNaN(+date)?'其他會議':date.toLocaleDateString('zh-TW');
+    if(day!==lastDay){const h=document.createElement('h3');h.className='meeting-day';const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);h.textContent=day===new Date().toLocaleDateString('zh-TW')?'今天':day===yesterday.toLocaleDateString('zh-TW')?'昨天':day;frag.append(h);lastDay=day;}
     const info = formatMeetingMeta(m);
     const card = document.createElement('div');
     card.className = 'meeting-card'; card.dataset.id = m.id;
@@ -127,9 +139,9 @@ function renderSidebar(meetings) {
     const top = document.createElement('div'); top.className = 'meeting-card-top';
     const title = document.createElement('span'); title.className = 'meeting-card-title'; title.textContent = info.title;
     const badge = document.createElement('span'); badge.className = 'meeting-card-state ' + stateClass(m.state); badge.textContent = sidebarStates[m.state] || '未知';
-    top.append(title, badge);
+    const platform=document.createElement('span');platform.className='meeting-platform '+(m.source==='meet'?'meet':m.source==='teams'?'teams':'local');platform.textContent=m.source==='meet'?'▰':m.source==='teams'?'T':'▤';platform.setAttribute('aria-hidden','true');mainBtn.append(platform);top.append(title, badge);
     const meta = document.createElement('div'); meta.className = 'meeting-card-meta';
-    const dt = document.createElement('span'); dt.textContent = info.dateStr;
+    const dt = document.createElement('span'); dt.textContent = info.dateStr.split(' ')[0];mainBtn.title=info.title+' · '+info.dateStr;
     const codeSpan = document.createElement('span'); codeSpan.textContent = m.code || '';
     meta.append(dt, codeSpan);
     mainBtn.append(top, meta);
@@ -148,7 +160,7 @@ function renderSidebar(meetings) {
     actions.append(exportBtn);
     const isArchived = m.state === 'archived';
     const archiveBtn = document.createElement('button');
-    archiveBtn.type = 'button';
+    archiveBtn.type = 'button'; archiveBtn.disabled=recordingStates.has(m.state)||m.canArchive===false;
     archiveBtn.className = 'card-action-btn archive';
     archiveBtn.textContent = isArchived ? '取消封存' : '封存';
     archiveBtn.title = isArchived ? '將此會議移回一般清單' : '將此會議移至封存區';
@@ -178,7 +190,7 @@ function renderSidebar(meetings) {
       actions.append(confirmBtn, cancelBtn);
     } else {
       const delBtn = document.createElement('button');
-      delBtn.type = 'button';
+      delBtn.type = 'button'; delBtn.disabled=recordingStates.has(m.state)||m.canArchive===false;
       delBtn.className = 'card-action-btn delete';
       delBtn.textContent = '刪除';
       delBtn.title = '永久刪除此場會議紀錄';
@@ -201,23 +213,34 @@ function filterRecords(records) {
   if (mode === 'en') return records.filter((r) => !hasCjk(r.text));
   return records;
 }
-async function requestTranslations(records) {
-  const target = secondaryLang ? secondaryLang.value : 'none';
-  if (target === 'none' || translating) return;
-  const missing = [...new Set(records.map((r) => r.text).filter((t) => t && !translations.has(target + ':' + t) && (target === 'zh-TW' ? !hasCjk(t) : target === 'en' ? hasCjk(t) : true)))].slice(-8);
-  if (!missing.length) return;
-  translating = true;
-  try {
-    const response = await fetch('/api/translate', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ texts:missing, target }) });
-    if (response.ok) {
-      const data = await response.json();
-      if (Array.isArray(data.translations)) {
-        missing.forEach((text, i) => { translations.set(target + ':' + text, data.translations[i] || ''); });
-        signature = '';
-      }
-    }
-  } catch {}
-  finally { translating = false; }
+function searchRecords(records){const text=$('transcript-search').value.trim().toLocaleLowerCase();return records.filter(r=>(!$('highlights-only').checked||r.highlightCount>0)&&[r.text,r.speaker].join(' ').toLocaleLowerCase().includes(text));}
+function draftKey(record,target,meetingId=currentRecord?.id){return [meetingId,target,record.speaker||'',record.t0||''].join('|');}
+async function requestTranslations(records,pending=[],meetingId=currentRecord?.id) {
+  const target=secondaryLang?.value||'none';
+  const status=text=>{if(secondaryLang?.value===target && currentRecord?.id===meetingId)$('translation-status').textContent=text;};
+  if(target==='none'){status('');return;}
+  if(translating || Date.now()<(translationRetryAt.get(target)||0) || Date.now()<(translationNextAt.get(target)||0))return;
+  const draftRows=pending.filter(r=>r.text?.trim().length>=2 && draftTranslations.get(draftKey(r,target,meetingId))?.source!==r.text).slice(-4);
+  const finals=[...new Set(records.map(r=>r.text).filter(t=>t&&!translations.has(target+':'+t)))].slice(-4);
+  const texts=[...new Set([...draftRows.map(r=>r.text),...finals])];
+  if(!texts.length){status('');return;}
+  translating=true;translationNextAt.set(target,Date.now()+1400);status(draftRows.length?'即時暫譯中…':'翻譯中…');
+  try{
+    const response=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texts,target}),signal:AbortSignal.timeout(7000)});
+    if(!response.ok)throw new Error('service');
+    const data=await response.json();if(!Array.isArray(data.translations))throw new Error('format');
+    let missing=false;
+    texts.forEach((text,i)=>{
+      const translated=data.translations[i];if(typeof translated!=='string'||!translated.trim()){missing=true;return;}
+      if(finals.includes(text))translations.set(target+':'+text,translated);
+      for(const row of draftRows.filter(r=>r.text===text))draftTranslations.set(draftKey(row,target,meetingId),{source:text,text:translated});
+    });
+    while(draftTranslations.size>96)draftTranslations.delete(draftTranslations.keys().next().value);
+    if(missing){status('部分翻譯暫時無法取得，將自動重試。');translationRetryAt.set(target,Date.now()+5000);}
+    else{status('');translationRetryAt.delete(target);}
+    signature='';
+  }catch{status('翻譯服務暫時無法使用，將自動重試。');translationRetryAt.set(target,Date.now()+5000);}
+  finally{translating=false;}
 }
 function appendInline(parent, text) {
   const parts = String(text || '').split(/(\*\*[^*]+\*\*)/g);
@@ -234,23 +257,39 @@ function appendInline(parent, text) {
 function renderMarkdownDom(md) {
   const frag = document.createDocumentFragment();
   const lines = String(md || '').split(/\r?\n/);
-  let currentList = null, currentTable = null, tbody = null;
+  let currentList=null,currentTable=null,tbody=null,tableHeaders=[],actionSection=false,actionLevel=0;const actionOccurrences=new Map();
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
     const line = raw.trim();
     if (!line) { currentList = null; currentTable = null; tbody = null; continue; }
     if (line.startsWith('|') && line.endsWith('|')) {
       currentList = null;
-      const cells = line.slice(1, -1).split('|').map((c) => c.trim());
+      const cells = line.slice(1, -1).split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g,'|'));
       if (cells.every((c) => /^:?-{2,}:?$/.test(c))) continue;
       if (!currentTable) {
+        tableHeaders=cells;
         currentTable = document.createElement('table'); currentTable.className = 'summary-table';
         const thead = document.createElement('thead'), tr = document.createElement('tr');
         for (const c of cells) { const th = document.createElement('th'); appendInline(th, c); tr.append(th); }
         thead.append(tr); tbody = document.createElement('tbody'); currentTable.append(thead, tbody); frag.append(currentTable);
       } else {
         const tr = document.createElement('tr');
-        for (const c of cells) { const td = document.createElement('td'); appendInline(td, c); tr.append(td); }
+        const rowSignature=JSON.stringify(cells),occurrence=actionOccurrences.get(rowSignature)||0;
+        const task=actionSection?(currentRecord?.workspace?.actions?.items||[]).filter(item=>JSON.stringify(item.cells)===rowSignature)[occurrence]:null;
+        if(actionSection)actionOccurrences.set(rowSignature,occurrence+1);
+        if(task)tr.classList.toggle('task-complete',task.completed);
+        for (const [index,c] of cells.entries()) {
+          const td=document.createElement('td');
+          if(/負責人|owner/i.test(tableHeaders[index]||'') && c && !/未指定|未確認|unknown/i.test(c) && /^[\p{L} .-]{1,40}$/u.test(c)){
+            const owner=document.createElement('span');owner.className='owner-chip';
+            const icon=document.createElement('span');icon.className='owner-avatar';icon.setAttribute('aria-hidden','true');const names=[...new Set((currentRecord?.records||[]).map(r=>r.speaker).filter(name=>typeof name==='string'&&(name===c||name.startsWith(c+' '))))];const displayName=names.length===1?names[0]:c;icon.textContent=/^[A-Za-z]/.test(displayName)?displayName.split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase():[...displayName][0];
+            owner.append(icon,document.createTextNode(c));td.append(owner);
+          }else if(/期限|時限|due/i.test(tableHeaders[index]||'') && c && !/未指定|未確認/i.test(c)){
+            const due=document.createElement('span');due.className='due-chip';appendInline(due,c);td.append(due);
+          }else appendInline(td,c);
+          if(task&&index===task.column){td.setAttribute('aria-label',c);const label=document.createElement('label');label.className='task-label';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=task.completed;checkbox.setAttribute('aria-label','完成待辦：'+task.text);checkbox.addEventListener('change',()=>document.dispatchEvent(new CustomEvent('action-item-change',{detail:{id:currentRecord.id,key:task.key,revision:currentRecord.workspace.actions.revision,completed:checkbox.checked,control:checkbox}})));label.append(checkbox,...td.childNodes);td.append(label);}
+          tr.append(td);
+        }
         tbody.append(tr);
       }
       continue;
@@ -258,13 +297,14 @@ function renderMarkdownDom(md) {
     currentTable = null; tbody = null;
     const hMatch = /^(#{1,3})\s+(.+)$/.exec(line);
     if (hMatch) {
-      currentList = null;
+      currentList = null;if(/行動|待辦|action items|next steps/i.test(hMatch[2])){actionSection=true;actionLevel=hMatch[1].length;}else if(hMatch[1].length<=actionLevel)actionSection=false;
       const h = document.createElement(hMatch[1].length === 1 ? 'h3' : hMatch[1].length === 2 ? 'h3' : 'h4');
-      h.className = 'summary-h'; appendInline(h, hMatch[2]); frag.append(h); continue;
+      if(hMatch[1].length===1 && hMatch[2].trim()===currentRecord?.workspace?.title)continue;
+      h.className='summary-h';appendInline(h,hMatch[2]);frag.append(h);continue;
     }
     const liMatch = /^(?:[-*•]|\d+\.)\s+(.+)$/.exec(line);
     if (liMatch) {
-      if (!currentList) { currentList = document.createElement('ul'); currentList.className = 'summary-list'; frag.append(currentList); }
+      if (!currentList) { currentList=document.createElement(/^\d+\./.test(line)?'ol':'ul');currentList.className='summary-list';if(currentList.tagName==='OL')currentList.classList.add('decision-list'); frag.append(currentList); }
       const li = document.createElement('li');
       const indent = (raw.match(/^\s*/)?.[0]?.length || 0) >= 2;
       if (indent) li.className = 'summary-subitem';
@@ -279,9 +319,10 @@ async function requestSummarize(meetingId, force = false) {
   const targetId = meetingId === 'latest' ? activeMeetingId : meetingId;
   if (!targetId) return;
   try {
-    await fetch('/api/summarize', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ id:targetId, force }) });
-    summarySignature = '';
-  } catch {}
+    const response = await fetch('/api/summarize', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ id:targetId, force }) });
+    const result=await response.json();if(!response.ok)throw new Error(result.error||'無法提交整理請求');
+    summarySignature='';await pollNow();
+  } catch(error) { $('workspace-message').textContent='整理請求失敗：'+error.message; }
 }
 function exportMeeting(meetingId) {
   const targetId = meetingId === 'latest' ? activeMeetingId : meetingId;
@@ -416,10 +457,10 @@ function updateSummaryPanel(data) {
     if (!sum.markdown) { summaryBody.replaceChildren(); summaryBody.hidden = true; }
     return;
   }
-  summaryRegen.disabled = !data.records?.length;
+  summaryRegen.disabled = !data.records?.length || !['done','failed'].includes(st);
   if (summaryExportAi) summaryExportAi.disabled = !data.records?.length;
   if (sum.state === 'ready' && sum.markdown) {
-    summaryBadge.textContent = '已完成整理';
+    summaryBadge.textContent = data.status?.summaryJob?.provider==='agent'?'由 Agent 整理':'已完成整理';
     summaryBadge.className = 'summary-badge ready';
     summaryProgressWrap.hidden = true;
     summaryBody.replaceChildren(renderMarkdownDom(sum.markdown));
@@ -437,22 +478,31 @@ function updateSummaryPanel(data) {
   summaryBody.hidden = summaryCollapsed;
 }
 function row(record, pending) {
+  const renderedMeetingId=currentRecord?.id;
   const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');
+  if(record.highlightCount)card.classList.add('important-utterance');
   const name = record.speaker || '未知發言者';
   const hue = [...name].reduce((n, c) => (n * 31 + c.codePointAt(0)) % 360, 0);
-  const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.style.setProperty('--hue', hue); avatar.textContent = name.match(/^講者 ([A-Z]+)$/)?.[1] || [...name].slice(0, 1).join('');
+  const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.style.setProperty('--hue', hue); avatar.textContent = name.match(/^講者 ([A-Z]+)$/)?.[1] || (/^[A-Za-z]/.test(name)?name.trim().split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase():[...name].slice(0,1).join(''));
   const body = document.createElement('div'); body.className = 'body';
   const meta = document.createElement('div'); meta.className = 'meta';
   const speaker = document.createElement('strong'); speaker.textContent = name;
-  const time = document.createElement('time'); time.textContent = clock(record.t0);
-  meta.append(speaker, time);
+  const time = document.createElement('button'); time.type='button';time.className='transcript-seek';time.textContent=recordingClock(record.t0);time.title=clock(record.t0);time.setAttribute('aria-label','跳至錄音 '+recordingClock(record.t0));time.disabled=!currentRecord?.workspace?.audio?.length || !['done','failed','archived'].includes(currentRecord?.status?.state);time.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('seek-recording',{detail:{time:record.t0}})));
+  meta.append(speaker,time);
+  const mark=document.createElement('button');mark.type='button';mark.className='utterance-highlight';mark.textContent=record.highlighted?'★':'☆';mark.title=record.highlighted?'取消整段重點':'標記整段重點';mark.setAttribute('aria-label',(record.highlighted?'取消整段重點：':'標記整段重點：')+record.text.slice(0,40));mark.setAttribute('aria-pressed',String(!!record.highlighted));mark.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('highlight-utterance',{detail:{meetingId:renderedMeetingId,key:record.highlightKey,action:record.highlighted?'unmark':'mark'}})));meta.append(mark);
+  const more=document.createElement('button');more.type='button';more.className='utterance-more';more.textContent='⋯';more.setAttribute('aria-label','段落操作：'+record.text.slice(0,40));more.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('utterance-menu',{detail:{record,meetingId:renderedMeetingId}})));meta.append(more);
+  if(record.highlightCount){const label=document.createElement('small');label.className='important-label';label.textContent='★ '+record.highlightCount+' 個重點';meta.append(label);}
   if (pending) { const draft = document.createElement('span'); draft.className = 'draft'; draft.textContent = record.source === 'local-audio' || record.source?.startsWith('teams-') ? '語音辨識中' : '字幕更新中'; meta.append(draft); }
   const text = document.createElement('p'); text.className = 'text'; text.textContent = record.text;
   body.append(meta, text);
   const target = secondaryLang ? secondaryLang.value : 'none';
-  const translated = !pending && target !== 'none' ? translations.get(target + ':' + record.text) : '';
+  const exact=target!=='none'?translations.get(target+':'+record.text):'';
+  const previous=target!=='none'?draftTranslations.get(draftKey(record,target)):null;
+  const translated=exact||previous?.text||'';
   if (translated && translated !== record.text) {
-    const sub = document.createElement('p'); sub.className = 'subtext'; sub.textContent = translated;
+    const sub=document.createElement('p');sub.className='subtext';
+    if(pending||!exact){const label=document.createElement('small');label.className='draft-translation-label';label.textContent='暫譯 · 持續更新';sub.append(label);}
+    const copy=document.createElement('span');copy.textContent=translated;sub.append(copy);
     body.append(sub);
   }
   card.append(avatar, body); return card;
@@ -473,11 +523,12 @@ async function pollNow() {
     cachedMeetings = meetings;
     updateRecordControls();
     if (!meetings.length) {
+      document.dispatchEvent(new CustomEvent('workspace-empty'));
       currentRecord = null; activeMeetingId = ''; updateRecordControls();
       $('state').textContent = '尚無會議'; $('speaking').textContent = '加入會議後將自動顯示';
       $('transcript').replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無字幕，開始發言後會自動顯示。' }));
       if (summaryBody) summaryBody.replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:'尚無會議記錄可供整理。' }));
-      $('count').textContent = '0 段發言'; if (paneCount) paneCount.textContent = '共 0 則對話';
+      $('count').textContent = '0 段發言'; if (paneCount) paneCount.textContent = '0 段對話';
       $('meet').hidden = true; $('meet').removeAttribute('href');
       $('updated').textContent = ''; signature = ''; summarySignature = '';
       $('connection').textContent = '● 已連線'; return;
@@ -492,10 +543,11 @@ async function pollNow() {
     $('state').textContent = states[data.status?.state] || '未知狀態';
     $('speaking').textContent = data.status?.error?.message || (data.activeSpeakers.length ? (['microphone','teams'].includes(data.status?.source) ? '語音辨識 · ' : '字幕活動 · ') + data.activeSpeakers.join('、') : (['done','archived','failed'].includes(data.status?.state) ? '記錄已停止' : '等待新的發言…'));
     updateSummaryPanel(data);
-    const filtered = filterRecords(data.records);
-    void requestTranslations(filtered);
+    document.dispatchEvent(new CustomEvent('workspace-rendered',{detail:data}));
+    const filtered = searchRecords(filterRecords(data.records));
+    void requestTranslations(filtered,searchRecords(filterRecords(data.pending)),data.id);
     $('count').textContent = filtered.length + ' 段發言';
-    if (paneCount) paneCount.textContent = '共 ' + filtered.length + ' 則對話';
+    if (paneCount) paneCount.textContent = filtered.length + ' 段對話';
     if (data.status?.source === 'teams' && data.status?.state === 'in_call') {
       const missing = Object.entries(data.status.audioHealth || {}).filter(([,value]) => value === 'no_signal').map(([lane]) => lane === 'mic' ? '本機麥克風' : '會議播放端');
       if (missing.length) $('speaking').textContent = missing.join('、') + ' 尚無訊號；發言後仍無訊號時請檢查裝置。';
@@ -508,8 +560,8 @@ async function pollNow() {
     const target = secondaryLang ? secondaryLang.value : 'none';
     const next = JSON.stringify([data.id, filtered, data.pending, primaryLang?.value, target, filtered.map((r) => translations.get(target + ':' + r.text) || '')]);
     if (next !== signature) {
-      const rows = [...filtered.map((r) => row(r, false)), ...data.pending.map((r) => row(r, true))];
-      if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = '尚無字幕，開始發言後會自動顯示。'; rows.push(empty); }
+      const rows = [...filtered.map((r) => row(r, false)), ...searchRecords(filterRecords(data.pending)).map((r) => row(r, true))];
+      if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = $('transcript-search').value.trim()?'找不到符合的逐字稿':'尚無字幕，開始發言後會自動顯示。'; rows.push(empty); }
       $('transcript').replaceChildren(...rows); signature = next;
       if ($('follow').checked && data.status?.state === 'in_call' && filtered.length + data.pending.length > 0) { const box = $('transcript'); box.scrollTop = box.scrollHeight; rows.at(-1).scrollIntoView({ block:'nearest' }); }
     }
@@ -527,7 +579,8 @@ function updateRecordControls() {
   const data = currentRecord, st = data?.status || {};
   const active = cachedMeetings.find(m=>recordingStates.has(m.state));
   $('follow-latest').checked = selected === 'latest';
-  $('current-meeting-title').textContent = data ? (st.source === 'microphone' ? '現場錄音' : st.source === 'teams' ? '電腦會議收音' : 'Google Meet') + ' · ' + (st.code || data.id) : '尚未選擇會議';
+  document.body.dataset.meetingState=st.state||'empty';document.body.dataset.captureSource=st.source||'';
+  $('current-meeting-title').textContent = data?.workspace?.title || (data ? (st.source === 'microphone' ? '現場錄音' : st.source === 'teams' ? '電腦會議收音' : 'Google Meet') + ' · ' + (st.code || data.id) : '會議工作台');
   $('current-meeting-detail').textContent = data ? '狀態：' + (states[st.state] || '未知狀態') + (st.source === 'microphone' && st.state === 'in_call' ? ' · 請保持此錄音分頁開啟；關閉分頁會停止收音。' : '') : '從左側選擇會議，或新增記錄。';
   const canStop = data && recordingStates.has(st.state) && !['leaving','transcribing'].includes(st.state);
   $('end-record').hidden = !canStop;
@@ -571,7 +624,7 @@ $('end-record').addEventListener('click',async()=>{
       const result=await response.json(); if (!response.ok) throw new Error(result.error || '停止失敗');
     }
   } catch(error) { stopRequestedFor=''; $('record-action-status').textContent='停止失敗：'+error.message; }
-  finally { endingRecordId=''; await pollNow(); }
+  finally { endingRecordId=''; updateRecordControls(); await pollNow(); }
 });
 document.addEventListener('record-finished',({detail})=>{
   if (ownedRecordId === detail.id) ownedRecordId='';
@@ -594,3 +647,8 @@ for (const [id,primary,secondary] of [['lang-en-zh','en','zh-TW'],['lang-zh-en',
   });
 }
 syncLanguagePresets();
+
+$('meeting-search').addEventListener('input',()=>renderSidebar(cachedMeetings));
+$('transcript-search').addEventListener('input',()=>{signature='';void pollNow();});
+
+$('highlights-only').addEventListener('change',()=>{signature='';void pollNow();});

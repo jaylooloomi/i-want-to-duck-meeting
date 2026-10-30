@@ -9,7 +9,7 @@ spec(test,'FE-01 transcript component revisions drafts state and speakers',async
   fs.writeFileSync(path.join(dir,'live.json'),JSON.stringify({pending:[{...record('草稿','乙'),t1:new Date().toISOString(),source:'local-audio'}]}));
   await ui.open(app);await ui.text('已定稿');await ui.text('草稿');await ui.text('語音辨識中');await ui.text('字幕活動 · 乙');
   app.seed('qa-first',{state:'done'},[record('已定稿','甲'),record('最後結果','乙')]);
-  await ui.text('最後結果');await ui.text('已結束');assert.equal(await page.getByText('草稿',{exact:true}).count(),0);
+  await ui.text('最後結果');await ui.text('已完成');assert.equal(await page.getByText('草稿',{exact:true}).count(),0);
 },{component:'transcript'});
 
 spec(test,'FE-02 transcript component hostile text and unsafe meeting link',async({page,app,ui})=>{

@@ -71,3 +71,20 @@ Remove-Item Env:QA_REPRODUCE_BUGS
 runner 自動啟閉受控服務及 headless Chrome，保存各程序退出碼、覆蓋率與失敗 trace／DOM／截圖／console；任一非預期失敗退出 1，最新索引為 test/.tmp/qa/latest.json。個別 integration 指令可能包含 opt-in 案例；發佈離線驗收以 runner 的明確範圍為準。
 
 歷史七項修復的兩輪結果保留在 docs/qa/reports/repaired-*；登入中間版本 login-*、account-binding-* 與 native-account-* 報告亦保留，不與最新 native-release-* 合併計數。
+
+
+## 2026-10-30 workspace reference acceptance
+
+The frozen 1586×992 comparison reached **90.1619245994**, every region ≥80, with zero console/page errors in the accepted capture. See [method/evidence](docs/design/visual-audit/README.md) and [current functional report](docs/qa/reports/visual-reference-20261030.md). This follow-up does not relabel historical reports or count existing skipped cases as passes. The actual browser suite and Python metric checks can be replayed using the commands in the method document.
+
+Final follow-up: both frozen-source full runs completed with **629 cases / 613 passed / 0 failed / 16 existing skips** each; 5/5 metric tests passed. The two canonical screenshots have identical PNG hashes. Current details remain in `docs/qa/reports/visual-reference-20261030.md`.
+
+
+## 2026-10-30 Emerald selected-style release
+
+Current selected design: [Emerald report](docs/qa/reports/emerald-20261030.md). Two final full runs: **635 cases / 619 passed / 0 failed / 16 existing BUG-004 skips** each. Final expanded control replay: 4/4 passed. New completion overlay, storage measurements, paragraph/source menus and responsive UI are included; no real meeting was joined. Previous 90.16% is an archived result for another reference image, not this new style.
+
+
+## 2026-10-30 light/dark appearance
+
+Current full suite: **643 tests / 627 passed / 0 failed / 16 existing BUG-004 skips**. Both palettes and all three workspace widths are replayed; five theme-specific checks include persistence, synchronization, denied storage, measured contrast and uninterrupted WAV playback. See `docs/qa/reports/themes-20261030.md`.

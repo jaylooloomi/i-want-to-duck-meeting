@@ -10,7 +10,7 @@ for(const width of [1920,390])test(`LANG-01 bilingual presets apply filters tran
  await page.getByRole('button',{name:'英中',exact:true}).click();
  await transcript.getByText('中文翻譯結果',{exact:true}).waitFor();
  assert.equal(await transcript.getByText('中文測試 Microsoft Teams',{exact:true}).count(),0);
- assert.equal(await page.getByRole('combobox',{name:'逐字稿顯示',exact:true}).inputValue(),'en');
+ assert.equal(await page.getByRole('combobox',{name:'原文顯示',exact:true}).inputValue(),'en');
  assert.equal(await page.getByRole('combobox',{name:'翻譯語言',exact:true}).inputValue(),'zh-TW');
  assert.equal(await page.getByRole('button',{name:'英中',exact:true}).getAttribute('aria-pressed'),'true');
  await page.getByRole('button',{name:'中英',exact:true}).click();

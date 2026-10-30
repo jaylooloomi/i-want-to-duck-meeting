@@ -1,0 +1,53 @@
+{
+  "state": "complete",
+  "date": "2026-10-30",
+  "style": "Emerald Minimal",
+  "reference": "docs/design/emerald-implementation-20261030/target-emerald.jpg",
+  "capture": "docs/design/emerald-implementation-20261030/iteration-02/actual.png",
+  "captureSha256": "97c6b6b6b63255a4954f2883ad4146f6ba6d62caa0d7503382125c5c940a0b5e",
+  "consoleErrors": [],
+  "regressions": [
+    {
+      "log": "test-emerald-final-1.log",
+      "tests": 635,
+      "pass": 619,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 16,
+      "todo": 0,
+      "durationMs": 294974.7897,
+      "sha256": "bdd1fefd6c4de1459361eb4570614458a5ca97083b06d3f3ef841fd43a7863c7",
+      "exitCode": 0
+    },
+    {
+      "log": "test-emerald-final-2.log",
+      "tests": 635,
+      "pass": 619,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 16,
+      "todo": 0,
+      "durationMs": 295751.1626,
+      "sha256": "72b0e1eb68d96eed080ddaada68c382025a72df7440767f556690e531cebbb5f",
+      "exitCode": 0
+    }
+  ],
+  "finalControlsReplay": {
+    "log": "test-emerald-final-controls.log",
+    "pass": 4,
+    "fail": 0
+  },
+  "sourceHashes": {
+    "src/live-server.js": "accde23e71241505af71a3e910b967ff21036e565ff5150e53e6290908d11fb7",
+    "src/live/app.js": "304d46edbc5f24526cbde3dc20661cdda9a8e6d8a05129b97e6f217574b2a0e1",
+    "src/live/workspace.js": "99ca3f9cdc4c0b03556198dd93cf9c211c56163bd2234582795bc71e62aa99ab",
+    "src/live/index.html": "2a716af1bfb3ef0a4abc74f831b06735bde72596af91dcb442c87b360ef3cc26",
+    "src/live/emerald.css": "4efcef88e35d74541b22313e635adc767b265fc9c90f82ac6dd058c0fbced4a3",
+    "src/workspace-actions.js": "235621778ee4fa1914c47dcb707a6aea26374df894f5bbed8a5b4deb3b22c495",
+    "src/live/assets/duck.svg": "4abf2ed9116277d9e45adc9b560750df0de5b980ea14423c7d5d7640c3f2c19f"
+  },
+  "liveMeetingTested": false,
+  "ollamaUsed": false,
+  "dependenciesAdded": false,
+  "historicalScoreReused": false
+}

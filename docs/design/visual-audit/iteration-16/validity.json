@@ -1,0 +1,4 @@
+{
+  "valid": false,
+  "reason": "Capture raised strict console guard: data URI select arrow blocked by default-src self CSP. Numeric score retained for diagnosis only; not a passing or accepted iteration."
+}

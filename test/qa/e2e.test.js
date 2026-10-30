@@ -8,7 +8,9 @@ spec(test,'E2E-01 live HTTP transcript update finalization and meeting selection
   app.seed('qa-first',{url:'https://meet.google.com/abc-defg-hij'},[record('第一場發言','甲')]);
   app.seed('qa-second',{},[record('第二場發言','乙')]);
   await ui.open(app,'?id=qa-first');await ui.text('第一場發言');
+  await page.getByLabel('會議更多操作',{exact:true}).click();
   assert.equal(await page.getByRole('link',{name:'進入 Meet ↗'}).getAttribute('href'),'https://meet.google.com/abc-defg-hij');
+  await page.getByLabel('會議更多操作',{exact:true}).click();
   await page.getByRole('complementary').getByRole('button',{name:/qa-second/}).click();await ui.text('第二場發言');
   assert.equal(new URL(page.url()).searchParams.get('id'),'qa-second');
   await page.reload();await ui.text('第二場發言');
@@ -23,7 +25,7 @@ spec(test,'E2E-03 empty initial state and final pending removal',async({page,app
   await ui.open(app);await ui.text('尚無會議');await ui.text('尚無字幕，開始發言後會自動顯示。');
   const dir=app.seed('qa-first');fs.writeFileSync(path.join(dir,'live.json'),JSON.stringify({pending:[{...record('暫存內容'),t1:new Date().toISOString()}]}));
   await ui.text('暫存內容');app.seed('qa-first',{state:'done'},[]);
-  await ui.text('已結束');await ui.text('尚無字幕，開始發言後會自動顯示。');assert.equal(await page.getByText('暫存內容',{exact:true}).count(),0);
+  await ui.text('已完成');await ui.text('尚無字幕，開始發言後會自動顯示。');assert.equal(await page.getByText('暫存內容',{exact:true}).count(),0);
 });
 spec(test,'E2E-03 deleting the last meeting removes private content from the viewer',async({page,app,ui})=>{
   app.seed('qa-first',{},[record('DELETED_PRIVATE_TEXT')]);await ui.open(app);await ui.text('DELETED_PRIVATE_TEXT');
@@ -42,7 +44,7 @@ spec(test,'E2E-05 unknown deep link cannot silently display latest under a stale
 for(const width of [1920,390])spec(test,`E2E-06 transcript viewport ${width} semantic controls and overflow`,async({page,app,ui})=>{
   app.seed('qa-'+ 'long-meeting-'.repeat(10),{state:'done'},[record('長段落'.repeat(100),'非常長的發言者姓名'.repeat(15))]);
   await ui.open(app);await ui.text('1 段發言');
-  await page.getByLabel('自動捲動',{exact:true}).uncheck();await page.getByLabel('自動捲動',{exact:true}).check();
+  await page.getByRole('button',{name:'設定',exact:false}).click();await page.getByLabel('自動捲動',{exact:true}).uncheck();await page.getByLabel('自動捲動',{exact:true}).check();await page.getByRole('dialog',{name:'工作台設定'}).getByRole('button',{name:'完成',exact:true}).click();
   const size=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
   assert.ok(size.scroll<=size.width+1,JSON.stringify(size));await ui.capture();await ui.start.click({trial:true});
 },{viewport:{width,height:width===390?844:1080}});
