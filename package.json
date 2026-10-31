@@ -1,6 +1,6 @@
 {
   "name": "i-want-to-duck-meeting",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Local meeting notes for Codex and Claude Code: Google Meet captions and audio, live transcripts, and offline microphone transcription.",
   "type": "module",
   "private": true,

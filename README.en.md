@@ -1,6 +1,6 @@
 ## Windows installer (recommended)
 
-Download **DuckMeeting-0.3.3-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+Download **DuckMeeting-0.3.4-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
 
 - Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
 - Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
@@ -42,3 +42,7 @@ The notes card scrolls vertically within a bounded height, keeping its tabs visi
 Long transcripts scroll independently within their card while search/language controls and the recording player remain outside the scrolling area. Meeting-notes tabs retain a visible scrollbar rail in light/dark themes.
 
 [Technical stack and architecture (Traditional Chinese)](docs/TECH_STACK.md)
+
+Click a linked decision or action text (or press Enter) to clear transcript filters, scroll to the exact source and temporarily highlight it. Items without linked evidence do not infer a destination.
+
+When preparing authorized meeting notes, the Agent instructions require a full original transcript quote and its original ISO timestamp for each decision/action. Only exact unique matches become links; unknown or ambiguous evidence stays unlinked. Upgrading does not backfill historical meetings. Reload Agent instructions after upgrading.

@@ -274,6 +274,13 @@ function appendInline(parent, text) {
     }
   }
 }
+function noteSourceText(lineIndex,content){
+ const item=currentRecord?.noteItems?.items.find(item=>item.lineIndex===lineIndex);
+ const linked=['decision','action'].includes(item?.kind)&&item.source?.linked;
+ const text=document.createElement(linked?'button':'span');appendInline(text,content);
+ if(linked){const id=currentRecord.id,source={...item.source};text.type='button';text.className='decision-source-link';text.setAttribute('aria-label',uiText('定位逐字稿')+'：'+item.text);text.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('locate-note-source',{detail:{id,source}})));}
+ return text;
+}
 function noteSourceControl(lineIndex){
  const item=currentRecord?.noteItems?.items.find(item=>item.lineIndex===lineIndex);if(!item)return document.createTextNode('');
  const span=document.createElement('span');span.className='note-source-controls';
@@ -313,8 +320,8 @@ function renderMarkdownDom(md) {
             owner.append(icon,document.createTextNode(c));td.append(owner);
           }else if(/期限|時限|due/i.test(tableHeaders[index]||'') && c && !/未指定|未確認/i.test(c)){
             const due=document.createElement('span');due.className='due-chip';appendInline(due,c);td.append(due);
-          }else appendInline(td,c);
-          if(task&&index===task.column){td.setAttribute('aria-label',c);const label=document.createElement('label');label.className='task-label';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=task.completed;checkbox.setAttribute('aria-label',uiText('完成待辦：')+task.text);checkbox.addEventListener('change',()=>document.dispatchEvent(new CustomEvent('action-item-change',{detail:{id:currentRecord.id,key:task.key,revision:currentRecord.workspace.actions.revision,completed:checkbox.checked,control:checkbox}})));label.append(checkbox,...td.childNodes);td.append(label);}
+          }else {const item=currentRecord?.noteItems?.items.find(item=>item.lineIndex===i);if(['decision','action'].includes(item?.kind)&&item.source?.linked&&c===item.text)td.append(noteSourceText(i,c));else appendInline(td,c);}
+          if(task&&index===task.column){td.setAttribute('aria-label',c);const label=document.createElement('div');label.className='task-label';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=task.completed;checkbox.setAttribute('aria-label',uiText('完成待辦：')+task.text);checkbox.addEventListener('change',()=>document.dispatchEvent(new CustomEvent('action-item-change',{detail:{id:currentRecord.id,key:task.key,revision:currentRecord.workspace.actions.revision,completed:checkbox.checked,control:checkbox}})));label.append(checkbox,...td.childNodes);td.append(label);}
           tr.append(td);
         }
         const evidence=noteSourceControl(i);if(evidence.nodeType!==3){const td=document.createElement('td');td.append(evidence);tr.append(td);}tbody.append(tr);
@@ -335,10 +342,10 @@ function renderMarkdownDom(md) {
       const li = document.createElement('li');
       const indent = (raw.match(/^\s*/)?.[0]?.length || 0) >= 2;
       if (indent) li.className = 'summary-subitem';
-      const control=noteSourceControl(i);if(control.nodeType===1){const text=document.createElement('span');appendInline(text,liMatch[1]);li.append(text,control);}else appendInline(li,liMatch[1]); currentList.append(li); continue;
+      const control=noteSourceControl(i);if(control.nodeType===1){li.append(noteSourceText(i,liMatch[1]),control);}else appendInline(li,liMatch[1]); currentList.append(li); continue;
     }
     currentList = null;
-    const p = document.createElement('p'); p.className = 'summary-p';const control=noteSourceControl(i);if(control.nodeType===1){const text=document.createElement('span');appendInline(text,line);p.append(text,control);}else appendInline(p,line); frag.append(p);
+    const p = document.createElement('p'); p.className = 'summary-p';const control=noteSourceControl(i);if(control.nodeType===1){p.append(noteSourceText(i,line),control);}else appendInline(p,line); frag.append(p);
   }
   return frag;
 }

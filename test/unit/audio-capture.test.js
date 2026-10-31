@@ -68,10 +68,12 @@ async function openPage({ mirror = false, outputs = false, init = null } = {}) {
   if (init) await context.addInitScript(init);
   const page = await context.newPage();
   const chunks = [];
-  const statuses = [];
-  await page.exposeFunction('__omAudio', (b64) => { chunks.push({ at: Date.now(), b64 }); });
-  await page.exposeFunction('__omAudioStatus', (s) => { statuses.push(s); });
-  return { context, page, chunks, statuses };
+  const statuses = [], observers = new Set();
+  const notify = () => { for (const check of [...observers]) check(); };
+  const waitForCapture = predicate => new Promise(resolve => { const check=()=>{if(predicate(chunks,statuses)){observers.delete(check);resolve();}};observers.add(check);check(); });
+  await page.exposeFunction('__omAudio', (b64) => { chunks.push({ at: Date.now(), b64 }); notify(); });
+  await page.exposeFunction('__omAudioStatus', (s) => { statuses.push(s); notify(); });
+  return { context, page, chunks, statuses, waitForCapture };
 }
 
 /** Decode collected base64 chunks into one Int16Array. */
@@ -114,14 +116,14 @@ test('captures a 440 Hz <audio srcObject> tone as 16 kHz Int16 base64 chunks (wo
       return orig.call(this, dest, ...rest);
     };
   };
-  const { context, page, chunks, statuses } = await openPage({ init });
+  const { context, page, chunks, statuses, waitForCapture } = await openPage({ init });
   try {
     await page.goto(`${base}/tone.html`, NAV);
     await page.evaluate(() => window.fixtureReady);
     const res = await page.evaluate(installAudioCapture, { sampleRate: RATE, flushMs: 1000 });
     assert.equal(res.mode, 'worklet');
     assert.equal(res.sampleRate, RATE);
-    await sleep(3300);
+    await waitForCapture((chunks,statuses)=>chunks.length>=2&&decode(chunks).length>=2*RATE&&statuses.some(s=>s.tracks===1));
 
     const samples = decode(chunks);
     assert.ok(chunks.length >= 2, `expected >= 2 flushes, got ${chunks.length}`);
@@ -415,14 +417,14 @@ test('installAudioCapture is idempotent and de-duplicates a track shared by two 
 });
 
 test('picks up media elements added after install, uses defaults when called without options', T, async () => {
-  const { context, page, chunks, statuses } = await openPage();
+  const { context, page, chunks, statuses, waitForCapture } = await openPage();
   try {
-    await page.goto(`${base}/tone.html?defer=800`, NAV);
+    await page.goto(`${base}/tone.html?manual=1`, NAV);
     const res = await page.evaluate(installAudioCapture); // session.js calls it with no argument
     assert.equal(res.sampleRate, 16000);
     assert.equal(res.tracks, 0);
-    await page.evaluate(() => window.fixtureReady);
-    await sleep(5600); // next scan at ~3 s, then >= 2 flushes of the default 1000 ms
+    await page.evaluate(() => { window.releaseFixtureAudio(); return window.fixtureReady; });
+    await waitForCapture((chunks,statuses)=>decode(chunks).length>=RATE&&statuses.length>=2&&statuses.some(s=>s.tracks===1));
     const samples = decode(chunks);
     assert.ok(samples.length >= RATE, `expected >= 1 s, got ${samples.length / RATE} s`);
     assert.ok(peakOf(samples) > 1000);

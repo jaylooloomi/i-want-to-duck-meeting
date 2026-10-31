@@ -299,7 +299,7 @@ footer{height:0;min-height:0;margin:0}.activity{display:none!important}footer #w
 
 /* Highlight the full transcript pane width while keeping text aligned to other rows. */
 .pane-transcript>.pane-body{--highlight-gutter:14px}
-.utterance.important-utterance,.utterance.important-utterance:nth-of-type(n){box-sizing:border-box;width:calc(100% + var(--highlight-gutter,14px)*2);max-width:none;margin-left:calc(-1*var(--highlight-gutter,14px));margin-right:calc(-1*var(--highlight-gutter,14px));padding-left:var(--highlight-gutter,14px);padding-right:var(--highlight-gutter,14px);border-radius:0;box-shadow:inset 3px 0 #e5b63c}
+.utterance.important-utterance,.utterance.important-utterance:nth-of-type(n),.utterance.source-located,.utterance.source-located:nth-of-type(n){box-sizing:border-box;width:calc(100% + var(--highlight-gutter,14px)*2);max-width:none;margin-left:calc(-1*var(--highlight-gutter,14px));margin-right:calc(-1*var(--highlight-gutter,14px));padding-left:var(--highlight-gutter,14px);padding-right:var(--highlight-gutter,14px);border-radius:0;box-shadow:inset 3px 0 #e5b63c}
 @media(max-width:720px){.pane-transcript>.pane-body{--highlight-gutter:12px}}
 
 /* Mail is a local content tab; mailbox actions belong to the Agent. */
@@ -425,3 +425,13 @@ main{overflow-y:auto;overflow-x:hidden}
 :root[data-theme=dark] #summary-panel>.pane-body{scrollbar-color:#68869e #142638}
 :root[data-theme=dark] #summary-panel>.pane-body::-webkit-scrollbar-track{background:#142638}
 :root[data-theme=dark] #summary-panel>.pane-body::-webkit-scrollbar-thumb{background:#68869e;border-color:#142638}
+
+.decision-source-link{display:inline!important;width:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:2px;background:none!important;color:inherit!important;font:inherit!important;text-align:start;line-height:inherit!important;cursor:pointer}
+.decision-source-link:hover{text-decoration:underline;text-decoration-color:#008875;text-underline-offset:3px}
+.decision-source-link:focus-visible{outline:2px solid #008875;outline-offset:3px}
+
+.utterance.source-located{background:#e2f5ec!important;box-shadow:none}
+:root[data-theme=dark] .utterance.source-located{background:#173d3a!important}
+
+/* Source navigation must scroll the transcript, never the clipping workspace shell. */
+@media(min-width:1051px){.content-scroll{overflow:clip}}

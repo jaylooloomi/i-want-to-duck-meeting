@@ -233,3 +233,11 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] TRANSCRIPT-SCROLL (FE-E2E): 60 paragraphs, actual mouse-wheel scrolling and final paragraph reachable within the transcript viewport; desktop 1920/mobile 390, light/dark. Header and player stay outside the scroll area.
 
 - [x] NOTES-SCROLL-RAIL (FE-E2E): 60 summary paragraphs; visible scrollbar rail in light/dark; mouse-wheel moves content; last paragraph reachable with tab header visible.
+
+- [x] DECISION-SOURCE (FE-E2E): linked decision text click/Enter clears filters and scrolls to exact original record with temporary highlight; unlinked decision is not a navigation button; 1920/390 viewports.
+
+- [x] ACTION-SOURCE (FE-E2E): action text click/Enter locates/highlights exact source without toggling completion; checkbox remains independently operable; desktop/mobile.
+
+- [x] SOURCE-HEADER (FE-E2E): exact source navigation must leave workspace shell scrollTop at zero and keep transcript card top within its clipping viewport; decision/action, desktop/mobile.
+
+- [x] ACTION-CHECKBOX (FE-E2E): clicking unlinked action text leaves completion unchanged; only its checkbox changes completion. Linked text continues to navigate without toggling. Desktop/mobile.

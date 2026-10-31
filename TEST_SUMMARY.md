@@ -1,3 +1,13 @@
+# Latest release: 0.3.4 (2026-10-31)
+
+Decision/action source click navigation, full-width source highlights, header clipping prevention and independent completion checkboxes are included. Both Agent instructions now require original quote/time with exact unique matching.
+
+Final disposition across the complete suite and targeted reruns: **710 verified passing cases, 16 existing skips**, 726 unique cases. The initial full run had 708 passed, 1 failure, 1 timeout cancellation and 16 skips; timing-dependent fixture assumptions were corrected only in tests, and the entire affected audio file plus integrity passed 14/14. Unchanged highlight tests also passed on sequential reruns. This is not a fresh all-green single full-suite run after the test-only corrections. No unresolved failures remain in the exercised cases.
+
+Separate source/mail integration and isolated Windows 0.3.3 → 0.3.4 install/upgrade/uninstall passed, including both Agent instruction files and data preservation. See [the full QA report](docs/qa/reports/release-0.3.4.md) for exact logs, commands and limitations. Existing BUG-ZIP-001 remains; preserve original WAVs. No fresh live Agent/meeting/ASR acceptance is claimed.
+
+---
+
 # Latest release: 0.3.3 (2026-10-31)
 
 Long transcript scrolling and visible meeting-notes scrollbars are included. Final complete unit/QA regression: **722 tests, 706 passed, 0 failed, 16 existing skips**, 303466.483 ms. Isolated Windows 0.3.2 → 0.3.3 install/upgrade/uninstall, both Agent tasks and data preservation passed. The initial mobile test failure and its setup correction are retained in the [0.3.3 QA report](docs/qa/reports/release-0.3.3.md), alongside commands and limits. Existing BUG-ZIP-001 remains; preserve original WAV files separately. No fresh live meeting/ASR acceptance is claimed.

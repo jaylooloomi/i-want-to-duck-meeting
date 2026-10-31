@@ -53,13 +53,15 @@
 
     window.fixture = { ctx, osc, dest, track: dest.stream.getAudioTracks()[0], elements: [] };
     window.fixtureReady = new Promise((resolve) => {
-      setTimeout(() => {
+      const release = () => {
         window.fixture.elements.push(addAudio(dest.stream));
         if (params.get('dup') === '1') {
           window.fixture.elements.push(addAudio(new MediaStream(dest.stream.getAudioTracks())));
         }
         resolve({ contextState: ctx.state, elements: window.fixture.elements.length });
-      }, defer);
+      };
+      if (params.get('manual') === '1') window.releaseFixtureAudio = release;
+      else setTimeout(release, defer);
     });
   })();
 </script>
