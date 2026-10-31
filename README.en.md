@@ -46,3 +46,7 @@ Long transcripts scroll independently within their card while search/language co
 Click a linked decision or action text (or press Enter) to clear transcript filters, scroll to the exact source and temporarily highlight it. Items without linked evidence do not infer a destination.
 
 When preparing authorized meeting notes, the Agent instructions require a full original transcript quote and its original ISO timestamp for each decision/action. Only exact unique matches become links; unknown or ambiguous evidence stays unlinked. Upgrading does not backfill historical meetings. Reload Agent instructions after upgrading.
+
+Applying selected mail items updates safely identified decision/action sections while retaining the greeting, summary and signature. Unknown formats are preserved with selections appended. Undo remains available; applying does not save automatically.
+
+Mail selection merges recognized existing sections and removes confirmed generated duplicates. Reapplying or changing choices does not keep appending sections; unfamiliar manual additions remain preserved and undo is available.

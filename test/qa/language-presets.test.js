@@ -39,3 +39,11 @@ for(const language of ['de','ja','ko'])test(`LANG-03 ${language} view respects l
  await transcript.getByText('Unlabeled legacy original 1357',{exact:true}).waitFor();await transcript.getByText('未標註的舊原文',{exact:true}).waitFor();await page.getByText('依已標註語言篩選；未標註段落保留顯示。此設定不會切換平台字幕辨識語言。',{exact:true}).waitFor();
  await page.reload();await transcript.getByText(texts[language],{exact:true}).waitFor();assert.equal(await page.getByRole('combobox',{name:'原文顯示',exact:true}).inputValue(),language);
 }));
+
+for(const width of [1920,390])for(const language of ['zh-TW','en','ja','ko'])test(`LANG-WIDTH equal original and translation columns ${width} ${language}`,{timeout:15000},t=>browserCase(t,async({page,app})=>{
+ app.seed('equal-language',{state:'done'},[record('尺寸測試')]);
+ await page.addInitScript(language=>{localStorage.setItem('duck-meeting:ui-language',language);localStorage.setItem('duck-meeting:theme','dark');},language);
+ await page.goto(app.url+'/?id=equal-language&secondary=none');await page.getByRole('heading',{level:1}).waitFor();
+ const sizes=await page.evaluate(()=>{const a=document.getElementById('primary-lang').getBoundingClientRect(),b=document.getElementById('secondary-lang').getBoundingClientRect();return {a:a.width,b:b.width,topA:a.top,topB:b.top,right:b.right,viewport:innerWidth};});
+ assert.ok(Math.abs(sizes.a-sizes.b)<=1&&Math.abs(sizes.topA-sizes.topB)<=1&&sizes.right<=sizes.viewport,JSON.stringify(sizes));
+},{viewport:{width,height:930}}));

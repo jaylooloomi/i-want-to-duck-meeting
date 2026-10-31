@@ -241,3 +241,23 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] SOURCE-HEADER (FE-E2E): exact source navigation must leave workspace shell scrollTop at zero and keep transcript card top within its clipping viewport; decision/action, desktop/mobile.
 
 - [x] ACTION-CHECKBOX (FE-E2E): clicking unlinked action text leaves completion unchanged; only its checkbox changes completion. Linked text continues to navigate without toggling. Desktop/mobile.
+
+- [x] WORKSPACE-BOTTOM (FE-E2E): desktop cards fill actual remaining container; player and notes bottoms stay within clipping viewport at 1920x930/1280x720, both themes; expanded player remains reachable.
+
+- [x] LANG-WIDTH (FE-E2E): original-language and translation selectors share equal column widths and top alignment in zh-TW/en/ja/ko at desktop/mobile widths, with no viewport overflow.
+
+- [x] MAIL-PRESERVE (FE-E2E): applying selected decisions/actions preserves greeting, summary, signature and free-form body; updates safely bounded sections, appends on unknown format; undo, idempotent repeat, save/reload on desktop/mobile.
+
+- [x] MAIL-DEDUPE (FE-E2E): supplied fictional mail with five repeated action blocks is consolidated; repeated apply and save/reload are stable; changing selections removes unchecked entries, decision-only clears actions, manual text/footer/disclaimer remain. Desktop/mobile.
+
+- [x] ACTION-COLUMNS (FE-E2E): semantic role-based fixed colgroup sizing; stable widths and x positions across short/long tasks, owners and dates and overview/action tabs; no horizontal overflow at 1920/1280/390 in light/dark.
+
+- [x] DECISION-TABLE (FE-E2E): numbered/plain and Agent table decisions render matching two-column item/source table; source column aligns to action table in overview and decision tabs, desktop/mobile; source click preserved.
+
+- [x] DECISION-RIGHT (FE-E2E): source button lies in the right source cell, never below the decision text block; list/native-table formats at desktop/mobile. Versioned modified UI assets avoid stale layout reuse.
+
+- [x] SOURCE-CELL (FE-E2E): source status and action share one horizontally aligned row with a 6px gap and consistent sizing; source column reserves space responsively without overflow at 1920/1280/390.
+
+- [x] SOURCE-THREE-TABS (FE-E2E): source header, status and button retain identical column geometry across overview/decisions/actions, including linked/unlinked sources at desktop/tablet/mobile widths. Inline source controls remain vertically centered and do not overflow.
+
+- [x] TABLE-VERTICAL-CENTER (FE-E2E): all decision/action cells use vertical middle alignment with short/long wrapped contents; task checkbox aligns to text block center; source inline alignment remains stable. Related 19 tests passed.

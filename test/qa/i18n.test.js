@@ -57,7 +57,7 @@ test('I18N switching during microphone capture preserves the session and audio u
 }));
 
 test('I18N complete authored markup catalog',{timeout:20000},t=>browserCase(t,async({page,app})=>{
- await page.route('**/app.js',route=>route.fulfill({body:''}));await page.route('**/workspace.js',route=>route.fulfill({body:''}));await page.route('**/microphone.js',route=>route.fulfill({body:''}));await page.goto(app.url);
+ await page.route('**/app.js*',route=>route.fulfill({body:''}));await page.route('**/workspace.js',route=>route.fulfill({body:''}));await page.route('**/microphone.js',route=>route.fulfill({body:''}));await page.goto(app.url);
  await page.getByRole('combobox',{name:'介面語言',exact:true}).selectOption('en');
  const unlocalized=await page.evaluate(()=>{const out=[],walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);while(walker.nextNode()){const n=walker.currentNode;if(!n.parentElement.closest('script,style,[data-locale-native],[data-meeting-content]')&&/[\u3400-\u9fff]/.test(n.nodeValue))out.push(n.nodeValue.trim());}return out;});assert.deepEqual(unlocalized,[]);
  const complete=await page.evaluate(()=>Object.entries(window.DuckLocaleCatalog).every(([key,values])=>key&&values.length===3&&values.every(value=>typeof value==='string'&&value.trim())));assert.equal(complete,true);

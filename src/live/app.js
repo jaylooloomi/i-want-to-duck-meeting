@@ -291,6 +291,15 @@ function renderMarkdownDom(md) {
   const frag = document.createDocumentFragment();
   const lines = String(md || '').split(/\r?\n/);
   let currentList=null,currentTable=null,tbody=null,tableHeaders=[],actionSection=false,actionLevel=0;const actionOccurrences=new Map();
+  let decisionTable=null,decisionBody=null;
+  function decisionRow(lineIndex,content){
+   if(!decisionTable){decisionTable=document.createElement('table');decisionTable.className='summary-table decision-table';
+    const columns=document.createElement('colgroup');for(const width of ['76%','24%']){const col=document.createElement('col');col.style.width=width;columns.append(col);}
+    const head=document.createElement('thead'),row=document.createElement('tr');for(const title of ['事項','來源']){const th=document.createElement('th');th.textContent=uiText(title);if(title==='來源')th.className='source-column';row.append(th);}head.append(row);decisionBody=document.createElement('tbody');decisionTable.append(columns,head,decisionBody);frag.append(decisionTable);
+   }
+   const tr=document.createElement('tr'),text=document.createElement('td'),source=document.createElement('td');text.append(noteSourceText(lineIndex,content));source.className='source-column';source.append(noteSourceControl(lineIndex));tr.append(text,source);decisionBody.append(tr);
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i];
     const line = raw.trim();
@@ -301,10 +310,15 @@ function renderMarkdownDom(md) {
       if (cells.every((c) => /^:?-{2,}:?$/.test(c))) continue;
       if (!currentTable) {
         tableHeaders=cells;
-        currentTable = document.createElement('table'); currentTable.className = 'summary-table';
+        decisionTable=null;decisionBody=null;
+        currentTable = document.createElement('table'); currentTable.className = 'summary-table';if(!actionSection&&cells.some(c=>/^(?:決議|决议|decisions?)$/i.test(c)))currentTable.classList.add('decision-table');
         const thead = document.createElement('thead'), tr = document.createElement('tr');
-        for (const c of cells) { if(/來源原文|來源時間|source quote|source time/i.test(c))continue;const th = document.createElement('th'); appendInline(th, c); tr.append(th); }
-        if((currentRecord?.noteItems?.items||[]).some(item=>item.lineIndex>i && lines.slice(i+1,item.lineIndex+1).every(line=>line.trim().startsWith('|')))){const th=document.createElement('th');th.textContent=uiText('來源');tr.append(th);}thead.append(tr); tbody = document.createElement('tbody'); currentTable.append(thead, tbody); frag.append(currentTable);
+        for (const c of cells) { if(/來源原文|來源時間|source quote|source time/i.test(c))continue;const th = document.createElement('th'); appendInline(th,currentTable.classList.contains('decision-table')&&/^(?:決議|决议|decisions?)$/i.test(c)?uiText('事項'):c); tr.append(th); }
+        if((currentRecord?.noteItems?.items||[]).some(item=>item.lineIndex>i && lines.slice(i+1,item.lineIndex+1).every(line=>line.trim().startsWith('|')))){const th=document.createElement('th');th.className='source-column';th.textContent=uiText('來源');tr.append(th);}if(actionSection){
+         currentTable.classList.add('action-table');const columns=document.createElement('colgroup');
+         const weights=[...tr.children].map((th,index)=>index===tr.children.length-1&&th.textContent===uiText('來源')?24:/事項|待辦|行動|任務|task|action/i.test(th.textContent)?40:/負責人|owner/i.test(th.textContent)?18:/期限|時限|due/i.test(th.textContent)?18:18);
+         const total=weights.reduce((a,b)=>a+b,0);for(const weight of weights){const col=document.createElement('col');col.style.width=(weight/total*100)+'%';columns.append(col);}currentTable.append(columns);
+        }thead.append(tr); tbody = document.createElement('tbody'); currentTable.append(thead, tbody); frag.append(currentTable);
       } else {
         const tr = document.createElement('tr');
         const rowSignature=JSON.stringify(cells),occurrence=actionOccurrences.get(rowSignature)||0;
@@ -324,13 +338,14 @@ function renderMarkdownDom(md) {
           if(task&&index===task.column){td.setAttribute('aria-label',c);const label=document.createElement('div');label.className='task-label';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=task.completed;checkbox.setAttribute('aria-label',uiText('完成待辦：')+task.text);checkbox.addEventListener('change',()=>document.dispatchEvent(new CustomEvent('action-item-change',{detail:{id:currentRecord.id,key:task.key,revision:currentRecord.workspace.actions.revision,completed:checkbox.checked,control:checkbox}})));label.append(checkbox,...td.childNodes);td.append(label);}
           tr.append(td);
         }
-        const evidence=noteSourceControl(i);if(evidence.nodeType!==3){const td=document.createElement('td');td.append(evidence);tr.append(td);}tbody.append(tr);
+        const evidence=noteSourceControl(i);if(evidence.nodeType!==3){const td=document.createElement('td');td.className='source-column';td.append(evidence);tr.append(td);}tbody.append(tr);
       }
       continue;
     }
     currentTable = null; tbody = null;
     const hMatch = /^(#{1,3})\s+(.+)$/.exec(line);
     if (hMatch) {
+      decisionTable=null;decisionBody=null;
       currentList = null;if(/行動|待辦|action items|next steps/i.test(hMatch[2])){actionSection=true;actionLevel=hMatch[1].length;}else if(hMatch[1].length<=actionLevel)actionSection=false;
       const h = document.createElement(hMatch[1].length === 1 ? 'h3' : hMatch[1].length === 2 ? 'h3' : 'h4');
       if(hMatch[1].length===1 && hMatch[2].trim()===currentRecord?.workspace?.title)continue;
@@ -338,6 +353,8 @@ function renderMarkdownDom(md) {
     }
     const liMatch = /^(?:[-*•]|\d+\.)\s+(.+)$/.exec(line);
     if (liMatch) {
+      if(currentRecord?.noteItems?.items.some(item=>item.lineIndex===i&&item.kind==='decision')){currentList=null;decisionRow(i,liMatch[1]);continue;}
+      decisionTable=null;decisionBody=null;
       if (!currentList) { currentList=document.createElement(/^\d+\./.test(line)?'ol':'ul');currentList.className='summary-list';if(currentList.tagName==='OL')currentList.classList.add('decision-list'); frag.append(currentList); }
       const li = document.createElement('li');
       const indent = (raw.match(/^\s*/)?.[0]?.length || 0) >= 2;
@@ -345,6 +362,8 @@ function renderMarkdownDom(md) {
       const control=noteSourceControl(i);if(control.nodeType===1){li.append(noteSourceText(i,liMatch[1]),control);}else appendInline(li,liMatch[1]); currentList.append(li); continue;
     }
     currentList = null;
+    if(currentRecord?.noteItems?.items.some(item=>item.lineIndex===i&&item.kind==='decision')){decisionRow(i,line);continue;}
+    decisionTable=null;decisionBody=null;
     const p = document.createElement('p'); p.className = 'summary-p';const control=noteSourceControl(i);if(control.nodeType===1){p.append(noteSourceText(i,line),control);}else appendInline(p,line); frag.append(p);
   }
   return frag;

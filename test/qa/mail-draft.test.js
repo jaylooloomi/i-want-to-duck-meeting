@@ -64,3 +64,30 @@ for(const width of [1280,390])test(`MAIL expanded item selector keeps lower fiel
  assert.ok(await panel.evaluate(el=>el.scrollTop>0));
  await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill('底部內文仍可編輯');
 },{viewport:{width,height:900}}));
+
+for(const width of [1280,390])for(const [mode,original,remove] of [
+ ['template','各位好，\n\n【會議重點】\n摘要保留。\n\n【已確認決議】\n原有決議內容。\n\n【後續待辦】\n原有待辦內容。\n\n謝謝，\nArthur',['原有決議內容。','原有待辦內容。']],
+ ['markdown','Hello everyone,\n\n## Summary\n摘要保留。\n\n## Decisions\n- 原有決議內容。\n\n## Actions\n- 原有待辦內容。\n\nBest regards,\nArthur',['原有決議內容。','原有待辦內容。']],
+ ['freeform','各位好，\n這是自訂說明，不能被刪除。\n摘要保留。\n\n謝謝，\nArthur',[]]
+])test(`MAIL apply preserves surrounding body ${mode} ${width}`,{timeout:25000},t=>browserCase(t,async({page,app})=>{
+ const folder=seed(app);fs.writeFileSync(path.join(folder,'summary.md'),'## 重要決議\n\n1. 新增決議。\n2. 不選的決議。\n\n## 行動項目\n\n| 事項 | 負責人 | 期限 |\n| --- | --- | --- |\n| 新增待辦。 | Alice | 未指定 |\n| 不選的待辦。 | Bob | 未指定 |');
+ await page.goto(app.url+'/?id=mail&secondary=none');await page.getByRole('button',{name:'郵件',exact:true}).click();const panel=page.getByRole('region',{name:'郵件草稿',exact:true}),body=panel.getByRole('textbox',{name:'郵件內文',exact:true});
+ await panel.getByRole('textbox',{name:'主旨',exact:true}).fill('保留原信');await body.fill(original);await page.getByText('選擇郵件內容',{exact:true}).click();const choices=panel.getByRole('checkbox');await choices.nth(0).check();await choices.nth(2).check();await page.getByRole('button',{name:'預覽勾選內容',exact:true}).click();assert.equal(await body.inputValue(),original);
+ const apply=page.getByRole('button',{name:'套用到正文',exact:true});await apply.click();const merged=await body.inputValue();assert.match(merged,/摘要保留。/);assert.match(merged,/Arthur/);assert.match(merged,/新增決議。/);assert.match(merged,/新增待辦。/);assert.ok(!merged.includes('不選的決議。')&&!merged.includes('不選的待辦。'));for(const text of remove)assert.ok(!merged.includes(text));
+ if(mode==='freeform')assert.ok(merged.includes('這是自訂說明，不能被刪除。'));assert.ok(merged.endsWith('Arthur'));
+ await page.getByRole('button',{name:'復原套用前正文',exact:true}).click();assert.equal(await body.inputValue(),original);await apply.click();await apply.click();assert.equal(await body.inputValue(),merged);
+ await panel.getByRole('button',{name:'儲存草稿',exact:true}).click();await panel.getByText('草稿已儲存，尚未建立或寄送信件。',{exact:true}).waitFor();await page.reload();await page.getByRole('button',{name:'郵件',exact:true}).click();await page.waitForFunction(expected=>document.getElementById('mail-body').value===expected,merged);assert.equal(await body.inputValue(),merged);
+},{viewport:{width,height:930}}));
+
+for(const width of [1280,390])test(`MAIL repairs supplied repeated action blocks and selection changes ${width}`,{timeout:25000},t=>browserCase(t,async({page,app})=>{
+ const original=fs.readFileSync('test/fixtures/mail/duplicate-selection.txt','utf8').replace(/\r\n/g,'\n'),folder=seed(app);fs.writeFileSync(path.join(folder,'summary.md'),'## 重要決議\n\n1. 決議先整理操作流程與驗收清單，再安排下一輪測試。\n\n## 行動項目\n\n| 事項 | 負責人 | 期限 |\n| --- | --- | --- |\n| 整理操作流程初稿 | 周子晴 | 2026/11/03 |\n| 檢查手機版操作區域 | 劉明哲 | 2026/11/04 |');
+ await page.goto(app.url+'/?id=mail&secondary=none');await page.getByRole('button',{name:'郵件',exact:true}).click();const panel=page.getByRole('region',{name:'郵件草稿',exact:true}),body=panel.getByRole('textbox',{name:'郵件內文',exact:true});await panel.getByRole('textbox',{name:'主旨',exact:true}).fill('版本規劃討論');await body.fill(original);await page.getByText('選擇郵件內容',{exact:true}).click();const choices=panel.getByRole('checkbox');await choices.nth(0).check();await choices.nth(1).check();
+ const apply=async()=>{await panel.getByRole('button',{name:'預覽勾選內容',exact:true}).click();await panel.getByRole('button',{name:'套用到正文',exact:true}).click();return body.inputValue();};
+ const check=value=>{assert.match(value,/各位好，/);assert.match(value,/本次確認下一版核心操作流程/);assert.ok(value.includes('如有需修正之處，請再補充，謝謝。'));assert.ok(value.trim().endsWith('（此為虛構會議的展示草稿，未建立或寄送任何信件。）'));assert.equal((value.match(/【(?:後續待辦|待辦)】/g)||[]).length,1);};
+ let value=await apply();check(value);assert.equal((value.match(/周子晴/g)||[]).length,1);assert.equal((value.match(/劉明哲/g)||[]).length,0);await panel.getByRole('button',{name:'復原套用前正文',exact:true}).click();assert.equal(await body.inputValue(),original);assert.equal(await apply(),value);assert.equal(await apply(),value);
+ await panel.getByRole('button',{name:'儲存草稿',exact:true}).click();await panel.getByText('草稿已儲存，尚未建立或寄送信件。',{exact:true}).waitFor();await page.reload();await page.getByRole('button',{name:'郵件',exact:true}).click();await page.waitForFunction(expected=>document.getElementById('mail-body').value===expected,value);await page.getByText('選擇郵件內容',{exact:true}).click();assert.equal(await apply(),value);
+ await choices.nth(2).check();value=await apply();check(value);assert.equal((value.match(/周子晴/g)||[]).length,1);assert.equal((value.match(/劉明哲/g)||[]).length,1);assert.equal(await apply(),value);
+ await choices.nth(1).uncheck();value=await apply();check(value);assert.equal((value.match(/周子晴/g)||[]).length,0);assert.equal((value.match(/劉明哲/g)||[]).length,1);
+ await choices.nth(2).uncheck();const decisionOnly=await apply();assert.equal((decisionOnly.match(/【(?:後續待辦|待辦)】/g)||[]).length,0);assert.ok(!decisionOnly.includes('周子晴')&&!decisionOnly.includes('劉明哲'));assert.equal(await apply(),decisionOnly);
+ await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill(original+'\n\n【待辦】\n手動補充：這段不要刪除。');await choices.nth(1).check();const manual=await apply();assert.ok(manual.includes('手動補充：這段不要刪除。'));assert.equal(await apply(),manual);
+},{viewport:{width,height:930}}));

@@ -13,7 +13,7 @@ test('QA-01 production content matches the audit baseline plus explicitly author
   for(const [file,hash] of Object.entries({...baseline,...fixes}))assert.equal(createHash('sha256').update(fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n'),'utf8').digest('hex'),hash,file);
 });
 test('QA-01 authored browser tests contain no hard sleeps CSS-class or XPath locator calls',()=>{
-  for(const file of ['harness.js','frontend.test.js','e2e.test.js','meet-login.test.js','meet-account.test.js','agent-summary.test.js','sidebar.test.js','record-flow.test.js','language-presets.test.js','workspace.test.js','live-translation.test.js','highlights.test.js','visual-audit.test.js','capture-reference.mjs','capture-emerald.mjs','emerald.test.js','theme.test.js','i18n.test.js','i18n-layout.test.js','mail-draft.test.js','locale-geometry.test.js','search-highlights.test.js','transcript-scroll.test.js','decision-source.test.js']) {
+  for(const file of ['harness.js','frontend.test.js','e2e.test.js','meet-login.test.js','meet-account.test.js','agent-summary.test.js','sidebar.test.js','record-flow.test.js','language-presets.test.js','workspace.test.js','live-translation.test.js','highlights.test.js','visual-audit.test.js','capture-reference.mjs','capture-emerald.mjs','emerald.test.js','theme.test.js','i18n.test.js','i18n-layout.test.js','mail-draft.test.js','locale-geometry.test.js','search-highlights.test.js','transcript-scroll.test.js','decision-source.test.js','action-columns.test.js']) {
     const source=fs.readFileSync(path.join('test/qa',file),'utf8');
     assert.doesNotMatch(source,/\bwaitForTimeout\s*\(|\bsleep\s*\(|\bsetTimeout\s*\(/,file);
     assert.doesNotMatch(source,/\.locator\s*\(|xpath=|querySelector\s*\(/,file);

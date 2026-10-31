@@ -18,7 +18,7 @@ test('VISUAL-ASSETS locally served variable fonts are complete and licensed',asy
  }
 });
 
-test('VISUAL-NOTES ordered decisions, truthful source and owner identity hints',{timeout:20000},t=>browserCase(t,async({page,app})=>{
+test('VISUAL-NOTES tabular decisions, truthful source and owner identity hints',{timeout:20000},t=>browserCase(t,async({page,app})=>{
  const at='2026-10-30T01:00:00Z';
  const dir=app.seed('visual-notes',{state:'done',source:'teams',title:'驗收會議',joinedAt:at,summaryJob:{state:'ready',provider:'agent'}},[record('同意第一個決議','Emma Chen',at),record('補充說明','Leon Weber',at)]);
  fs.writeFileSync(path.join(dir,'summary.md'),'# 驗收會議\n\n## 會議摘要\n\n測試摘要。\n\n## 重要決議\n\n1. 第一個決議\n2. 第二個決議\n\n## 行動項目\n\n| 事項 | 負責人 | 期限 |\n| --- | --- | --- |\n| 驗證排版 | Emma | 未指定 |\n| 驗證播放 | Leon | 11/03 |\n');
@@ -26,7 +26,7 @@ test('VISUAL-NOTES ordered decisions, truthful source and owner identity hints',
  await page.goto(app.url+'/?id=visual-notes&secondary=none');
  const notes=page.getByRole('region',{name:'會議記錄整理'});
  await notes.getByText('由 Agent 整理',{exact:true}).waitFor();
- assert.equal(await notes.getByRole('list').filter({has:page.getByText('第一個決議',{exact:true})}).evaluate(el=>el.tagName),'OL');
+ const decisions=notes.getByRole('table').filter({has:page.getByText('第一個決議',{exact:true})});assert.deepEqual(await decisions.getByRole('columnheader').allTextContents(),['事項','來源']);assert.deepEqual(await decisions.getByRole('row').evaluateAll(rows=>rows.slice(1).map(row=>row.cells[0].textContent)),['第一個決議','第二個決議']);
  assert.equal(await notes.getByRole('cell',{name:'Emma',exact:true}).textContent(),'ECEmma');
  assert.equal(await notes.getByRole('cell',{name:'Leon',exact:true}).textContent(),'LWLeon');
  await notes.getByText('Teams 字幕 + 錄音轉錄',{exact:true}).waitFor();

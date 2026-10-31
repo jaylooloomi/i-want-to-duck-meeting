@@ -34,6 +34,17 @@ Download **DuckMeeting-0.3.4-Setup-x64.exe** from [GitHub Releases](https://gith
 
 Developers: install the official Inno Setup compiler, set `ISCC_PATH`, then run `npm ci` and `npm run build:windows`. The optional manual GitHub Actions workflow builds and smoke-tests the package. See [installer QA and limitations](docs/qa/reports/windows-installer-030.md).
 
+## Workspace improvements on master (after v0.3.4)
+
+These changes are available in the current source checkout. The published v0.3.4 installer does not include them yet.
+
+- **Consistent notes tables:** Overview, Decisions and Actions share the same source-column alignment. Source status and its button appear on one row; task text, owners, deadlines and source controls are vertically centered. Column widths depend on the viewport rather than content, with additional room reserved for sources on narrow screens.
+- **Check the evidence:** Select linked decision/action text or **View original** to scroll to and highlight its transcript source. For unlinked items, use **Link source** to choose evidence; clicking unlinked task text does not change its checkbox.
+- **Independent scrolling:** Long transcripts and meeting notes scroll within their own panels. Transcript controls and the audio player remain reachable, including shorter desktop windows. Original-text and translation selectors use equal widths.
+- **Apply mail selections safely:** In **Meeting notes → Email → Select email content**, select decisions/actions, preview, then apply. Recognized sections are updated and confirmed generated duplicates are consolidated; greeting, summary, signature and unfamiliar manual additions are retained. **Undo** restores the previous body. Applying does not automatically save or send; use **Save draft** to persist the result.
+
+Maintainer validation and commands: [workspace regression report](docs/qa/reports/workspace-ui-20261101.md).
+
 ## What’s new in 0.2.0
 
 Four interface languages (Traditional Chinese, English, Japanese and Korean), responsive light/dark layouts, platform-specific meeting icons and meeting links, consistent settings and menus, and Chinese→English as the default display preset. German/Japanese/Korean original views preserve untagged legacy content. Interface language, original-text display and transcript translation are separate settings.
@@ -467,3 +478,7 @@ Long transcripts scroll independently within their card while search/language co
 Click a linked decision or action text (or press Enter) to clear transcript filters, scroll to the exact source and temporarily highlight it. Items without linked evidence do not infer a destination.
 
 When preparing authorized meeting notes, the Agent instructions require a full original transcript quote and its original ISO timestamp for each decision/action. Only exact unique matches become links; unknown or ambiguous evidence stays unlinked. Upgrading does not backfill historical meetings. Reload Agent instructions after upgrading.
+
+Applying selected mail items updates safely identified decision/action sections while retaining the greeting, summary and signature. Unknown formats are preserved with selections appended. Undo remains available; applying does not save automatically.
+
+Mail selection merges recognized existing sections and removes confirmed generated duplicates. Reapplying or changing choices does not keep appending sections; unfamiliar manual additions remain preserved and undo is available.

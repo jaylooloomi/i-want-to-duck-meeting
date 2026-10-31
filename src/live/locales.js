@@ -2149,10 +2149,10 @@ Object.assign(window.DuckLocaleCatalog,{
     "メール内容を選択",
     "메일 내용 선택"
   ],
-  "逐項勾選決議與待辦，先預覽再套用。套用會替換正文；套用前的手動內容可復原。": [
-    "Select decisions and actions, preview, then apply. Applying replaces the body; the previous text can be restored.",
-    "決議とタスクを選択し、プレビュー後に適用します。本文は置換されますが、元の内容に戻せます。",
-    "결정과 할 일을 선택하고 미리 본 뒤 적용하세요. 본문이 교체되며 이전 내용은 복원할 수 있습니다."
+  "逐項勾選決議與待辦，先預覽再套用。只更新可辨識的決議與待辦區塊；其他內文保留，無法辨識時附加，並可復原。": [
+    "Select decisions and actions, preview, then apply. Update recognized sections only; keep other text, append if boundaries are unclear, and undo when needed.",
+    "決議とタスクを選択して適用します。認識できる項目のみ更新し、他の本文は保持します。不明な場合は追記し、元に戻せます。",
+    "결정과 할 일을 선택해 적용하세요. 인식된 항목만 갱신하고 다른 본문은 유지합니다. 경계가 불명확하면 추가하며 되돌릴 수 있습니다."
   ],
   "預覽勾選內容": [
     "Preview selection",

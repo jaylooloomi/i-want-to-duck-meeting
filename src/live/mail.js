@@ -50,13 +50,40 @@
   $('mail-selection-preview').textContent=previewValid?preview.body:'';
   $('mail-selection-state').textContent=invalid?uiText('會議紀錄已變更，先前勾選項目已失效，請重新勾選。'):preview&&!previewValid?uiText('預覽已失效，請重新預覽。'):'';
  }
+ function mergeSelectionBody(body,groups,items){
+  if(!body.trim())return groups.map(g=>`【${g.title}】\n\n`+g.lines.join('\n')).join('\n\n')+'\n';
+  const newline=body.includes('\r\n')?'\r\n':'\n',lines=body.split(/\r?\n/);
+  const heading=line=>{const raw=line.trim();const enclosed=/^【[^】]+】$/.test(raw)||/^#{1,6}\s+/.test(raw);const title=raw.replace(/^【|】$/g,'').replace(/^#{1,6}\s+/,'').replace(/[:：]$/,'').trim().toLowerCase();const kind=/^(?:已確認決議|重要決議|決議|已确认决议|重要决议|决议|decisions?|決定事項|決定|決議事項|결정|결정 사항)$/.test(title)?'decision':/^(?:後續待辦|後续待办|行動項目|行动项目|待辦事項|待办事项|待辦|待办|action items?|actions?|tasks?|to-?dos?|タスク|アクション|アクション項目|対応事項|할 일|작업|실행 항목)$/.test(title)?'action':null;return {kind,boundary:enclosed||!!kind};};
+  const closing=line=>/^(?:謝謝|谢谢|感謝|感谢|敬祝|此致|以上(?:供|敬請|敬请)|thanks\b|thank you\b|best regards\b|kind regards\b|regards\b|如有.*(?:修正|補充|补充)|[（(]此為|[（(]此为|よろしく|감사)/i.test(line.trim());
+  const headers=lines.map((line,index)=>({...heading(line),index})).filter(h=>h.boundary),handled=new Set(),edits=[];
+  const generated=new Set(items.map(item=>'- '+item.details));
+  for(const kind of ['decision','action']){
+   const candidates=headers.filter(h=>h.kind===kind).map(header=>{
+    const start=header.index,next=headers.find(h=>h.index>start);let end=next?.index??lines.length;
+    const signature=lines.findIndex((line,index)=>index>start&&index<end&&closing(line));if(signature>=0)end=signature;
+    const content=lines.slice(start+1,end),nonempty=content.filter(line=>line.trim());
+    const generatedOnly=nonempty.every(line=>generated.has(line.trim())||/^\s*-\s+(?:事項|事项|task|action)\s*[:：]/i.test(line));
+    const safe=!!next||signature>=0||nonempty.every(line=>/^\s*(?:[-*•]|\d+[.)])\s+/.test(line));
+    return {start,end,generatedOnly,safe};
+   });
+   const primary=candidates.find(c=>c.safe);if(!primary)continue;
+   const group=groups.find(g=>g.kind===kind);
+   edits.push({start:primary.start,end:primary.end,replacement:group?[lines[primary.start],'',...group.lines,'']:[]});handled.add(kind);
+   // Remove only redundant machine-shaped blocks; retain unfamiliar/manual duplicate sections.
+   for(const candidate of candidates)if(candidate!==primary&&candidate.generatedOnly)edits.push({...candidate,replacement:[]});
+  }
+  for(const edit of edits.sort((a,b)=>b.start-a.start))lines.splice(edit.start,edit.end-edit.start,...edit.replacement);
+  const remaining=groups.filter(g=>!handled.has(g.kind));
+  if(remaining.length){const insert=lines.findIndex(closing),block=['',...remaining.flatMap(g=>[`【${g.title}】`,'',...g.lines,''])];if(insert>=0)lines.splice(insert,0,...block);else lines.push(...block);}
+  return lines.join(newline);
+ }
  $('mail-preview-button').addEventListener('click',()=>{
   if($('mail-preview-button').disabled)return;const items=current.noteItems.items.filter(item=>selectedIds.has(item.id));
-  const sections=[];for(const [kind,title] of [['decision','決議'],['action','待辦']]){const group=items.filter(item=>item.kind===kind);if(group.length)sections.push(uiText(title)+'\n'+group.map(item=>'- '+item.details).join('\n'));}
-  preview={id:current.id,source:current.mailDraft.sourceRevision,ids:JSON.stringify([...selectedIds]),body:sections.join('\n\n')};render();
+  const groups=[],sections=[];for(const [kind,title] of [['decision','決議'],['action','待辦']]){const group=items.filter(item=>item.kind===kind);if(group.length){const lines=group.map(item=>'- '+item.details);groups.push({kind,title:uiText(title),lines});sections.push(uiText(title)+'\n'+lines.join('\n'));}}
+  preview={id:current.id,source:current.mailDraft.sourceRevision,ids:JSON.stringify([...selectedIds]),body:sections.join('\n\n'),groups};render();
  });
  $('mail-apply').addEventListener('click',()=>{
-  if($('mail-apply').disabled)return;undoBody=$('mail-body').value;$('mail-body').value=preview.body;
+  if($('mail-apply').disabled)return;undoBody=$('mail-body').value;$('mail-body').value=mergeSelectionBody(undoBody,preview.groups,current.noteItems.items);
   if(!$('mail-subject').value.trim())$('mail-subject').value=(current.workspace?.title||current.id)+' · '+uiText('會議紀錄');baseSource=current.mailDraft.sourceRevision;dirty=true;warning='';render();
  });
  $('mail-undo').addEventListener('click',()=>{if($('mail-undo').disabled)return;const previous=$('mail-body').value;$('mail-body').value=undoBody;undoBody=previous;dirty=true;render();});

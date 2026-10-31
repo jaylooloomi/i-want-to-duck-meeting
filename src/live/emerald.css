@@ -340,7 +340,7 @@ main{overflow-y:auto;overflow-x:hidden}
 .sidebar-filter{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sidebar-filter span{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .sidebar-links button{min-width:0;white-space:normal;overflow-wrap:anywhere}
-.pane-transcript>.pane-header{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);grid-template-rows:24px 36px auto;gap:12px 10px}
+.pane-transcript>.pane-header{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:24px 36px auto;gap:12px 10px}
 .pane-transcript .pane-title{grid-column:1;grid-row:1;min-width:0}
 .pane-transcript .transcript-search{grid-column:1/-1;grid-row:2;min-width:0}
 .pane-transcript .toolbar,.pane-transcript .toolbar-group{display:contents}
@@ -435,3 +435,57 @@ main{overflow-y:auto;overflow-x:hidden}
 
 /* Source navigation must scroll the transcript, never the clipping workspace shell. */
 @media(min-width:1051px){.content-scroll{overflow:clip}}
+
+/* Size desktop cards from the actual remaining workspace, not a fixed viewport deduction. */
+@media(min-width:1051px){
+ body{height:100dvh;overflow:hidden}
+ .app-shell{flex-direction:row}
+ main{overflow:hidden}
+ .content-scroll{flex:1;min-height:0}
+ .workspace-grid{flex:1;min-height:0;height:100%;max-height:100%;align-items:stretch;overflow:hidden}
+ .pane-transcript,#summary-panel{height:100%;max-height:100%;min-height:0}
+ .pane-transcript.audio-expanded{height:auto;max-height:none}
+}
+
+/* Column roles, not cell content, determine action-table widths. */
+.summary-table.action-table{table-layout:fixed;width:100%}
+.summary-table.action-table th,.summary-table.action-table td{width:auto!important;white-space:normal;overflow-wrap:anywhere}
+.action-table .owner-chip,.action-table .due-chip{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.action-table .note-source-controls button{max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+
+.summary-table.decision-table{width:100%;table-layout:fixed}
+.summary-table.decision-table th,.summary-table.decision-table td{width:auto!important;white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+.decision-table th:first-child{width:76%!important}.decision-table th:last-child{width:24%!important}
+.action-table .note-source-controls,.decision-table .note-source-controls{margin:0;align-items:center}
+.decision-table .note-source-controls button{max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+
+.decision-table .note-source-controls{justify-content:flex-end}
+.decision-table .note-source-controls button{margin-inline-start:auto;flex-shrink:0}
+@media(min-width:721px){.decision-table .note-source-controls{flex-wrap:nowrap}.decision-table .note-source-controls small{min-width:0;overflow-wrap:anywhere}}
+
+/* A consistent source cell: status above its action, aligned to the column heading. */
+.action-table .note-source-controls,.decision-table .note-source-controls{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;flex-wrap:nowrap;gap:5px;margin:0;min-width:0}
+.action-table .note-source-controls small,.decision-table .note-source-controls small{display:block;font-size:10px;line-height:15px;min-height:15px;white-space:normal;overflow-wrap:anywhere}
+.action-table .note-source-controls button,.decision-table .note-source-controls button{margin:0;align-self:flex-start;min-height:28px;padding:4px 8px;line-height:18px}
+
+.action-table td:last-child,.decision-table td:last-child{vertical-align:middle}
+
+/* Shared source-column geometry in overview, decisions and actions. */
+.summary-table th.source-column,.summary-table td.source-column{box-sizing:border-box;padding-inline:8px!important;text-align:left;vertical-align:middle}
+.note-card{box-sizing:border-box;width:100%}
+
+/* Shared inline source controls across all notes tabs. */
+.action-table .note-source-controls,.decision-table .note-source-controls{flex-direction:row;align-items:center;justify-content:space-between;gap:6px;width:100%}
+.action-table .note-source-controls small,.decision-table .note-source-controls small{min-width:0;flex:1;white-space:nowrap;font-size:10px}
+.action-table .note-source-controls button,.decision-table .note-source-controls button{align-self:center;flex:0 0 auto;white-space:nowrap;padding-inline:6px}
+@media(max-width:1450px){
+ .summary-table.action-table col:nth-child(1){width:30%!important}
+ .summary-table.action-table col:nth-child(2),.summary-table.action-table col:nth-child(3){width:14%!important}
+ .summary-table.action-table col:last-child,.summary-table.decision-table col:last-child,.summary-table.decision-table th:last-child{width:42%!important}
+ .summary-table.decision-table col:first-child,.summary-table.decision-table th:first-child{width:58%!important}
+}
+
+/* Center every notes-table field within its row, including wrapped tasks. */
+.summary-table.action-table th,.summary-table.action-table td,.summary-table.action-table td:first-child,.summary-table.decision-table th,.summary-table.decision-table td,.summary-table.decision-table td:first-child{vertical-align:middle}
+.summary-table .task-label{align-items:center}
+.summary-table .task-label input{margin-block:0}
