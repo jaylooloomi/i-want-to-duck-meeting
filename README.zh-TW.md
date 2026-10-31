@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.3.0-informational" alt="版本 0.3.0">
+  <img src="https://img.shields.io/badge/version-0.3.1-informational" alt="版本 0.3.1">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -22,7 +22,7 @@
 
 ## Windows 安裝包（建議）
 
-從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.0-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
+從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.1-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
 
 - 支援 Windows 10/11 x64；按使用者安裝至 `%LOCALAPPDATA%\Programs\DuckMeeting`，不需管理員權限。
 - 會議、錄音、登入設定及模型獨立存於 `%LOCALAPPDATA%\DuckMeeting\data`，升級預設保留。原始碼版的舊資料不會自動搬移。安裝包使用本機 8792 埠，原始碼版維持 8791。
@@ -52,7 +52,7 @@
 | 🎙️ **錄音留存** | Meet 保存會議接收端音訊；Teams 分存電腦麥克風、會議播放聲音及對齊混音 |
 | 🇹🇼 **本機中文辨識** | 麥克風與 Teams 使用 Paraformer 中文 int8、繁體字形轉換與逐字數字整理；Whisper 可做整場備援轉錄 |
 | 👀 **即時查看與管理** | 啟動會議後自動開啟本機網頁面板（`http://127.0.0.1:8791`）：左側管理所有歷史會議（支援**一鍵匯出 ZIP／封存／取消封存／刪除**），右側並排顯示**會議對話逐字稿**（支援主要語言篩選與中／英／日即時雙語翻譯）與 **AI 結構化會議紀錄整理** |
-| ✅ **會後智慧整理** | 散會後由所屬 Codex 對話的 Agent 親自讀取逐字稿並寫入 `summary.md`；後端不使用 Ollama 或規則摘要冒充完成 |
+| ✅ **會後智慧整理** | 散會後由所屬 Codex 對話的 Agent 親自讀取逐字稿並寫入 `summary.md`；後端由 Agent 親自整理，不以規則摘要冒充完成 |
 
 錄音與本機辨識不需要額外的雲端語音 API 金鑰。**摘要由你使用的 AI 服務處理**，不代表整套工作流程都不上雲。
 
@@ -375,7 +375,7 @@ README 編排與章魚插畫風格參考 [i-want-to-sleep](https://github.com/ja
 
 ### 會議結束後由原 Codex 對話接手
 
-由 Codex 啟動的會議記錄 CODEX_THREAD_ID，worker 收尾後排入 waiting_agent。/api/summarize 只建立請求，不呼叫 Ollama。技能在 join 後建立／沿用此對話的正式背景追蹤，輪詢 notes-pending，由 Agent 親自讀逐字稿、核對來源並寫 summary.md，再以 notes-status ready 同步網頁。沒有宿主追蹤就不能在回合結束後自己喚醒；需要電腦與 Codex 運作，輪詢不是秒級事件通知。只處理本對話明確追蹤的場次，不自動盤點所有私人歷史會議。
+由 Codex 啟動的會議記錄 CODEX_THREAD_ID，worker 收尾後排入 waiting_agent。/api/summarize 只建立請求，不呼叫後端摘要模型。技能在 join 後建立／沿用此對話的正式背景追蹤，輪詢 notes-pending，由 Agent 親自讀逐字稿、核對來源並寫 summary.md，再以 notes-status ready 同步網頁。沒有宿主追蹤就不能在回合結束後自己喚醒；需要電腦與 Codex 運作，輪詢不是秒級事件通知。只處理本對話明確追蹤的場次，不自動盤點所有私人歷史會議。
 
 notes-follow <id> 可將既有會議納入本對話；notes-pending 只列本對話待接手項目。關閉機器人的會議視窗會經收尾偵測；其他人的個別視窗關閉不代表整場結束。網頁顯示等待 Agent，不用假百分比。GUI worker 會保留本機面板服務，讓散會後 Agent 寫入的紀錄仍可顯示；headless 測試仍保留原生命週期。
 
@@ -397,7 +397,7 @@ notes-follow <id> 可將既有會議納入本對話；notes-pending 只列本對
 
 已完成收尾的 PCM WAV 錄音可顯示實際取樣波形，支援播放、拖曳、切換混合／麥克風／電腦音軌（依檔案實際存在）、速度與音量。點逐字稿時間或核對差異時會切回混合錄音，依估計時間定位；錄音尚未完成時不開放播放。檔案存在不代表已驗證說話者或辨識正確性。
 
-Agent 撰寫的 Markdown 紀錄可切換摘要／決議／待辦、複製及下載；整場 ZIP 與自訂 AI 整理包保留。紀錄沒有決議或待辦段落時明示缺少內容，不會補造，也不呼叫 Ollama。文字密度與播放速度偏好保存在目前瀏覽器。
+Agent 撰寫的 Markdown 紀錄可切換摘要／決議／待辦、複製及下載；整場 ZIP 與自訂 AI 整理包保留。紀錄沒有決議或待辦段落時明示缺少內容，不會補造，也不呼叫後端摘要模型。文字密度與播放速度偏好保存在目前瀏覽器。
 
 「來源與核對」會在已有平台字幕與 `transcript-whisper.json` 時，以估計的會議相對時間比對，顯示措辭／分段及數字、小數差異，保留雙方原文。缺少或未對齊證據會說明；這是人工複核輔助，不代表任一來源必然正確。若沒有錄音轉錄，請先請 Agent 轉錄該場本機錄音。錄音收尾或 Agent 整理尚未完成時，不允許封存／刪除。
 
@@ -406,7 +406,7 @@ Agent 撰寫的 Markdown 紀錄可切換摘要／決議／待辦、複製及下�
 
 ### 即時暫譯與設計圖對齊
 
-即時翻譯沿用現有 Google 翻譯 HTTP 服務，不使用 Ollama 或新增摘要模型。字幕仍在更新時就會節流翻譯，標示「暫譯 · 持續更新」，不必等會議結束。約每 1.4 秒允許送出一輪請求，另加字幕、輪詢與服務回應時間；定稿後重新校正。失敗會退避重試，切換語言／會議後的舊結果不會蓋回目前畫面，因此不保證逐字零延遲。
+即時翻譯沿用現有 Google 翻譯 HTTP 服務，不使用後端摘要模型。字幕仍在更新時就會節流翻譯，標示「暫譯 · 持續更新」，不必等會議結束。約每 1.4 秒允許送出一輪請求，另加字幕、輪詢與服務回應時間；定稿後重新校正。失敗會退避重試，切換語言／會議後的舊結果不會蓋回目前畫面，因此不保證逐字零延遲。
 
 新版依 1586×992 設計圖對齊左側品牌、單一頂列、閱讀字級、行內語言控制、展開式搜尋、圓形播放器及負責人／期限標記。「自動跟隨最新會議」、檢視模式、自動捲動與進階整理收進「設定」；問題回報可由「說明 → 回報問題」進入。所有控制以可操作的 HTML／CSS／SVG 實作，保留鍵盤操作。標題、人名、時間與紀錄依真實會議資料顯示，不填入設計圖的示例內容。
 
@@ -428,7 +428,7 @@ Agent 撰寫的 Markdown 紀錄可切換摘要／決議／待辦、複製及下�
 
 待辦表格可勾選完成，狀態保存在獨立的 `action-items.json`，不改寫原始 Markdown、不補造負責人或期限；紀錄版本改變時會拒絕過期勾選。整場 ZIP 包含這份狀態檔。段落選單可複製原文、回聽與標記／取消重點。來源區可檢視閱讀版逐字稿並下載 TXT，或定位來源錄音。播放器可放大，按 Escape 還原；Ctrl／Cmd＋K 搜尋會議，非輸入欄位中按 Ctrl／Cmd＋F 搜尋逐字稿。
 
-儲存資訊讀取真實會議資料夾用量與磁碟可用空間，隨場次狀態及定期更新；沒有固定容量配額。音檔依實際格式顯示 PCM WAV，不假裝 MP3；人數是已記錄發言者，不是完整出席名單，也不宣稱辨識準確率。會議整理繼續由 Agent 接手，不使用 Ollama。詳見[新版功能與驗證報告](docs/qa/reports/emerald-20261030.md)；先前 90.16% 是上一張參考圖的歷史結果，不套用於這張新設計。
+儲存資訊讀取真實會議資料夾用量與磁碟可用空間，隨場次狀態及定期更新；沒有固定容量配額。音檔依實際格式顯示 PCM WAV，不假裝 MP3；人數是已記錄發言者，不是完整出席名單，也不宣稱辨識準確率。會議整理繼續由 Agent 接手。詳見[新版功能與驗證報告](docs/qa/reports/emerald-20261030.md)；先前 90.16% 是上一張參考圖的歷史結果，不套用於這張新設計。
 
 
 ### 白色／暗色切換
@@ -452,10 +452,16 @@ Agent 撰寫的 Markdown 紀錄可切換摘要／決議／待辦、複製及下�
 
 Agent 完成會議整理後，開啟 **會議紀錄整理 → 郵件**。每次完成已授權的會議整理，Agent 預設一併依實際紀錄撰寫本機郵件主旨、內文（你明確不要時略過），不需再下指令；尚未確認的收件人可留空。頁面提供 **儲存草稿、複製郵件、下載草稿**，沒有建立信箱草稿或寄送按鈕。本機儲存不代表信件已建立或寄出。
 
-你要求 Agent 建立或寄送信件時，Agent 透過 `node bin/openmeeting.js mail-draft <ID> --json` 讀取指定場次的 `draft.to/cc/bcc/subject/body`，再使用已連接的信箱工具處理。缺少收件人必須確認，不從發言者姓名猜測信箱；不使用 Ollama。
+你要求 Agent 建立或寄送信件時，Agent 透過 `node bin/openmeeting.js mail-draft <ID> --json` 讀取指定場次的 `draft.to/cc/bcc/subject/body`，再使用已連接的信箱工具處理。缺少收件人必須確認，不從發言者姓名猜測信箱；由 Agent 親自完成。
 
 Agent 寫入時，以 UTF-8 JSON 提供 `to/cc/bcc` 陣列、`subject/body`，以及讀取所得的 `expectedRevision`（目前 revision，初次為 null）、`sourceRevision`，執行 `node bin/openmeeting.js mail-draft <ID> --file <JSON絕對路徑> --json`。有對話擁有者的場次會檢查歸屬。正式資料是 `mail-draft.json`，另存可讀的 `mail-draft.md`。版本衝突會保留編輯，請先複製再重新核對；來源紀錄變動會提示草稿需重新核對。原會議紀錄與逐字稿不會被改寫。本次未對真實信箱建立或寄送信件。
 
 切換「郵件」時，會議紀錄的標題、工具列與頁籤位置保持一致；上方複製／下載會處理目前分頁內容。紀錄隨內容延伸，由工作區統一捲動，郵件內文採固定範圍高度並可獨立捲動，下方操作列保持靠近內文，避免長內容推走按鈕。
 
 中、英、日、韓介面共用繁體中文版面尺寸：同視口下的側欄寬度、雙欄比例、工具列與頁籤位置一致。長標籤在固定元件內處理，不因切換語系改變整體布局。
+
+### 決議／待辦來源與郵件內容
+
+逐筆點「連結來源／查看原文」，可保存完整原文、時間與發言者，並定位逐字稿；有錄音及時間時可回放。來源未知或變更時不猜測。郵件頁「選擇郵件內容」可勾選決議／待辦，先預覽，再明確套用；可復原先前正文，勾選本身不會覆蓋手動文字或寄信。
+
+**已知限制：** 整場 ZIP 匯出目前存在較大音檔的 CRC 問題。請直接保留原始 WAV，不以 ZIP 下載成功當成錄音完整；詳見 BUG_REPORT.md 的 BUG-ZIP-001。

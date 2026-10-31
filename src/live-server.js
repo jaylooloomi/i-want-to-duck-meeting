@@ -1,3 +1,4 @@
+import {summaryItems,setSummarySource} from './summary-items.js';
 import {readMailDraft,saveMailDraft} from './mail-draft.js';
 import http from 'node:http';
 import fs from 'node:fs';
@@ -237,7 +238,7 @@ function buildFallbackSummary(status, records) {
   return lines.join('\n') + '\n';
 }
 
-export function buildAiPromptPackage(status,transcriptText,highlightText='') {
+export function buildAiPromptPackage(status,transcriptText,highlightText='',sourceRecords=[]) {
   const timeRange = formatTimeRange(status?.startedAt, status?.endedAt);
   const location = status?.url || (status?.source === 'teams' ? 'Microsoft Teams 線上會議' : status?.source === 'microphone' ? '現場會議（本機收音）' : 'Google Meet 線上會議');
   const recorder = status?.displayName || 'Arthur Wang';
@@ -248,7 +249,9 @@ export function buildAiPromptPackage(status,transcriptText,highlightText='') {
 1. **如果沒有該項資訊，絕對不要硬寫、不要編造，直接省略該小項或該區塊**（例如：逐字稿中若無「請假/缺席人員」、「臨時動議」、「下次會議預告」，請直接不要列出該項目，不要寫「無」或「未提及」充數）。
 2. 逐字稿為語音辨識（ASR）與字幕產生，可能包含同音異字（如：紅絲/紅石/宏斯科技、來意/萊伊/來毅、新購三/Single Sign-On/SSO、發的/FIDO2、歐森全/AuthTron 等），請根據前後文自動修正為正確的專有名詞或於括號內標註。
 3. 請直接輸出純 Markdown 內容（以 \`## 1. 基本資訊（會議身分證）\` 開頭），不要加任何開場白或結語，不要用 \`\`\`markdown 包裹，也**絕對不要使用 LaTeX 語法**（例如請直接寫 \`→\` 或 \`->\`，不要寫 \`$\\rightarrow$\`）。
-4. 「3. 行動方案」中的「負責人（Owner）」欄位必須指派到具體「個人」（如：Benjamin、艾薇、Steven、技術長），避免只寫模糊的「某公司團隊」或「某部門」。
+4. 「3. 行動方案」中的「負責人（Owner）」只在逐字稿明確指定時填具體個人（如：Benjamin、艾薇、Steven、技術長），未知填「未指定」；避免只寫模糊的「某公司團隊」或「某部門」。
+
+5. 決議與待辦每筆必須附逐字稿證據：決議另列「決議」表格，欄位為「決議」「來源原文」「來源時間」；待辦表格另加「來源原文」「來源時間」。來源原文逐字複製完整單段原始發言，不修字、不摘要；來源時間使用該段原始 ISO 時間。缺原文或時間就寫「未連結」或「時間未知」，不得推測。負責人、期限未知寫「未指定」，不得指派未曾確認的人選。
 
 【會議記錄結構規範（僅列出實際有內容的項目）】
 
@@ -275,6 +278,7 @@ export function buildAiPromptPackage(status,transcriptText,highlightText='') {
 - **下次會議預告**：下次會議的時間、地點與預計討論主題。
 - **相關附件**：會議中展示或提及的簡報、系統畫面、參考資料。`;
 
+  const sourceIndex=[];let sourceLength=0;for(const record of sourceRecords){const entry={text:record.text,time:record.t0??null,speaker:record.speaker??null};sourceLength+=JSON.stringify(entry).length;if(sourceLength>60000)break;sourceIndex.push(entry);}
   const userPrompt = `【會議基本資料】
 - 會議 ID：${status?.id || ''}
 - 會議時間：${timeRange}
@@ -282,7 +286,7 @@ export function buildAiPromptPackage(status,transcriptText,highlightText='') {
 - 記錄人：${recorder}
 
 【會議逐字稿內容】
-${transcriptText}${highlightText?'\n\n【使用者標記重點：請優先核對上下文，不等同正式決議】\n'+highlightText:''}`;
+${transcriptText}${sourceIndex.length?'\n\n【原始來源索引（可能節錄）：來源原文與時間必須逐字使用，不得推測】\n'+JSON.stringify(sourceIndex):''}${highlightText?'\n\n【使用者標記重點：請優先核對上下文，不等同正式決議】\n'+highlightText:''}`;
 
   const combined = `${systemPrompt}\n\n---\n\n${userPrompt}\n`;
   return { systemPrompt, userPrompt, combined };
@@ -292,7 +296,7 @@ export function getMeetingSummaryState(dir, status, records = []) {
   const summaryPath = path.join(dir, 'summary.md');
   const job = readStatus(dir)?.summaryJob || null;
   if(job?.state==='failed')return {state:'failed',progress:0,stage:job.error || 'Agent 整理未完成',markdown:null,updatedAt:job.updatedAt};
-  if(job && (job.state === 'waiting_agent' || (job.state === 'generating' && job.provider !== 'agent')))return {state:'waiting_agent',progress:0,stage:'等待 AI Agent 接手整理（不使用 Ollama）',markdown:null,updatedAt:job.requestedAt || job.updatedAt};
+  if(job && (job.state === 'waiting_agent' || (job.state === 'generating' && job.provider !== 'agent')))return {state:'waiting_agent',progress:0,stage:'等待 AI Agent 接手整理',markdown:null,updatedAt:job.requestedAt || job.updatedAt};
   if (job && job.state === 'generating') {
     return {
       state: 'generating',
@@ -383,7 +387,7 @@ export function readLiveMeeting(meetingsDir, id = 'latest') {
   records.sort((a, b) => Date.parse(a.t0) - Date.parse(b.t0));
   const summary = getMeetingSummaryState(meeting.dir, status, records);
   let mailDraft;try{mailDraft=readMailDraft(meeting.dir);}catch(error){mailDraft={observedAt:new Date().toISOString(),available:false,draft:null,revision:null,error:error.message};}
-  return { id: meeting.id, status, mailDraft, records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
+  return { id: meeting.id, status, mailDraft, noteItems:summaryItems(meeting.dir,summary.markdown||'',records), records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
 }
 
 export async function startLiveServer({ meetingsDir, port = 8791, microphone = new MicrophoneService({ meetingsDir }) }) {
@@ -416,6 +420,14 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         try{json({ok:true,...saveMailDraft(meeting.dir,draft)});}catch(error){const conflict=['mail_conflict','mail_source_changed','mail_notes_not_ready','mail_busy'].includes(error.message);json({ok:false,error:error.message},conflict?200:400);}return;
       }
       if(req.method==='GET'&&url.pathname==='/api/storage'){json(storageInfo(meetingsDir));return;}
+      if(req.method==='POST'&&url.pathname==='/api/summary-source'){
+        if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){res.writeHead(403).end();return;}
+        const input=JSON.parse((await body(req)).toString()||'{}');
+        if(!input||typeof input.id!=='string'||input.id==='latest'){json({error:'evidence_exact_id_required'},400);return;}
+        const meeting=resolveMeeting(meetingsDir,input.id);if(!meeting||meeting.id!==input.id){json({error:'evidence_not_found'},404);return;}
+        const data=readLiveMeeting(meetingsDir,meeting.id);if(data.summary.state!=='ready'){json({error:'evidence_notes_not_ready'},409);return;}
+        try{json({ok:true,noteItems:setSummarySource(meeting.dir,data.summary.markdown,data.records,input)});}catch(error){json({error:error.message},409);}return;
+      }
       if(req.method==='POST'&&url.pathname==='/api/action-items'){
         if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){res.writeHead(403).end();return;}
         const input=JSON.parse((await body(req)).toString()||'{}');
@@ -543,7 +555,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         if (!meeting) { json({ error: '找不到會議' }, 404); return; }
         const data = readLiveMeeting(meetingsDir, meeting.id);
         const transcriptText = cleanTranscriptForPrompt(meeting.dir, data?.records || []);
-        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id },transcriptText,renderHighlightsMarkdown(data?.highlights || []));
+        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id },transcriptText,renderHighlightsMarkdown(data?.highlights || []),data?.records||[]);
         if (url.searchParams.get('download') === '1') {
           res.writeHead(200, {
             'Content-Type': 'text/markdown; charset=utf-8',
@@ -554,7 +566,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         }
         json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
-      const routes = { '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const routes = { '/note-sources.js':['note-sources.js','text/javascript'], '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });

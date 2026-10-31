@@ -11,7 +11,7 @@ export function requestAgentSummary(dir,{force=false}={}) {
   const summaryPath=path.join(dir,'summary.md');
   if(!force && fs.existsSync(summaryPath) && fs.readFileSync(summaryPath,'utf8').trim())return {state:'ready'};
   if(force && fs.existsSync(summaryPath) && !fs.existsSync(path.join(dir,'summary.pre-agent.md')))fs.copyFileSync(summaryPath,path.join(dir,'summary.pre-agent.md'));
-  const job={state:'waiting_agent',provider:'agent',progress:0,stage:'等待此對話的 AI Agent 接手整理（不使用 Ollama）',requestedAt:new Date().toISOString(),previousSummaryHash:digest(summaryPath)};
+  const job={state:'waiting_agent',provider:'agent',progress:0,stage:'等待此對話的 AI Agent 接手整理',requestedAt:new Date().toISOString(),previousSummaryHash:digest(summaryPath)};
   writeStatus(dir,{summaryJob:job});return job;
 }
 

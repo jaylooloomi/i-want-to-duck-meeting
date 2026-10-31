@@ -274,6 +274,12 @@ function appendInline(parent, text) {
     }
   }
 }
+function noteSourceControl(lineIndex){
+ const item=currentRecord?.noteItems?.items.find(item=>item.lineIndex===lineIndex);if(!item)return document.createTextNode('');
+ const span=document.createElement('span');span.className='note-source-controls';
+ const label=document.createElement('small');label.textContent=item.source.linked?(Number.isFinite(Date.parse(item.source.time))?uiText('來源 ')+recordingClock(item.source.time):uiText('來源已連結 · 時間未知')):uiText('來源未連結');
+ const button=document.createElement('button');button.type='button';button.textContent=uiText(item.source.linked?'查看原文':'連結來源');button.setAttribute('aria-label',button.textContent+'：'+item.text);button.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('note-source-open',{detail:{id:currentRecord.id,itemId:item.id}})));span.append(label,button);return span;
+}
 function renderMarkdownDom(md) {
   const frag = document.createDocumentFragment();
   const lines = String(md || '').split(/\r?\n/);
@@ -290,8 +296,8 @@ function renderMarkdownDom(md) {
         tableHeaders=cells;
         currentTable = document.createElement('table'); currentTable.className = 'summary-table';
         const thead = document.createElement('thead'), tr = document.createElement('tr');
-        for (const c of cells) { const th = document.createElement('th'); appendInline(th, c); tr.append(th); }
-        thead.append(tr); tbody = document.createElement('tbody'); currentTable.append(thead, tbody); frag.append(currentTable);
+        for (const c of cells) { if(/來源原文|來源時間|source quote|source time/i.test(c))continue;const th = document.createElement('th'); appendInline(th, c); tr.append(th); }
+        if((currentRecord?.noteItems?.items||[]).some(item=>item.lineIndex>i && lines.slice(i+1,item.lineIndex+1).every(line=>line.trim().startsWith('|')))){const th=document.createElement('th');th.textContent=uiText('來源');tr.append(th);}thead.append(tr); tbody = document.createElement('tbody'); currentTable.append(thead, tbody); frag.append(currentTable);
       } else {
         const tr = document.createElement('tr');
         const rowSignature=JSON.stringify(cells),occurrence=actionOccurrences.get(rowSignature)||0;
@@ -299,6 +305,7 @@ function renderMarkdownDom(md) {
         if(actionSection)actionOccurrences.set(rowSignature,occurrence+1);
         if(task)tr.classList.toggle('task-complete',task.completed);
         for (const [index,c] of cells.entries()) {
+          if(/來源原文|來源時間|source quote|source time/i.test(tableHeaders[index]||''))continue;
           const td=document.createElement('td');
           if(/負責人|owner/i.test(tableHeaders[index]||'') && c && !/未指定|未確認|unknown/i.test(c) && /^[\p{L} .-]{1,40}$/u.test(c)){
             const owner=document.createElement('span');owner.className='owner-chip';
@@ -310,7 +317,7 @@ function renderMarkdownDom(md) {
           if(task&&index===task.column){td.setAttribute('aria-label',c);const label=document.createElement('label');label.className='task-label';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=task.completed;checkbox.setAttribute('aria-label',uiText('完成待辦：')+task.text);checkbox.addEventListener('change',()=>document.dispatchEvent(new CustomEvent('action-item-change',{detail:{id:currentRecord.id,key:task.key,revision:currentRecord.workspace.actions.revision,completed:checkbox.checked,control:checkbox}})));label.append(checkbox,...td.childNodes);td.append(label);}
           tr.append(td);
         }
-        tbody.append(tr);
+        const evidence=noteSourceControl(i);if(evidence.nodeType!==3){const td=document.createElement('td');td.append(evidence);tr.append(td);}tbody.append(tr);
       }
       continue;
     }
@@ -328,10 +335,10 @@ function renderMarkdownDom(md) {
       const li = document.createElement('li');
       const indent = (raw.match(/^\s*/)?.[0]?.length || 0) >= 2;
       if (indent) li.className = 'summary-subitem';
-      appendInline(li, liMatch[1]); currentList.append(li); continue;
+      const control=noteSourceControl(i);if(control.nodeType===1){const text=document.createElement('span');appendInline(text,liMatch[1]);li.append(text,control);}else appendInline(li,liMatch[1]); currentList.append(li); continue;
     }
     currentList = null;
-    const p = document.createElement('p'); p.className = 'summary-p'; appendInline(p, line); frag.append(p);
+    const p = document.createElement('p'); p.className = 'summary-p';const control=noteSourceControl(i);if(control.nodeType===1){const text=document.createElement('span');appendInline(text,line);p.append(text,control);}else appendInline(p,line); frag.append(p);
   }
   return frag;
 }
@@ -456,13 +463,13 @@ function updateSummaryPanel(data) {
   const st = data.status?.state;
   const sum = data.summary || { state:'idle', progress:0, stage:'' };
   summaryPanel.hidden = false;
-  const nextSig = JSON.stringify([data.id, st, sum.state, sum.progress, sum.stage, sum.updatedAt, summaryCollapsed, data.records?.length || 0]);
+  const nextSig = JSON.stringify([data.id, st, sum.state, sum.progress, sum.stage, sum.updatedAt, summaryCollapsed, data.records?.length || 0, sum.markdown, data.noteItems]);
   if (nextSig === summarySignature) return;
   summarySignature = nextSig;
   if(sum.state==='waiting_agent'){
     summaryBadge.textContent=uiText('等待 Codex／Claude 接手');summaryBadge.className='summary-badge';summaryProgressWrap.hidden=true;
     summaryRegen.disabled=true;summaryBody.hidden=false;
-    const message=document.createElement('div');message.className='empty';message.textContent=uiText('已排入 AI Agent 整理佇列。不使用 Ollama；此對話的背景追蹤啟動後，會由 Agent 親自讀取逐字稿並整理。');summaryBody.replaceChildren(message);return;
+    const message=document.createElement('div');message.className='empty';message.textContent=uiText('已排入 AI Agent 整理佇列。此對話的背景追蹤啟動後，會由 Agent 親自讀取逐字稿並整理。');summaryBody.replaceChildren(message);return;
   }
   if (st === 'leaving' || st === 'transcribing' || sum.state === 'generating') {
     const pct = sum.state === 'generating' ? Math.max(0, Math.min(100,Number(sum.progress) || 0)) : 0;
@@ -499,7 +506,7 @@ function updateSummaryPanel(data) {
 }
 function row(record, pending) {
   const renderedMeetingId=currentRecord?.id;
-  const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');
+  const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');card.dataset.sourceRecord=JSON.stringify([record.text,record.t0??null,record.speaker??null]);
   if(record.highlightCount)card.classList.add('important-utterance');
   const name = record.speaker || uiText('未知發言者');
   const hue = [...name].reduce((n, c) => (n * 31 + c.codePointAt(0)) % 360, 0);
@@ -680,3 +687,13 @@ $('transcript-search').addEventListener('input',()=>{signature='';void pollNow()
 $('highlights-only').addEventListener('change',()=>{signature='';void pollNow();});
 
 document.addEventListener('ui-language-change',()=>{signature='';summarySignature='';meetingOptionsSignature='';renderSidebar(cachedMeetings);syncLanguagePresets();void pollNow();});
+
+document.addEventListener('locate-note-source',async({detail})=>{
+ if(currentRecord?.id!==detail.id)return;
+ $('transcript-search').value='';$('highlights-only').checked=false;if(primaryLang)primaryLang.value='all';$('follow').checked=false;
+ document.querySelector('[data-view="split"]').click();signature='';await pollNow();if(currentRecord?.id!==detail.id)return;
+ const key=JSON.stringify([detail.source.text,detail.source.time,detail.source.speaker]);const card=[...document.querySelectorAll('.utterance')].find(card=>card.dataset.sourceRecord===key);
+ if(card){card.classList.add('source-located');card.tabIndex=-1;card.scrollIntoView({block:'center'});card.focus({preventScroll:true});setTimeout(()=>card.classList.remove('source-located'),5000);}
+});
+
+document.addEventListener('note-source-updated',()=>{summarySignature='';void pollNow();});

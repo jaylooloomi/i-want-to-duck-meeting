@@ -1450,10 +1450,10 @@ window.DuckLocaleCatalog={
     "英→中／中→英は表示と翻訳の設定で、音声認識言語は変更しません。他の言語は「すべての原文」で表示できます。字幕更新中は仮訳を更新し、確定後に再翻訳します。ネット接続と翻訳サービスが必要で、数秒遅れる場合があります。",
     "영→중과 중→영은 표시 및 번역 설정이며 음성 인식 언어를 변경하지 않습니다. 다른 언어는 모든 원문으로 표시하세요. 자막 업데이트 중 임시 번역을 제공하고 확정 후 보정합니다. 인터넷 및 번역 서비스가 필요하며 몇 초 지연될 수 있습니다."
   ],
-  "會後紀錄由已授權的 Agent 整理，不使用 Ollama。等待 Agent 不代表背景模型正在推論。差異核對為估計時間對齊，兩份原文均保留，須自行確認。": [
-    "An authorized Agent prepares notes without Ollama. Waiting for Agent does not mean a model is running. Source alignment uses estimated times; both originals are preserved for review.",
-    "許可されたAgentがOllamaを使わずに整理します。Agent待ちはモデルの実行中を意味しません。照合は推定時刻を使い、両方の原文を保持するため確認が必要です。",
-    "승인된 Agent가 Ollama 없이 정리합니다. Agent 대기는 모델 실행 중을 의미하지 않습니다. 비교에는 추정 시간이 사용되며 두 원문을 보존하므로 직접 확인하세요."
+  "會後紀錄由已授權的 Agent 親自整理。等待 Agent 不代表背景模型正在推論。差異核對為估計時間對齊，兩份原文均保留，須自行確認。": [
+    "An authorized Agent prepares the meeting notes. Waiting for Agent does not mean a model is running. Source alignment uses estimated times; both originals are preserved for review.",
+    "許可されたAgentが会議記録を整理します。Agent待ちはモデルの実行中を意味しません。照合は推定時刻を使い、両方の原文を保持するため確認が必要です。",
+    "승인된 Agent가 회의 기록을 정리합니다. Agent 대기는 모델 실행 중을 의미하지 않습니다. 비교에는 추정 시간이 사용되며 두 원문을 보존하므로 직접 확인하세요."
   ],
   "遇到收音異常、字幕缺漏或介面問題嗎？請參考以下": [
     "Audio, caption or interface problems? Follow these",
@@ -1725,10 +1725,10 @@ window.DuckLocaleCatalog={
     "音量は受信信号を示します。認識結果は後で表示します。",
     "레벨은 신호 수신만 나타냅니다. 인식 결과는 나중에 표시됩니다."
   ],
-  "已排入 AI Agent 整理佇列。不使用 Ollama；此對話的背景追蹤啟動後，會由 Agent 親自讀取逐字稿並整理。": [
-    "Queued for the AI Agent, without Ollama. Once this chat’s background tracking starts, the Agent reads the transcript and writes notes.",
-    "Ollamaを使わずAgentの整理待ちです。この会話のバックグラウンド追跡開始後、Agentが文字起こしを読み整理します。",
-    "Ollama 없이 AI Agent 정리 대기 중입니다. 이 대화의 백그라운드 추적이 시작되면 Agent가 대화록을 읽고 정리합니다."
+  "已排入 AI Agent 整理佇列。此對話的背景追蹤啟動後，會由 Agent 親自讀取逐字稿並整理。": [
+    "Queued for the AI Agent. Once this chat’s background tracking starts, the Agent reads the transcript and writes notes.",
+    "Agentの整理待ちです。この会話のバックグラウンド追跡開始後、Agentが文字起こしを読み整理します。",
+    "AI Agent 정리 대기 중입니다. 이 대화의 백그라운드 추적이 시작되면 Agent가 대화록을 읽고 정리합니다."
   ],
   "會議正在進行中。結束後可在 AI 對話框輸入「會議紀錄整理」交由 Agent 深度整理，或點擊右上角按鈕整理／匯出。": [
     "Meeting in progress. After it ends, ask the Agent to prepare meeting notes, or use the notes/export controls.",
@@ -2139,5 +2139,139 @@ Object.assign(window.DuckLocaleCatalog,{
     "Mail draft downloaded.",
     "メール原稿をダウンロードしました。",
     "메일 초안을 다운로드했습니다."
+  ]
+});
+
+/* Evidence links and explicit mail selection. */
+Object.assign(window.DuckLocaleCatalog,{
+  "選擇郵件內容": [
+    "Choose email content",
+    "メール内容を選択",
+    "메일 내용 선택"
+  ],
+  "逐項勾選決議與待辦，先預覽再套用。套用會替換正文；套用前的手動內容可復原。": [
+    "Select decisions and actions, preview, then apply. Applying replaces the body; the previous text can be restored.",
+    "決議とタスクを選択し、プレビュー後に適用します。本文は置換されますが、元の内容に戻せます。",
+    "결정과 할 일을 선택하고 미리 본 뒤 적용하세요. 본문이 교체되며 이전 내용은 복원할 수 있습니다."
+  ],
+  "預覽勾選內容": [
+    "Preview selection",
+    "選択内容をプレビュー",
+    "선택 내용 미리보기"
+  ],
+  "套用到正文": [
+    "Apply to body",
+    "本文に適用",
+    "본문에 적용"
+  ],
+  "復原套用前正文": [
+    "Restore previous body",
+    "元の本文に戻す",
+    "이전 본문 복원"
+  ],
+  "決議／待辦來源": [
+    "Decision / action evidence",
+    "決議・タスクの根拠",
+    "결정 / 할 일 근거"
+  ],
+  "定位逐字稿": [
+    "Locate transcript",
+    "文字起こしへ移動",
+    "대화 기록 위치로 이동"
+  ],
+  "回放錄音": [
+    "Play recording",
+    "録音を再生",
+    "녹음 재생"
+  ],
+  "連結逐字稿原文": [
+    "Link transcript quote",
+    "文字起こし原文をリンク",
+    "대화 원문 연결"
+  ],
+  "儲存來源連結": [
+    "Save evidence link",
+    "根拠リンクを保存",
+    "근거 연결 저장"
+  ],
+  "解除連結": [
+    "Unlink",
+    "リンクを解除",
+    "연결 해제"
+  ],
+  "來源未連結": [
+    "Evidence unlinked",
+    "根拠未リンク",
+    "근거 연결 안 됨"
+  ],
+  "來源已連結 · 時間未知": [
+    "Evidence linked · time unknown",
+    "根拠リンク済み・時刻不明",
+    "근거 연결됨 · 시간 알 수 없음"
+  ],
+  "來源 ": [
+    "Evidence ",
+    "根拠 ",
+    "근거 "
+  ],
+  "來源": [
+    "Evidence",
+    "根拠",
+    "근거"
+  ],
+  "查看原文": [
+    "View quote",
+    "原文を表示",
+    "원문 보기"
+  ],
+  "連結來源": [
+    "Link evidence",
+    "根拠をリンク",
+    "근거 연결"
+  ],
+  "時間未知": [
+    "Time unknown",
+    "時刻不明",
+    "시간 알 수 없음"
+  ],
+  "來源已變更，請重新連結；上方保留舊原文。": [
+    "Source changed. Relink it; the previous quote is retained above.",
+    "原文が変更されました。再リンクしてください。以前の原文は上に保持されています。",
+    "원문이 변경되었습니다. 다시 연결하세요. 이전 원문은 위에 보존됩니다."
+  ],
+  "來源未知，未連結逐字稿。": [
+    "Source unknown; no transcript link.",
+    "根拠不明・文字起こし未リンク。",
+    "근거를 알 수 없어 대화 기록에 연결되지 않았습니다."
+  ],
+  "請選擇原文，不推測時間": [
+    "Choose an original quote; times are never guessed",
+    "原文を選択してください。時刻は推測しません",
+    "원문을 선택하세요. 시간은 추측하지 않습니다"
+  ],
+  "來源連結已儲存": [
+    "Evidence link saved",
+    "根拠リンクを保存しました",
+    "근거 연결 저장됨"
+  ],
+  "來源已變更或無法儲存，請關閉後重新開啟核對。": [
+    "Source changed or save failed. Close and reopen to review.",
+    "根拠が変更されたか保存できません。閉じてから再度開いて確認してください。",
+    "근거가 변경되었거나 저장하지 못했습니다. 닫았다 다시 열어 확인하세요."
+  ],
+  "尚無可選擇的決議或待辦": [
+    "No decisions or actions to select",
+    "選択できる決議・タスクがありません",
+    "선택할 결정이나 할 일이 없습니다"
+  ],
+  "會議紀錄已變更，先前勾選項目已失效，請重新勾選。": [
+    "Notes changed; previous selections are invalid. Select again.",
+    "議事録が変更されたため、以前の選択は無効です。選び直してください。",
+    "회의록이 변경되어 이전 선택이 무효화되었습니다. 다시 선택하세요."
+  ],
+  "預覽已失效，請重新預覽。": [
+    "Preview expired. Preview again.",
+    "プレビューは無効です。再度プレビューしてください。",
+    "미리보기가 만료되었습니다. 다시 미리 보세요."
   ]
 });

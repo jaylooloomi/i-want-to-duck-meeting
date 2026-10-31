@@ -11,7 +11,7 @@
   function time(value){const seconds=Math.max(0,Math.floor(Number(value)||0));return `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`;}
   function date(value){const d=new Date(value);return Number.isNaN(+d)?uiText('時間未記錄'):d.toLocaleString(window.DuckI18n.language,{hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
   function saveFile(text,name,type='text/markdown'){ const url=URL.createObjectURL(new Blob([text],{type:type+';charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
-  function partition(markdown,kind){
+  function partition(markdown,kind,preserveLines=false){
     if(kind==='overview')return markdown;
     const wanted=kind==='actions'?/行動|待辦|action items|next steps/i:/決議|決策|決定|decisions?/i;
     const lines=String(markdown).split(/\r?\n/),out=[];let capture=false,level=0;
@@ -23,9 +23,9 @@
       else if(kind==='decisions' && /(?:最終)?決議(?:\*\*)?\s*[：:]/.test(line)){
         out.push(line);
         while(i+1<lines.length && (/^\s{2,}\S/.test(lines[i+1]) || !lines[i+1].trim()))out.push(lines[++i]);
-      }
+      }else if(preserveLines)out.push('');
     }
-    return out.join('\n').trim();
+    return preserveLines?out.join('\n'):out.join('\n').trim();
   }
   function renderNotes(data){
     const sum=data?.summary||{},ready=sum.state==='ready'&&!!sum.markdown;
@@ -34,11 +34,11 @@
     for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=kind==='actions'?data?.workspace?.actions?.items.length:kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null;button.textContent=label+(count?' ('+count+')':'');}
     if(mail){notesSignature='';return;}
     $('notes-copy').disabled=$('notes-download').disabled=!ready;
-    const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions]);
+    const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions,data?.noteItems]);
     if(key===notesSignature)return;notesSignature=key;
     if(!ready)return;
-    const markdown=partition(sum.markdown,tab);
-    const fragment=renderMarkdownDom(markdown || (tab==='actions'?uiText('這份紀錄未列出待辦段落，請查看摘要全文。'):uiText('這份紀錄未列出獨立決議段落，請查看摘要全文。')));
+    const markdown=partition(sum.markdown,tab,true);
+    const fragment=renderMarkdownDom(markdown.trim() ? markdown : (tab==='actions'?uiText('這份紀錄未列出待辦段落，請查看摘要全文。'):uiText('這份紀錄未列出獨立決議段落，請查看摘要全文。')));
     const cards=document.createDocumentFragment();let card=null;
     for(const node of [...fragment.childNodes]){if(!card||node.classList?.contains('summary-h')){card=document.createElement('section');card.className='note-card';cards.append(card);}card.append(node);}
     $('summary-body').replaceChildren(cards);

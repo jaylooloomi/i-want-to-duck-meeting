@@ -384,3 +384,12 @@ main{overflow-y:auto;overflow-x:hidden}
 #mail-form textarea{height:clamp(120px,22vh,220px);min-height:120px;max-height:220px;overflow-y:auto;resize:none}
 .mail-actions{position:sticky;bottom:0;z-index:2;background:#fff;margin:0;padding:10px 0;flex-shrink:0}
 :root[data-theme=dark] .mail-actions{background:#0f2032}
+
+/* Evidence and explicit mail composition. */
+.note-source-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;font-size:12px}.note-source-controls small{color:var(--muted,#68736e)}.note-source-controls button{font-size:12px;padding:3px 8px}.source-located{outline:3px solid #14a383;outline-offset:-3px}#note-source-dialog{max-width:720px;width:90vw}#note-source-dialog select{display:block;width:100%;max-width:100%;margin:12px 0}#note-source-quote{white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid #14a383;padding:12px;margin:12px 0;background:var(--surface,#f0f5f3)}#mail-selector{padding:12px;margin-bottom:16px;border:1px solid var(--border,#d6e3dd);border-radius:10px}#mail-selector summary{cursor:pointer;font-weight:600}#mail-items{max-height:220px;overflow:auto;margin:12px 0}.mail-item-choice{display:flex;align-items:flex-start;gap:8px;margin:8px 0}.mail-item-choice input{width:auto;flex:none;margin-top:4px}#mail-selection-preview{white-space:pre-wrap;overflow-wrap:anywhere;max-height:200px;overflow:auto;font-family:inherit}#mail-selector button{margin:4px 4px 4px 0}
+
+#mail-selector button,.note-source-controls button{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:5px 9px;border:1px solid #d3e1e6;border-radius:6px;background:#f3f8f6;color:#226e5d;font:inherit;font-size:12px;cursor:pointer}#mail-selector button:disabled,.note-source-controls button:disabled{opacity:.5;cursor:default}#note-source-dialog{max-height:85vh;overflow:auto}#note-source-item,#note-source-feedback{overflow-wrap:anywhere}#mail-items span{overflow-wrap:anywhere;min-width:0}:root[data-theme=dark] #mail-selector button,:root[data-theme=dark] .note-source-controls button{background:#1a3449;color:#c2d8e9;border-color:#355268}:root[data-theme=dark] #note-source-quote{background:#182f3d;color:#d3e4f3}
+
+/* Footer language picker shares the exact left/right edges of the action grid. */
+.ui-language-control{min-width:0;width:100%;justify-items:stretch;text-align:left}
+.ui-language-control select{display:block;box-sizing:border-box;margin:0;width:100%;max-width:none;min-width:0;text-align:left;text-align-last:left;justify-self:stretch}

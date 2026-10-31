@@ -218,3 +218,8 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] WIN-INSTALL: actual silent Setup with bundled Node and isolated Codex/Claude configs, CLI and HTTP workspace.
 - [x] WIN-UPGRADE: repair and synthetic previous-version upgrade preserve data; downgrade rejected.
 - [x] WIN-UNINSTALL: remove owned integrations/application, retain data by default; developer settings unchanged.
+
+
+- [x] NOTE-SOURCE: exact original text/time/speaker links, stale/conflicting source prevention, unknown time, transcript locate and 5-second action replay.
+- [x] MAIL-COMPOSITION: selection persistence, preview/apply/undo, manual body retention and copy/download.
+- [!] ZIP-CRC: existing >256KiB audio export corruption independently reproduced; BUG-ZIP-001, outside this release fix scope.

@@ -185,3 +185,10 @@ The failed discovery logs are retained (`test-emerald-first.log`, `test-emerald-
 - **Localized layout truncation:** fixed-width Chinese controls truncated English and split Korean source labels. Fluid international rows, two-line file metadata and responsive footer/settings/menu layouts are covered by I18N-LAYOUT and localization tests.
 
 Known BUG-004 skips remain unchanged and are not counted as passes. No new live-meeting/ASR claims are attached to these UI fixes.
+
+
+## BUG-ZIP-001 — Existing full-session ZIP audio CRC corruption (P1)
+
+Status: confirmed, not changed in this release scope. `src/live-server.js:122` enqueues a subarray of a reusable read buffer, then reads the next chunk before asynchronous writes finish. A 320044-byte synthetic WAV exported through `/api/export` fails `zipfile.ZipFile.testzip()` at audio.wav; its leading RIFF header can be overwritten. This predates the source-link integration.
+
+Independent reproduction used the isolated 8793 synthetic preview, saved to ignored `test/.tmp/source-export.zip`; CRC validation returned `20261031-linked-source-demo/audio.wav`. Original WAV and notes remain intact. Until fixed, retain/backup original WAV files directly rather than relying on ZIP audio. The full unit/QA suite does not assert ZIP audio CRC, so its passing count does not establish ZIP integrity.

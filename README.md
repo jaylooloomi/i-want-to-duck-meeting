@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.3.0-informational" alt="Version 0.3.0">
+  <img src="https://img.shields.io/badge/version-0.3.1-informational" alt="Version 0.3.1">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
@@ -22,7 +22,7 @@
 
 ## Windows installer (recommended)
 
-Download **DuckMeeting-0.3.0-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+Download **DuckMeeting-0.3.1-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
 
 - Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
 - Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
@@ -52,7 +52,7 @@ Four interface languages (Traditional Chinese, English, Japanese and Korean), re
 | 🎙️ **Saved audio** | Meet records received meeting audio; Teams saves the local microphone, playback audio, and an aligned mix separately |
 | 🇹🇼 **Local Chinese ASR** | Microphone and Teams modes use Paraformer Chinese int8, Traditional Chinese conversion, and spoken digit formatting; Whisper provides whole-recording fallback transcription |
 | 👀 **Live workspace & history** | Joining a meeting automatically opens the local web panel (`http://127.0.0.1:8791`) with a persistent left sidebar of all meetings (supporting **one-click ZIP Export / Archive / Unarchive / Delete**), side-by-side live transcript & structured summary panes, primary language filtering, and real-time bilingual translation (`zh-TW` / `en` / `ja`) |
-| ✅ **Structured meeting notes** | When a meeting ends, the owning Codex conversation receives an Agent handoff request; the Agent reads the transcript and writes `summary.md`. The backend does not call Ollama or a fallback model |
+| ✅ **Structured meeting notes** | When a meeting ends, the owning Codex conversation receives an Agent handoff request; the Agent reads the transcript and writes `summary.md`. The backend hands off to the owning Agent rather than generating model output |
 
 Recording and local ASR do not require an additional cloud speech API key. **Summaries are processed by your chosen AI service**; the entire workflow is not necessarily offline.
 
@@ -367,7 +367,7 @@ Code is licensed under [MIT](LICENSE). Third-party packages and models retain th
 
 ### Agent-owned meeting summaries
 
-Meetings launched from Codex carry CODEX_THREAD_ID. On completion, the worker queues a waiting_agent request; /api/summarize only requests Agent work and does not call Ollama. The Codex conversation must have an actual app heartbeat follow-up to resume after a turn ends. The skill creates/reuses this follow-up after join; it polls notes-pending and personally reviews the transcript, writes summary.md and reports notes-status ready. No heartbeat means no autonomous wake-up. App/computer availability and polling cadence apply; this is not instantaneous event delivery. Only that conversation's explicitly tracked meetings are processed. Historical notes remain untouched unless regeneration was requested.
+Meetings launched from Codex carry CODEX_THREAD_ID. On completion, the worker queues a waiting_agent request; /api/summarize only requests Agent work and does not invoke a backend summary model. The Codex conversation must have an actual app heartbeat follow-up to resume after a turn ends. The skill creates/reuses this follow-up after join; it polls notes-pending and personally reviews the transcript, writes summary.md and reports notes-status ready. No heartbeat means no autonomous wake-up. App/computer availability and polling cadence apply; this is not instantaneous event delivery. Only that conversation's explicitly tracked meetings are processed. Historical notes remain untouched unless regeneration was requested.
 
 Commands: notes-follow <id> binds an existing meeting to the current chat, notes-pending lists its pending requests, and notes-status <id> generating|ready updates real Agent stages. No generated summary is marked complete without a nonempty newly written file. GUI workers keep their local viewer alive after meeting end so Agent-written notes can appear; headless workers retain their prior lifecycle.
 
@@ -389,7 +389,7 @@ The local web panel now includes searchable meeting history with date grouping, 
 
 Saved PCM WAV recordings have an actual-sample waveform, playback, seeking, track selection (mixed/microphone/system where available), speed and volume controls. Clicking a transcript timestamp or comparison item selects the mixed recording and seeks approximately from the recorded meeting start. Live recording files are not offered for playback before finalization. A saved file does not establish speaker identity or ASR accuracy.
 
-Agent-authored Markdown notes can be viewed as overview, decisions or actions, copied or downloaded. Full-session ZIP export and the custom-AI export remain available. Missing decision/action sections remain empty; the UI does not invent items or call Ollama. Sidebar settings persist display density and playback speed in this browser.
+Agent-authored Markdown notes can be viewed as overview, decisions or actions, copied or downloaded. Full-session ZIP export and the custom-AI export remain available. Missing decision/action sections remain empty; the UI does not invent items or call a backend summary model. Sidebar settings persist display density and playback speed in this browser.
 
 **Sources and review** compares existing platform captions with `transcript-whisper.json` when present. It aligns using estimated meeting-relative timestamps and highlights wording, segmentation and digit/decimal differences without rewriting either source. Unaligned/missing evidence is disclosed. This is advisory review, not a proof of accuracy; if no recording transcription exists, ask the Agent to transcribe the saved recording first. Recording/Agent handoff must finish before archive/delete actions are enabled.
 
@@ -398,7 +398,7 @@ Translation sends text to the existing Google translation service and can fail o
 
 ### Live translation and reference layout
 
-Live translation uses the existing Google translation HTTP endpoint; no Ollama or new summary model is involved. Pending caption text is translated before the meeting or paragraph ends, labelled **暫譯 · 持續更新**. Requests are throttled, stale language/meeting responses cannot overwrite the current view, failures back off, and final text receives a fresh translation. Network/provider latency means this is incremental translation, not guaranteed zero-latency word-by-word output.
+Live translation uses the existing Google translation HTTP endpoint; no backend summary model is involved. Pending caption text is translated before the meeting or paragraph ends, labelled **暫譯 · 持續更新**. Requests are throttled, stale language/meeting responses cannot overwrite the current view, failures back off, and final text receives a fresh translation. Network/provider latency means this is incremental translation, not guaranteed zero-latency word-by-word output.
 
 The workspace now follows the supplied 1586×992 reference geometry: sidebar branding, a single breadcrumb header, larger reading type, compact inline language controls, expandable transcript search, circular playback control and owner/date table chips. Follow-latest, view mode, auto-scroll and advanced notes operations are under **設定**; **說明 → 回報問題** preserves issue reporting without cluttering the main workspace. All controls remain HTML/CSS/SVG elements with keyboard-accessible names rather than static screenshot controls. Meeting-specific titles, people, durations and notes are always real session data.
 
@@ -420,7 +420,7 @@ The selected emerald design is now a working HTML/CSS/SVG interface: three evide
 
 Action-table checkboxes persist to a separate local `action-items.json`; they never rewrite the Agent’s Markdown, assign owners or change deadlines. A summary revision check rejects stale writes. The overlay is included in a full meeting ZIP. Paragraph menus copy the original, seek the mixed recording and mark/unmark speech. Source review opens a readable transcript with TXT download; audio-source actions position the player. The player can expand and restore with Escape. Ctrl/Cmd+K focuses meeting search; Ctrl/Cmd+F focuses transcript search outside input fields.
 
-Storage displays real meeting-directory usage and available disk space, refreshed on meeting-state changes and periodically. No storage quota, MP3 format, recognition accuracy or participant total is fabricated. Saved audio currently uses PCM WAV; the count is recorded speakers. All summary handling retains the no-Ollama Agent handoff. See [Emerald implementation and test report](docs/qa/reports/emerald-20261030.md). The old 90.16% result is historical evidence for the previous reference, not a score for this new design.
+Storage displays real meeting-directory usage and available disk space, refreshed on meeting-state changes and periodically. No storage quota, MP3 format, recognition accuracy or participant total is fabricated. Saved audio currently uses PCM WAV; the count is recorded speakers. All summary handling retains the Agent handoff. See [Emerald implementation and test report](docs/qa/reports/emerald-20261030.md). The old 90.16% result is historical evidence for the previous reference, not a score for this new design.
 
 
 ### Light and dark appearance
@@ -444,8 +444,14 @@ The **Original text** selector also includes German, Japanese and Korean. These 
 
 Open **Meeting notes → Email** after the Agent finishes the meeting notes. After each authorized meeting-notes task, the Agent also prepares a local email subject and body from the actual notes by default (unless you opt out); recipients may remain empty until confirmed. Edit the local draft, then **Save draft**, **Copy email**, or **Download draft**. There is deliberately no mailbox-creation or send button. Saving locally does not create or send an email.
 
-When you ask the Agent to create or send an email, it reads this exact meeting using `node bin/openmeeting.js mail-draft <ID> --json`, then uses its connected mailbox tools within your instruction. It must confirm missing recipients rather than infer addresses from speaker names. No Ollama or extra summary model API is used.
+When you ask the Agent to create or send an email, it reads this exact meeting using `node bin/openmeeting.js mail-draft <ID> --json`, then uses its connected mailbox tools within your instruction. It must confirm missing recipients rather than infer addresses from speaker names. No extra summary model API is used.
 
 For Agent updates, save UTF-8 JSON with `to`, `cc`, `bcc` arrays, `subject`, `body`, and the returned `expectedRevision` (the current `revision`, initially null) and `sourceRevision`; run `node bin/openmeeting.js mail-draft <ID> --file <absolute-json-path> --json`. The returned fields live under `draft`. Thread ownership is enforced where the meeting has an owner. Canonical content is stored in `mail-draft.json`, with a readable `mail-draft.md` companion. Version conflicts preserve your edits; copy them before reloading and reconciling. Changed meeting notes mark the saved draft as stale. Existing notes and transcripts remain unchanged. Mailbox creation/sending requires a connected mail service and separate user instruction; it has not been exercised against a real mailbox in this implementation.
 
 The notes header and tabs keep their positions when switching to Email. Shared Copy/Download actions follow the selected tab. Notes expand in the workspace scroll area, while the email editor has a bounded height with its own text scrollbar and a nearby sticky action row.
+
+### Decision/action sources and mail content
+
+Use **Link source / View original** on a decision or action to associate exact transcript text, timestamp and speaker. Locate the passage or replay its recording when audio and time exist; unknown/changed sources stay unlinked. In **Email → Choose mail content**, select decisions/actions, preview, then explicitly apply; undo restores the previous body. Checkbox selection alone does not overwrite manual text or send mail.
+
+**Known limitation:** full-session ZIP exports currently have a confirmed audio CRC issue for larger files. Keep original WAV files directly; a successful ZIP download does not verify the recording. See BUG-ZIP-001 in BUG_REPORT.md.

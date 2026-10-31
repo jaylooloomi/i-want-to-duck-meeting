@@ -21,3 +21,8 @@ Final locale/layout/mail/integrity regression: **46 passed, 0 failed, 0 skipped*
 ## Storage footer follow-up
 
 Storage uses fixed icon and text tracks (14px title, 14px capacity, 5px meter) rather than text-dependent vertical alignment. Same-page language switching now compares exact document rectangles for the icon, heading, capacity and meter as well as the outer layout. Geometry/integrity replay: 11 passed, zero failed/skipped, 35.4 s (`test-storage-locale.log`). Mobile keeps the existing hidden storage row.
+
+
+## Footer picker alignment
+
+The global select margin shifted the language picker 6px right; a global max-width also shortened its right edge on wide screens. Scoped margin/width/text-alignment overrides now match the footer grid. Same-page locale tests assert both horizontal edges and left-aligned selected text at all four widths. Geometry/integrity: 11 passed, zero failed/skipped, 35.1 s (`test-footer-left-aligned-final.log`). Local Windows installation CSS synchronized.

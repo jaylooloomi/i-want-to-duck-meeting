@@ -4,12 +4,14 @@
  const $=id=>document.getElementById(id),fields=['to','cc','bcc','subject','body'];
  let current=null,loadedId='',loadedRevision,baseSource=null,dirty=false,busy=false,warning='';
  const unsaved=new Map();
+ let selectedIds=new Set(),selectionSignature='',preview=null,undoBody=null;
  const split=value=>value.split(/[,;\n]/).map(text=>text.trim()).filter(Boolean);
- const snapshot=()=>({to:split($('mail-to').value),cc:split($('mail-cc').value),bcc:split($('mail-bcc').value),subject:$('mail-subject').value.trim(),body:$('mail-body').value});
+ const snapshot=()=>({to:split($('mail-to').value),cc:split($('mail-cc').value),bcc:split($('mail-bcc').value),subject:$('mail-subject').value.trim(),body:$('mail-body').value,selectedItemIds:[...selectedIds]});
  const text=draft=>[(draft.to.length?'To: '+draft.to.join(', '):'To: (not specified)'),...(draft.cc.length?['Cc: '+draft.cc.join(', ')]:[]),...(draft.bcc.length?['Bcc: '+draft.bcc.join(', ')]:[]),'Subject: '+draft.subject,'',draft.body].join('\n');
  function valid(draft){if(!draft.subject||/[\r\n\0]/.test(draft.subject)||!draft.body.trim())return false;return [...draft.to,...draft.cc,...draft.bcc].every(address=>(/^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/).test(address));}
  function render(){
   const info=current?.mailDraft||{},hasText=valid(snapshot());
+  renderSelection();
   $('mail-empty').hidden=!!info.draft;
   $('mail-state').textContent=uiText(busy?'正在儲存…':dirty?'尚未儲存':info.draft?'已儲存於本機':'尚未產生');
   $('mail-stale').hidden=!(info.stale||(dirty&&baseSource!==info.sourceRevision));
@@ -26,10 +28,38 @@
   if(id!==loadedId||(!dirty&&!busy&&info.revision!==loadedRevision)){
    loadedId=id;loadedRevision=info.revision??null;baseSource=info.sourceRevision??null;dirty=false;warning='';
    const saved=unsaved.get(id);if(saved){loadedRevision=saved.revision;baseSource=saved.source;dirty=true;}
-   const draft=saved?.values||info.draft||{};for(const name of fields)$('mail-'+name).value=Array.isArray(draft[name])?draft[name].join(', '):draft[name]||'';
+   const draft=saved?.values||info.draft||{};selectedIds=new Set(draft.selectedItemIds||[]);selectionSignature='';preview=null;undoBody=null;for(const name of fields)$('mail-'+name).value=Array.isArray(draft[name])?draft[name].join(', '):draft[name]||'';
   }
   current=data;render();
  }
+ function renderSelection(){
+  const items=current?.noteItems?.items||[],available=!!current?.mailDraft?.available;
+  const signature=JSON.stringify([current?.id,current?.noteItems?.revision,items.map(item=>[item.id,item.details]),[...selectedIds],available,busy,window.DuckI18n.language]);
+  if(signature!==selectionSignature){selectionSignature=signature;const list=$('mail-items');list.replaceChildren();
+   if(!items.length){const p=document.createElement('p');p.textContent=uiText('尚無可選擇的決議或待辦');list.append(p);}
+   for(const item of items){const label=document.createElement('label');label.className='mail-item-choice';const input=document.createElement('input');input.type='checkbox';input.checked=selectedIds.has(item.id);input.disabled=!available||busy;input.dataset.itemId=item.id;
+    const text=document.createElement('span');text.textContent=(item.kind==='decision'?uiText('決議'):uiText('待辦'))+' · '+item.details;label.append(input,text);list.append(label);
+    input.addEventListener('change',()=>{selectedIds=new Set([...selectedIds].filter(id=>items.some(item=>item.id===id)));if(input.checked)selectedIds.add(item.id);else selectedIds.delete(item.id);dirty=true;preview=null;warning='';render();});
+   }
+  }
+  const invalid=[...selectedIds].some(id=>!items.some(item=>item.id===id));
+  const previewValid=preview&&preview.id===current?.id&&preview.source===current?.mailDraft?.sourceRevision&&preview.ids===JSON.stringify([...selectedIds]);
+  $('mail-preview-button').disabled=busy||!available||!selectedIds.size||invalid;
+  $('mail-apply').disabled=busy||!available||!previewValid;
+  $('mail-undo').disabled=busy||undoBody===null||!available;
+  $('mail-selection-preview').textContent=previewValid?preview.body:'';
+  $('mail-selection-state').textContent=invalid?uiText('會議紀錄已變更，先前勾選項目已失效，請重新勾選。'):preview&&!previewValid?uiText('預覽已失效，請重新預覽。'):'';
+ }
+ $('mail-preview-button').addEventListener('click',()=>{
+  if($('mail-preview-button').disabled)return;const items=current.noteItems.items.filter(item=>selectedIds.has(item.id));
+  const sections=[];for(const [kind,title] of [['decision','決議'],['action','待辦']]){const group=items.filter(item=>item.kind===kind);if(group.length)sections.push(uiText(title)+'\n'+group.map(item=>'- '+item.details).join('\n'));}
+  preview={id:current.id,source:current.mailDraft.sourceRevision,ids:JSON.stringify([...selectedIds]),body:sections.join('\n\n')};render();
+ });
+ $('mail-apply').addEventListener('click',()=>{
+  if($('mail-apply').disabled)return;undoBody=$('mail-body').value;$('mail-body').value=preview.body;
+  if(!$('mail-subject').value.trim())$('mail-subject').value=(current.workspace?.title||current.id)+' · '+uiText('會議紀錄');baseSource=current.mailDraft.sourceRevision;dirty=true;warning='';render();
+ });
+ $('mail-undo').addEventListener('click',()=>{if($('mail-undo').disabled)return;const previous=$('mail-body').value;$('mail-body').value=undoBody;undoBody=previous;dirty=true;render();});
  for(const name of fields)$('mail-'+name).addEventListener('input',()=>{dirty=true;warning='';render();});
  $('mail-form').addEventListener('submit',async event=>{
   event.preventDefault();if(busy||!current?.id||!valid(snapshot()))return;
