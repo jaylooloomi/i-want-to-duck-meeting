@@ -461,3 +461,5 @@ Starred transcript highlights also appear on the recording waveform at their sav
 The notes card scrolls vertically within a bounded height, keeping its tabs visible. Expanded mail selections and bottom actions remain reachable; the email body can scroll independently. Transcript search highlights literal matches in displayed text and speaker names (case-insensitive for English), and clearing the query removes the marks.
 
 Long transcripts scroll independently within their card while search/language controls and the recording player remain outside the scrolling area. Meeting-notes tabs retain a visible scrollbar rail in light/dark themes.
+
+[Technical stack and architecture (Traditional Chinese)](docs/TECH_STACK.md)
