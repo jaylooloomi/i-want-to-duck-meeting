@@ -1,3 +1,16 @@
+# Latest release: 0.3.2 (2026-10-31)
+
+Recording timeline stars, meeting-notes/mail scrollbars and literal search highlighting are included. README and test matrix updated.
+
+- First coverage pass: unit 536/536 passed plus QA 164/180 passed, 16 existing BUG-004 skips, 0 failures.
+- Second combined run: 716 tests, 700 passed, 16 existing skips, 0 failures (394790.482 ms).
+- Isolated Windows Setup 0.3.1 → 0.3.2, Codex/Claude integration, fresh upgraded HTTP assets, downgrade refusal, uninstall and data retention passed.
+- Unsigned installer; synthetic audio/browser validation does not establish live meeting ASR quality. Existing BUG-ZIP-001 remains: preserve original WAVs directly.
+
+[Full 0.3.2 report](docs/qa/reports/release-0.3.2.md) includes CLI commands and limits. The sections below retain historical results.
+
+---
+
 # Google 原生選帳號與自動接續：發佈驗收報告
 
 2026-10-26：原生選帳號、身分核對與主持人放行後自動接續已完成。最新完整離線回歸 **699 例：676 通過、23 略過、0 失敗**，所有子程序退出碼 0。本次重新執行一輪；前次七項缺陷修復的兩輪報告屬歷史，不能當成此次版本的兩輪證據。

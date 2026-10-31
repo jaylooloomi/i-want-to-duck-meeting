@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.3.1-informational" alt="Version 0.3.1">
+  <img src="https://img.shields.io/badge/version-0.3.2-informational" alt="Version 0.3.2">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
@@ -22,7 +22,7 @@
 
 ## Windows installer (recommended)
 
-Download **DuckMeeting-0.3.1-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+Download **DuckMeeting-0.3.2-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
 
 - Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
 - Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
@@ -455,3 +455,7 @@ The notes header and tabs keep their positions when switching to Email. Shared C
 Use **Link source / View original** on a decision or action to associate exact transcript text, timestamp and speaker. Locate the passage or replay its recording when audio and time exist; unknown/changed sources stay unlinked. In **Email → Choose mail content**, select decisions/actions, preview, then explicitly apply; undo restores the previous body. Checkbox selection alone does not overwrite manual text or send mail.
 
 **Known limitation:** full-session ZIP exports currently have a confirmed audio CRC issue for larger files. Keep original WAV files directly; a successful ZIP download does not verify the recording. See BUG-ZIP-001 in BUG_REPORT.md.
+
+Starred transcript highlights also appear on the recording waveform at their saved timestamps. Click a star to seek to that moment; removing the highlight removes the pin. Pins require an available recording and a valid timestamp within its duration.
+
+The notes card scrolls vertically within a bounded height, keeping its tabs visible. Expanded mail selections and bottom actions remain reachable; the email body can scroll independently. Transcript search highlights literal matches in displayed text and speaker names (case-insensitive for English), and clearing the query removes the marks.

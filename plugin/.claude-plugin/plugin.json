@@ -1,6 +1,6 @@
 {
   "name": "openmeeting",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Google Meet / Teams 會議記錄：錄音、逐字稿、翻譯與 Agent 會後整理。Local meeting workspace with captions, recording, translation and Agent-authored notes.",
   "author": {
     "name": "Arthur Wang"

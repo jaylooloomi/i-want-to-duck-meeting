@@ -393,3 +393,20 @@ main{overflow-y:auto;overflow-x:hidden}
 /* Footer language picker shares the exact left/right edges of the action grid. */
 .ui-language-control{min-width:0;width:100%;justify-items:stretch;text-align:left}
 .ui-language-control select{display:block;box-sizing:border-box;margin:0;width:100%;max-width:none;min-width:0;text-align:left;text-align-last:left;justify-self:stretch}
+
+/* Highlight pins share the waveform time scale; the seek slider stays usable underneath. */
+#audio-highlight-markers{position:absolute;inset:0;pointer-events:none;z-index:2}
+.audio-highlight-marker{position:absolute!important;top:0;transform:translateX(-50%);width:20px!important;min-width:20px;height:32px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;color:#d58a00!important;font-size:17px!important;line-height:1!important;display:flex;align-items:flex-start;justify-content:center;pointer-events:auto;cursor:pointer;text-shadow:0 1px 2px #fff}
+.audio-highlight-marker::after{content:'';position:absolute;top:17px;bottom:0;left:50%;border-left:1px dashed #d58a00}
+.audio-highlight-marker:focus-visible{outline:2px solid #d58a00;outline-offset:1px}
+:root[data-theme=dark] .audio-highlight-marker{color:#ffc84f!important;text-shadow:0 1px 2px #102030}
+
+/* Bound the notes card and scroll its active tab, keeping the tab bar visible. */
+#summary-panel{height:calc(100dvh - 190px);max-height:calc(100dvh - 190px);min-height:320px;overflow:hidden}
+#summary-panel>.summary-header{flex-shrink:0}
+#summary-panel>.pane-body{flex:1 1 0;min-height:0;max-height:none;overflow-y:scroll;overflow-x:hidden;scrollbar-gutter:stable;overscroll-behavior:contain}
+#mail-form textarea{height:220px;min-height:140px;max-height:220px;overflow-y:auto;resize:vertical}
+@media(max-width:1050px){#summary-panel{height:75dvh;max-height:75dvh;min-height:320px}}
+
+.search-match{background:#ffe08a;color:#3d2b00;border-radius:2px;padding:0 1px;box-decoration-break:clone}
+:root[data-theme=dark] .search-match{background:#f4c65b;color:#152030}

@@ -504,6 +504,17 @@ function updateSummaryPanel(data) {
   summaryBody.replaceChildren(empty);
   summaryBody.hidden = summaryCollapsed;
 }
+function appendSearchText(element,value){
+  const text=String(value??''),query=$('transcript-search').value.trim();
+  if(!query){element.textContent=text;return;}
+  const escaped=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const pattern=new RegExp(escaped,'giu');let end=0;
+  for(const match of text.matchAll(pattern)){
+    element.append(document.createTextNode(text.slice(end,match.index)));
+    const mark=document.createElement('mark');mark.className='search-match';mark.textContent=match[0];element.append(mark);end=match.index+match[0].length;
+  }
+  element.append(document.createTextNode(text.slice(end)));
+}
 function row(record, pending) {
   const renderedMeetingId=currentRecord?.id;
   const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');card.dataset.sourceRecord=JSON.stringify([record.text,record.t0??null,record.speaker??null]);
@@ -513,14 +524,14 @@ function row(record, pending) {
   const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.style.setProperty('--hue', hue); avatar.textContent = name.match(/^講者 ([A-Z]+)$/)?.[1] || (/^[A-Za-z]/.test(name)?name.trim().split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase():[...name].slice(0,1).join(''));
   const body = document.createElement('div'); body.className = 'body';
   const meta = document.createElement('div'); meta.className = 'meta';
-  const speaker = document.createElement('strong'); speaker.textContent = name;
+  const speaker = document.createElement('strong'); appendSearchText(speaker,name);
   const time = document.createElement('button'); time.type='button';time.className='transcript-seek';time.textContent=recordingClock(record.t0);time.title=clock(record.t0);time.setAttribute('aria-label',uiText('跳至錄音 ')+recordingClock(record.t0));time.disabled=!currentRecord?.workspace?.audio?.length || !['done','failed','archived'].includes(currentRecord?.status?.state);time.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('seek-recording',{detail:{time:record.t0}})));
   meta.append(speaker,time);
   const mark=document.createElement('button');mark.type='button';mark.className='utterance-highlight';mark.textContent=record.highlighted?'★':'☆';mark.title=record.highlighted?uiText('取消整段重點'):uiText('標記整段重點');mark.setAttribute('aria-label',(record.highlighted?uiText('取消整段重點：'):uiText('標記整段重點：'))+record.text.slice(0,40));mark.setAttribute('aria-pressed',String(!!record.highlighted));mark.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('highlight-utterance',{detail:{meetingId:renderedMeetingId,key:record.highlightKey,action:record.highlighted?'unmark':'mark'}})));meta.append(mark);
   const more=document.createElement('button');more.type='button';more.className='utterance-more';more.textContent='⋯';more.setAttribute('aria-label',uiText('段落操作：')+record.text.slice(0,40));more.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('utterance-menu',{detail:{record,meetingId:renderedMeetingId}})));meta.append(more);
   if(record.highlightCount){const label=document.createElement('small');label.className='important-label';label.textContent='★ '+record.highlightCount+uiText(' 個重點');meta.append(label);}
   if (pending) { const draft = document.createElement('span'); draft.className = 'draft'; draft.textContent = record.source === 'local-audio' || record.source?.startsWith('teams-') ? uiText('語音辨識中') : uiText('字幕更新中'); meta.append(draft); }
-  const text = document.createElement('p'); text.className = 'text'; text.textContent = record.text;
+  const text = document.createElement('p'); text.className = 'text'; appendSearchText(text,record.text);
   body.append(meta, text);
   const target = secondaryLang ? secondaryLang.value : 'none';
   const exact=target!=='none'?translations.get(target+':'+record.text):'';
@@ -529,7 +540,7 @@ function row(record, pending) {
   if (translated && translated !== record.text) {
     const sub=document.createElement('p');sub.className='subtext';
     if(pending||!exact){const label=document.createElement('small');label.className='draft-translation-label';label.textContent=uiText('暫譯 · 持續更新');sub.append(label);}
-    const copy=document.createElement('span');copy.textContent=translated;sub.append(copy);
+    const copy=document.createElement('span');appendSearchText(copy,translated);sub.append(copy);
     body.append(sub);
   }
   card.append(avatar, body); return card;

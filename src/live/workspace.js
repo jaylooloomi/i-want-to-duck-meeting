@@ -77,7 +77,20 @@
     const svg=$('audio-waveform');svg.replaceChildren();
     values.forEach((v,i)=>{const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');const h=Math.max(1,Math.min(44,v*44));rect.setAttribute('x',String(i*8));rect.setAttribute('y',String((48-h)/2));rect.setAttribute('width','3');rect.setAttribute('height',String(h));rect.setAttribute('rx','1.5');svg.append(rect);});
   }
-  function updateTime(){const total=Number.isFinite(audio.duration)?audio.duration:duration;const now=Number.isFinite(audio.currentTime)?audio.currentTime:0;$('audio-time').textContent=`${time(now)} / ${time(total)}`;$('audio-seek').max=String(total||1);$('audio-seek').value=String(now);Array.from($('audio-waveform').children).forEach((bar,i)=>bar.classList.toggle('played',total>0&&i/64<=now/total));}
+  function renderAudioHighlights(){
+    const layer=$('audio-highlight-markers'),total=Number.isFinite(audio.duration)?audio.duration:duration;
+    const markers=(current?.highlights||[]).filter(m=>Number.isFinite(m.offsetSeconds)&&m.offsetSeconds>=0&&m.offsetSeconds<=total);
+    const signature=JSON.stringify([current?.id,audioKey,total,markers,document.documentElement.lang]);
+    if(layer.dataset.signature===signature)return;layer.dataset.signature=signature;layer.replaceChildren();
+    if(!audioKey||!(total>0))return;
+    for(const marker of markers){
+      const button=document.createElement('button');button.type='button';button.className='audio-highlight-marker';button.textContent='★';
+      button.style.left=(marker.offsetSeconds/total*100)+'%';
+      const label=uiText('跳至錄音 ')+time(marker.offsetSeconds)+' · '+(marker.text||uiText('此刻重點'));
+      button.title=label;button.setAttribute('aria-label',label);button.addEventListener('click',()=>seek(marker.offsetSeconds));layer.append(button);
+    }
+  }
+  function updateTime(){renderAudioHighlights();const total=Number.isFinite(audio.duration)?audio.duration:duration;const now=Number.isFinite(audio.currentTime)?audio.currentTime:0;$('audio-time').textContent=`${time(now)} / ${time(total)}`;$('audio-seek').max=String(total||1);$('audio-seek').value=String(now);Array.from($('audio-waveform').children).forEach((bar,i)=>bar.classList.toggle('played',total>0&&i/64<=now/total));}
   function loadTrack(name){
     const info=current?.workspace?.audio?.find(item=>item.name===name);
     if(!info)return;
@@ -161,6 +174,7 @@
   function seek(seconds,preferMixed=false){if(preferMixed && current?.workspace?.audio?.some(track=>track.name==='audio.wav')){$('audio-track').value='audio.wav';loadTrack('audio.wav');}if(!audioKey){message(uiText('這場尚無可播放錄音，無法跳轉。'));return;}const target=Math.max(0,Math.min(duration,seconds));if(audio.readyState>=1)audio.currentTime=target;else pendingSeek=target;updateTime();}
   document.addEventListener('seek-recording',({detail})=>{const base=Date.parse(current?.status?.joinedAt||current?.status?.startedAt);if(Number.isFinite(base))seek((Date.parse(detail.time)-base)/1000,true);});
   function renderHighlights(data){
+    renderAudioHighlights();
     const markers=data?.highlights||[],live=data?.status?.state==='in_call';
     $('highlight-tools').hidden=!live&&!markers.length;
     $('mark-moment').hidden=!live;$('mark-moment').disabled=marking;

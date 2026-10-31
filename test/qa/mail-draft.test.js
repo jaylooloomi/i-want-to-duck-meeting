@@ -18,7 +18,7 @@ assert.equal(await page.getByRole('button',{name:'建立信件草稿',exact:true
  await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill('長篇會議郵件內容\n'.repeat(80));
  await page.waitForFunction(()=>{const body=document.getElementById('mail-body');return body.clientHeight<body.scrollHeight&&body.clientHeight<=220;});
  const action=panel.getByRole('button',{name:'下載草稿',exact:true});await action.scrollIntoViewIfNeeded();const bounds=await action.boundingBox();assert.ok(bounds.y>=0&&bounds.y+bounds.height<=900);
- const scroll=await panel.evaluate(panel=>({height:panel.clientHeight,content:panel.scrollHeight,overflow:getComputedStyle(panel).overflowY}));assert.equal(scroll.overflow,'visible');assert.ok(scroll.content<=scroll.height+2,JSON.stringify(scroll));
+ const scroll=await panel.evaluate(panel=>({height:panel.clientHeight,content:panel.scrollHeight,overflow:getComputedStyle(panel).overflowY}));assert.equal(scroll.overflow,'scroll');assert.ok(scroll.content>scroll.height,JSON.stringify(scroll));
  await page.screenshot({path:dir+'/mail.png',fullPage:true});
 },{viewport:{width,height:900}}));
 
@@ -52,3 +52,15 @@ test('MAIL tab retains decision and action counts through switching and polling'
  for(const tab of ['郵件','決議','待辦','摘要','郵件']){await page.getByRole('button',{name:tab,exact:true}).click();assert.equal(await decisions.textContent(),'決議 (2)');assert.equal(await actions.textContent(),'待辦 (2)');}
  const response=await fetch(app.url+'/api/transcript?id=mail');const data=await response.json();await page.evaluate(data=>document.dispatchEvent(new CustomEvent('workspace-rendered',{detail:data})),data);assert.equal(await decisions.textContent(),'決議 (2)');assert.equal(await actions.textContent(),'待辦 (2)');
 }));
+
+for(const width of [1280,390])test(`MAIL expanded item selector keeps lower fields reachable ${width}`,{timeout:20000},t=>browserCase(t,async({page,app})=>{
+ const folder=seed(app);fs.writeFileSync(path.join(folder,'summary.md'),'# 測試\n\n## 重要決議\n\n'+Array.from({length:20},(_,i)=>`${i+1}. 需要核對的決議 ${i+1}。`).join('\n'));
+ await page.goto(app.url+'/?id=mail&secondary=none');await page.getByRole('button',{name:'郵件',exact:true}).click();
+ await page.getByText('選擇郵件內容',{exact:true}).click();
+ const panel=page.getByRole('region',{name:'郵件草稿',exact:true});
+ assert.ok(await panel.evaluate(el=>el.scrollHeight>el.clientHeight));
+ const save=panel.getByRole('button',{name:'儲存草稿',exact:true});await save.scrollIntoViewIfNeeded();
+ const bounds=await save.boundingBox(),viewport=page.viewportSize();assert.ok(bounds.y>=0&&bounds.y+bounds.height<=viewport.height);
+ assert.ok(await panel.evaluate(el=>el.scrollTop>0));
+ await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill('底部內文仍可編輯');
+},{viewport:{width,height:900}}));

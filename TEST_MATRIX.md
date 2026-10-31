@@ -223,3 +223,9 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] NOTE-SOURCE: exact original text/time/speaker links, stale/conflicting source prevention, unknown time, transcript locate and 5-second action replay.
 - [x] MAIL-COMPOSITION: selection persistence, preview/apply/undo, manual body retention and copy/download.
 - [!] ZIP-CRC: existing >256KiB audio export corruption independently reproduced; BUG-ZIP-001, outside this release fix scope.
+
+## 0.3.2 UI follow-up
+
+- [x] HL-TIMELINE (FE-E2E): 8-second highlight on a 20-second synthetic WAV renders at 40%; clicking seeks to 8s; reload preserves and unmark removes. Desktop 1920 and mobile 390.
+- [x] MAIL-SCROLL (FE-E2E): bounded scrolling card, 20 expanded decision choices, reach bottom actions and edit body on desktop/mobile; existing light/dark mail flow retained.
+- [x] SEARCH-MARK (FE-E2E): Chinese repeated matches, speaker matches, case-insensitive English, literal regex/HTML characters and clear query in light/dark; console/pageerror guard enabled.

@@ -37,3 +37,19 @@ for(const width of [1920,390])test(`HL-UI mark live moment, whole utterance, fil
  const marker=fs.readFileSync(path.join(dir,'highlights.jsonl'),'utf8').trim().split('\n').map(line=>JSON.parse(line)).find(event=>event.marker?.kind==='moment').marker;assert.ok(Math.abs(await audio.evaluate(el=>el.currentTime)-marker.offsetSeconds)<0.2);
  assert.equal(fs.readFileSync(path.join(dir,'transcript.jsonl'),'utf8').includes('這句是重要的話語1357'),true);
 } ,{viewport:{width,height:width===390?844:1080}}));
+
+for(const width of [1920,390])test(`HL-TIMELINE star position, seek, removal and reload ${width}`,{timeout:20000},t=>browserCase(t,async({page,app})=>{
+ const start='2026-10-31T00:00:00.000Z',at='2026-10-31T00:00:08.000Z';
+ const dir=app.seed('timeline',{state:'done',startedAt:start,joinedAt:start},[record('時間軸重點','甲',at)]);
+ const pcm=Buffer.alloc(32000*20);fs.writeFileSync(path.join(dir,'audio.wav'),Buffer.concat([createWavHeader({dataBytes:pcm.length}),pcm]));
+ await page.goto(app.url+'/?id=timeline&primary=all&secondary=none');
+ await page.getByRole('button',{name:'標記整段重點：時間軸重點',exact:true}).click();
+ const pin=page.getByRole('button',{name:'跳至錄音 00:08 · 時間軸重點',exact:true});await pin.waitFor();
+ assert.equal(await pin.evaluate(el=>el.style.left),'40%');
+ await pin.click();const audio=page.getByLabel('錄音播放引擎',{exact:true});
+ await page.waitForFunction(()=>Math.abs(document.getElementById('meeting-audio').currentTime-8)<0.15);
+ assert.ok(Math.abs(await audio.evaluate(el=>el.currentTime)-8)<0.15);
+ await page.reload();await pin.waitFor();
+ await page.getByRole('button',{name:'取消整段重點：時間軸重點',exact:true}).click();await pin.waitFor({state:'detached'});
+ assert.equal(await pin.count(),0);
+},{viewport:{width,height:width===390?844:1080}}));
