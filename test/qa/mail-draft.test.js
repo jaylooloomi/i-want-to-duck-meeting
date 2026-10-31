@@ -59,7 +59,7 @@ for(const width of [1280,390])test(`MAIL expanded item selector keeps lower fiel
  await page.getByText('選擇郵件內容',{exact:true}).click();
  const panel=page.getByRole('region',{name:'郵件草稿',exact:true});
  assert.ok(await panel.evaluate(el=>el.scrollHeight>el.clientHeight));
- const save=panel.getByRole('button',{name:'儲存草稿',exact:true});await save.scrollIntoViewIfNeeded();
+ await panel.getByRole('textbox',{name:'主旨',exact:true}).fill('捲動測試');await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill('底部內文仍可編輯');const save=panel.getByRole('button',{name:'儲存草稿',exact:true});await save.scrollIntoViewIfNeeded();await save.click({trial:true});
  const bounds=await save.boundingBox(),viewport=page.viewportSize();assert.ok(bounds.y>=0&&bounds.y+bounds.height<=viewport.height);
  assert.ok(await panel.evaluate(el=>el.scrollTop>0));
  await panel.getByRole('textbox',{name:'郵件內文',exact:true}).fill('底部內文仍可編輯');

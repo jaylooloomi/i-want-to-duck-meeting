@@ -229,3 +229,7 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] HL-TIMELINE (FE-E2E): 8-second highlight on a 20-second synthetic WAV renders at 40%; clicking seeks to 8s; reload preserves and unmark removes. Desktop 1920 and mobile 390.
 - [x] MAIL-SCROLL (FE-E2E): bounded scrolling card, 20 expanded decision choices, reach bottom actions and edit body on desktop/mobile; existing light/dark mail flow retained.
 - [x] SEARCH-MARK (FE-E2E): Chinese repeated matches, speaker matches, case-insensitive English, literal regex/HTML characters and clear query in light/dark; console/pageerror guard enabled.
+
+- [x] TRANSCRIPT-SCROLL (FE-E2E): 60 paragraphs, actual mouse-wheel scrolling and final paragraph reachable within the transcript viewport; desktop 1920/mobile 390, light/dark. Header and player stay outside the scroll area.
+
+- [x] NOTES-SCROLL-RAIL (FE-E2E): 60 summary paragraphs; visible scrollbar rail in light/dark; mouse-wheel moves content; last paragraph reachable with tab header visible.

@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.3.2-informational" alt="版本 0.3.2">
+  <img src="https://img.shields.io/badge/version-0.3.3-informational" alt="版本 0.3.3">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -22,7 +22,7 @@
 
 ## Windows 安裝包（建議）
 
-從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.2-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
+從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.3-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
 
 - 支援 Windows 10/11 x64；按使用者安裝至 `%LOCALAPPDATA%\Programs\DuckMeeting`，不需管理員權限。
 - 會議、錄音、登入設定及模型獨立存於 `%LOCALAPPDATA%\DuckMeeting\data`，升級預設保留。原始碼版的舊資料不會自動搬移。安裝包使用本機 8792 埠，原始碼版維持 8791。
@@ -469,3 +469,5 @@ Agent 寫入時，以 UTF-8 JSON 提供 `to/cc/bcc` 陣列、`subject/body`，�
 逐字稿星標會同步顯示於錄音波形的對應時間，點擊星標即可跳至該處；取消標記後也會同步移除。需有可播放錄音，且標記時間位於錄音長度內。
 
 會議紀錄面板採固定高度與垂直捲軸，頂部分頁保持可見；郵件勾選區展開後仍能捲到下方欄位與按鈕，內文也可獨立捲動。逐字稿搜尋會高亮顯示文字與發言者中的關鍵字，英文不分大小寫，清空搜尋後移除高亮。
+
+長逐字稿可在卡片內獨立捲動，搜尋／語言設定與錄音播放器保持在捲動區外。會議紀錄內容區在淺色、深色模式均提供清楚的垂直捲軸。

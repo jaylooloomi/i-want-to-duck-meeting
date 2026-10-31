@@ -410,3 +410,18 @@ main{overflow-y:auto;overflow-x:hidden}
 
 .search-match{background:#ffe08a;color:#3d2b00;border-radius:2px;padding:0 1px;box-decoration-break:clone}
 :root[data-theme=dark] .search-match{background:#f4c65b;color:#152030}
+
+/* Transcript has its own bounded scroll surface, with controls and player outside it. */
+.pane-transcript{height:calc(100dvh - 190px);max-height:calc(100dvh - 190px);min-height:360px;overflow:hidden}
+.pane-transcript>.pane-header,.pane-transcript>.audio-player{flex-shrink:0}
+.pane-transcript>#transcript{flex:1 1 0;min-height:0;max-height:none;overflow-y:scroll;overflow-x:hidden;scrollbar-gutter:stable;overscroll-behavior:contain}
+@media(max-width:1050px){.pane-transcript{height:75dvh;max-height:75dvh;min-height:360px}}
+
+/* Keep a visible scrollbar rail in the notes tabs in both themes. */
+#summary-panel>.pane-body{scrollbar-width:auto;scrollbar-color:#78958e #edf3f1}
+#summary-panel>.pane-body::-webkit-scrollbar{width:12px}
+#summary-panel>.pane-body::-webkit-scrollbar-track{background:#edf3f1;border-radius:6px}
+#summary-panel>.pane-body::-webkit-scrollbar-thumb{background:#78958e;border:2px solid #edf3f1;border-radius:6px}
+:root[data-theme=dark] #summary-panel>.pane-body{scrollbar-color:#68869e #142638}
+:root[data-theme=dark] #summary-panel>.pane-body::-webkit-scrollbar-track{background:#142638}
+:root[data-theme=dark] #summary-panel>.pane-body::-webkit-scrollbar-thumb{background:#68869e;border-color:#142638}

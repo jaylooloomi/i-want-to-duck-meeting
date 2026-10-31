@@ -1,3 +1,11 @@
+# Latest release: 0.3.3 (2026-10-31)
+
+Long transcript scrolling and visible meeting-notes scrollbars are included. Final complete unit/QA regression: **722 tests, 706 passed, 0 failed, 16 existing skips**, 303466.483 ms. Isolated Windows 0.3.2 → 0.3.3 install/upgrade/uninstall, both Agent tasks and data preservation passed. The initial mobile test failure and its setup correction are retained in the [0.3.3 QA report](docs/qa/reports/release-0.3.3.md), alongside commands and limits. Existing BUG-ZIP-001 remains; preserve original WAV files separately. No fresh live meeting/ASR acceptance is claimed.
+
+The sections below retain historical results.
+
+---
+
 # Latest release: 0.3.2 (2026-10-31)
 
 Recording timeline stars, meeting-notes/mail scrollbars and literal search highlighting are included. README and test matrix updated.
