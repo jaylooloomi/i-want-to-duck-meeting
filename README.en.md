@@ -1,10 +1,4 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/duck-meeting-logo-dark.svg">
-    <img src="docs/images/duck-meeting-logo-light.svg" alt="Duck Meeting — duck mascot and wordmark" width="440">
-  </picture>
-</p>
-<p align="center"><code>i-want-to-duck-meeting</code></p>
+<h1 align="center">i-want-to-duck-meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting duck logo" width="44" height="44" align="absmiddle"></h1>
 
 ## Windows installer (recommended)
 
