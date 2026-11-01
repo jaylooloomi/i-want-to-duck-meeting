@@ -489,3 +489,23 @@ main{overflow-y:auto;overflow-x:hidden}
 .summary-table.action-table th,.summary-table.action-table td,.summary-table.action-table td:first-child,.summary-table.decision-table th,.summary-table.decision-table td,.summary-table.decision-table td:first-child{vertical-align:middle}
 .summary-table .task-label{align-items:center}
 .summary-table .task-label input{margin-block:0}
+
+/* Restore decision numbering without changing table/source geometry. */
+.decision-item{display:flex;align-items:center;gap:6px;min-width:0}
+.decision-number{display:inline-flex;flex:0 0 19px;width:19px;height:19px;align-items:center;justify-content:center;border-radius:50%;background:#2786ec;color:#fff;font-size:11px;font-weight:600;line-height:1}
+.decision-content{min-width:0;overflow-wrap:anywhere}
+
+/* Header artwork shares one geometry across light and dark themes. */
+.meeting-heading.meeting-banner{min-height:110px;padding:18px 20px;align-items:flex-start;border:1px solid #e2ebe9}
+.meeting-heading.meeting-banner::before{background-position:right center;opacity:.85;mask-image:linear-gradient(to right,transparent 20%,#000 55%)}
+.meeting-heading.meeting-banner .session-panel{min-width:0}
+.meeting-heading.meeting-banner .heading-actions{position:relative;z-index:1;flex-shrink:0}
+:root[data-theme=dark] .meeting-heading.meeting-banner{border-color:#243950}
+@media(max-width:1050px){.meeting-heading.meeting-banner::before{opacity:.22;background-position:right center}}
+@media(max-width:720px){.meeting-heading.meeting-banner{padding:14px;gap:12px}.meeting-heading.meeting-banner .heading{max-width:100%}.meeting-heading.meeting-banner .session-panel{flex-basis:100%}}
+
+/* Reserve the action zone for buttons; the decorative gradient still fills it. */
+.meeting-heading.meeting-banner::before{right:190px;background-position:right center;mask-image:linear-gradient(to right,transparent 20%,#000 55%,#000 85%,transparent 100%)}
+.meeting-heading.meeting-banner::after{content:'';position:absolute;inset:0;z-index:-2;border-radius:inherit;pointer-events:none;background:linear-gradient(to right,transparent 50%,#d5f1e9 100%)}
+:root[data-theme=dark] .meeting-heading.meeting-banner::after{background:linear-gradient(to right,transparent 50%,#073e50 100%)}
+@media(max-width:1050px){.meeting-heading.meeting-banner::before{right:0;opacity:.12}}

@@ -233,7 +233,7 @@ function filterRecords(records) {
   if (mode === 'en') return records.filter((r) => !hasCjk(r.text));
   return records;
 }
-function searchRecords(records){const text=$('transcript-search').value.trim().toLocaleLowerCase();return records.filter(r=>(!$('highlights-only').checked||r.highlightCount>0)&&[r.text,r.speaker].join(' ').toLocaleLowerCase().includes(text));}
+function searchRecords(records){const text=$('transcript-search').value.trim().toLocaleLowerCase();return records.filter(r=>(!$('highlights-only').checked||r.highlightCount>0)&&[r.text,r.speaker,secondaryLang?.value!=='none'?(translations.get(secondaryLang.value+':'+r.text)||draftTranslations.get(draftKey(r,secondaryLang.value))?.text||''):''].join(' ').toLocaleLowerCase().includes(text));}
 function draftKey(record,target,meetingId=currentRecord?.id){return [meetingId,target,record.speaker||'',record.t0||''].join('|');}
 async function requestTranslations(records,pending=[],meetingId=currentRecord?.id) {
   const target=secondaryLang?.value||'none';
@@ -292,12 +292,15 @@ function renderMarkdownDom(md) {
   const lines = String(md || '').split(/\r?\n/);
   let currentList=null,currentTable=null,tbody=null,tableHeaders=[],actionSection=false,actionLevel=0;const actionOccurrences=new Map();
   let decisionTable=null,decisionBody=null;
+  function numberDecisionCell(cell,number){
+   const wrap=document.createElement('div');wrap.className='decision-item';const badge=document.createElement('span');badge.className='decision-number';badge.setAttribute('aria-hidden','true');badge.textContent=String(number);const content=document.createElement('div');content.className='decision-content';content.append(...cell.childNodes);wrap.append(badge,content);cell.append(wrap);
+  }
   function decisionRow(lineIndex,content){
    if(!decisionTable){decisionTable=document.createElement('table');decisionTable.className='summary-table decision-table';
     const columns=document.createElement('colgroup');for(const width of ['76%','24%']){const col=document.createElement('col');col.style.width=width;columns.append(col);}
     const head=document.createElement('thead'),row=document.createElement('tr');for(const title of ['事項','來源']){const th=document.createElement('th');th.textContent=uiText(title);if(title==='來源')th.className='source-column';row.append(th);}head.append(row);decisionBody=document.createElement('tbody');decisionTable.append(columns,head,decisionBody);frag.append(decisionTable);
    }
-   const tr=document.createElement('tr'),text=document.createElement('td'),source=document.createElement('td');text.append(noteSourceText(lineIndex,content));source.className='source-column';source.append(noteSourceControl(lineIndex));tr.append(text,source);decisionBody.append(tr);
+   const tr=document.createElement('tr'),text=document.createElement('td'),source=document.createElement('td');text.append(noteSourceText(lineIndex,content));numberDecisionCell(text,decisionBody.children.length+1);source.className='source-column';source.append(noteSourceControl(lineIndex));tr.append(text,source);decisionBody.append(tr);
   }
 
   for (let i = 0; i < lines.length; i++) {
@@ -336,6 +339,7 @@ function renderMarkdownDom(md) {
             const due=document.createElement('span');due.className='due-chip';appendInline(due,c);td.append(due);
           }else {const item=currentRecord?.noteItems?.items.find(item=>item.lineIndex===i);if(['decision','action'].includes(item?.kind)&&item.source?.linked&&c===item.text)td.append(noteSourceText(i,c));else appendInline(td,c);}
           if(task&&index===task.column){td.setAttribute('aria-label',c);const label=document.createElement('div');label.className='task-label';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=task.completed;checkbox.setAttribute('aria-label',uiText('完成待辦：')+task.text);checkbox.addEventListener('change',()=>document.dispatchEvent(new CustomEvent('action-item-change',{detail:{id:currentRecord.id,key:task.key,revision:currentRecord.workspace.actions.revision,completed:checkbox.checked,control:checkbox}})));label.append(checkbox,...td.childNodes);td.append(label);}
+          if(currentTable.classList.contains('decision-table')&&tr.children.length===0)numberDecisionCell(td,tbody.children.length+1);
           tr.append(td);
         }
         const evidence=noteSourceControl(i);if(evidence.nodeType!==3){const td=document.createElement('td');td.className='source-column';td.append(evidence);tr.append(td);}tbody.append(tr);
@@ -609,7 +613,7 @@ async function pollNow() {
     updateSummaryPanel(data);
     document.dispatchEvent(new CustomEvent('workspace-rendered',{detail:data}));
     const filtered = searchRecords(filterRecords(data.records));
-    void requestTranslations(filtered,searchRecords(filterRecords(data.pending)),data.id);
+    void requestTranslations(filterRecords(data.records),filterRecords(data.pending),data.id);
     $('count').textContent = filtered.length + uiText(' 段發言');
     if (paneCount) paneCount.textContent = filtered.length + uiText(' 段對話');
     if (data.status?.source === 'teams' && data.status?.state === 'in_call') {

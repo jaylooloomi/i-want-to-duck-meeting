@@ -1,0 +1,31 @@
+/* Opt in with class="meeting-banner" data-banner="wave|orbit|ripple".
+   Pair with data-theme="light|dark" on the document root. */
+.meeting-banner {
+  --banner-image: url('./wave-light.png');
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  min-height: 110px;
+  padding: 18px 24px;
+  background-color: #f6faf9;
+  color: #12243a;
+  border-radius: 10px;
+}
+.meeting-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: var(--banner-image) no-repeat right center / 720px auto;
+}
+.meeting-banner[data-banner="orbit"] { --banner-image: url('./orbit-light.png'); }
+.meeting-banner[data-banner="ripple"] { --banner-image: url('./ripple-light.png'); }
+:root[data-theme="dark"] .meeting-banner { --banner-image: url('./wave-dark.png'); background-color: #0b1725; color: #edf6ff; }
+:root[data-theme="dark"] .meeting-banner[data-banner="orbit"] { --banner-image: url('./orbit-dark.png'); }
+:root[data-theme="dark"] .meeting-banner[data-banner="ripple"] { --banner-image: url('./ripple-dark.png'); }
+@media (max-width: 720px) {
+  .meeting-banner { padding: 18px 16px; }
+  .meeting-banner::before { opacity: .3; background-size: 560px auto; }
+}

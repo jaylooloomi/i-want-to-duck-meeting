@@ -1,4 +1,11 @@
-<h1 align="center">i-want-to-duck-meeting 🎙️</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/duck-meeting-logo-dark.svg">
+    <img src="docs/images/duck-meeting-logo-light.svg" alt="Duck Meeting — duck mascot and wordmark" width="440">
+  </picture>
+</p>
+<p align="center"><code>i-want-to-duck-meeting</code></p>
+
 
 <p align="center">
   <b>你專心開會，AI 幫你留下重點。</b><br>
@@ -384,6 +391,20 @@ README 編排與章魚插畫風格參考 [i-want-to-sleep](https://github.com/ja
 
 程式採 [MIT](LICENSE) 授權；第三方套件與模型依各自授權條款使用。
 
+### 註明出處，讓分享持續下去
+
+**歡迎使用、修改與分享，也請保留原作者的出處。** 當你複製、散布本軟體或其中的重要部分時，必須保留原作者版權聲明（包含其中的專案來源連結）及 MIT 授權聲明；修改後再散布也同樣適用。請將完整的 `LICENSE` 檔案一併保留於發布內容中。
+
+若要在 README 或致謝頁標示來源，可直接使用：
+
+> 本作品基於 **i-want-to-duck-meeting**，原作者為 **Arthur Wang**。
+> 專案來源：https://github.com/jaylooloomi/i-want-to-duck-meeting · MIT License
+
+也很歡迎在產品介紹或「關於」頁留下專案連結；這是作者誠摯的邀請，不是 MIT 保留聲明義務之外的額外授權條件。
+
+我做這個專案，是希望讓大家開會輕鬆一點，也期待因此認識更多有趣的朋友。不論你有使用心得、改進建議、合作想法，或只是想來打個招呼，都歡迎透過 [GitHub Issues](https://github.com/jaylooloomi/i-want-to-duck-meeting/issues) 或[我的 GitHub](https://github.com/jaylooloomi) 與我交流。很樂意和大家分享、互相學習，一起把工具做得更好，也交個朋友！
+
+
 ### 會議結束後由原 Codex 對話接手
 
 由 Codex 啟動的會議記錄 CODEX_THREAD_ID，worker 收尾後排入 waiting_agent。/api/summarize 只建立請求，不呼叫後端摘要模型。技能在 join 後建立／沿用此對話的正式背景追蹤，輪詢 notes-pending，由 Agent 親自讀逐字稿、核對來源並寫 summary.md，再以 notes-status ready 同步網頁。沒有宿主追蹤就不能在回合結束後自己喚醒；需要電腦與 Codex 運作，輪詢不是秒級事件通知。只處理本對話明確追蹤的場次，不自動盤點所有私人歷史會議。
@@ -492,3 +513,13 @@ Agent 整理已授權場次時，指引要求為決議／待辦附上完整單�
 郵件套用勾選內容時，只更新可安全辨識的決議／待辦區塊，保留問候、摘要與署名；無法確認區塊邊界時保留原文並附加。支援復原，套用後仍需儲存草稿。
 
 郵件套用會合併可辨識的原有決議／待辦，清除已確認由選取功能產生的重複區塊；重複套用與變更勾選不會持續附加同類段落。不明的手動補充仍保留，可復原套用前內容。
+
+逐字稿搜尋涵蓋原文、發言者與目前選取的翻譯語言，命中的字詞會高亮。正式／暫譯載入後會更新搜尋結果；關閉翻譯後不再以譯文篩選。
+
+在「設定 → 外觀 → Banner 樣式」可切換流動音波、環繞聲圈、水面漣漪，瀏覽器會記住選擇，明暗模式自動使用配對素材。全部鴨子統一朝左；桌面版為右上角操作預留區域，避免按鈕擋住鴨子。
+
+### 公開儲存庫與貢獻權限
+
+公開不代表所有人都能修改原儲存庫。歡迎 fork、在自己的副本修改，並以 Pull Request 提出貢獻；原儲存庫的寫入及合併權限僅授予維護者。MIT 授權允許依條款修改與散布副本，不會授予原 GitHub 儲存庫的寫入權限。
+
+master 已啟用分支保護：一般寫入者須透過 PR、取得至少 1 份核准，更新後舊核准失效，且須解決審查討論；未開啟強制推送或分支刪除。儲存庫管理員保留例外，以便作者日常維護。截至 2026-11-01 查核，唯一協作者為擁有者 `jaylooloomi`，沒有待接受的邀請；權限可能隨後續邀請而改變。

@@ -261,3 +261,15 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] SOURCE-THREE-TABS (FE-E2E): source header, status and button retain identical column geometry across overview/decisions/actions, including linked/unlinked sources at desktop/tablet/mobile widths. Inline source controls remain vertically centered and do not overflow.
 
 - [x] TABLE-VERTICAL-CENTER (FE-E2E): all decision/action cells use vertical middle alignment with short/long wrapped contents; task checkbox aligns to text block center; source inline alignment remains stable. Related 19 tests passed.
+
+- [x] DECISION-NUMBERS (FE-E2E): list and Markdown table decisions show sequential blue circular badges, retaining source column geometry at desktop/mobile widths; 19 related tests pass.
+
+- [x] SEARCH-TRANSLATION (FE-E2E): active query matches final/draft translated text arriving later, highlights literal case-insensitive terms safely, excludes unrelated rows and disabled translation; 9 related tests passed.
+
+- [x] BANNER-ASSETS (FE-E2E): six generated theme-paired assets decode over explicit HTTP routes; dimensions match manifest; opt-in banner CSS retains light/dark geometry without overflow at desktop/mobile. 5 related tests passed; production header integration remains separate.
+
+- [x] BANNER-HEADER (FE-E2E): actual workspace uses wave theme pairs, long titles and export/search controls remain reachable; theme geometry matches at 1920/1280/390; transcript/notes scrolling and low-height player bounds pass (18 related tests).
+
+- [x] BANNER-RIGHT-EDGE (FE-E2E): artwork anchors at card right edge, blends toward title, preserves theme geometry and clickability at 1920/1280/390. Eight related tests passed; desktop screenshot reviewed.
+
+- [x] BANNER-CHOICE (FE-E2E): three settings choices update immediately, persist across reload, pair with light/dark and retain transcript on desktop/mobile; all six assets face left (visual review); ten banner/integrity tests pass.

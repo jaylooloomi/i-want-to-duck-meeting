@@ -1,4 +1,11 @@
-<h1 align="center">i-want-to-duck-meeting 🎙️</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/duck-meeting-logo-dark.svg">
+    <img src="docs/images/duck-meeting-logo-light.svg" alt="Duck Meeting — duck mascot and wordmark" width="440">
+  </picture>
+</p>
+<p align="center"><code>i-want-to-duck-meeting</code></p>
+
 
 <p align="center">
   <b>Focus on the meeting. Let AI keep the notes.</b><br>
@@ -376,6 +383,20 @@ README structure and octopus illustration direction were inspired by [i-want-to-
 
 Code is licensed under [MIT](LICENSE). Third-party packages and models retain their respective licenses.
 
+### Attribution and a note from the author
+
+**Please keep the original attribution.** When copying or redistributing this software, or a substantial portion of it, you must retain the original copyright notice (including the project source link) and the MIT permission notice. The same applies when redistributing a modified version. Keep the complete `LICENSE` file with your distribution.
+
+Suggested credit for your README or acknowledgements:
+
+> Based on **i-want-to-duck-meeting**, created by **Arthur Wang**.
+> Source: https://github.com/jaylooloomi/i-want-to-duck-meeting · MIT License
+
+A visible README/About-page credit is warmly appreciated; it is not an additional condition beyond the MIT notice requirement.
+
+I built this project to make meetings a little easier, and I would love to meet the people using it. Whether you have feedback, an idea, an interesting use case, or simply want to say hello, you are welcome to [open an issue](https://github.com/jaylooloomi/i-want-to-duck-meeting/issues) or connect through [my GitHub profile](https://github.com/jaylooloomi). Let's exchange ideas, learn from each other, and make some new friends along the way.
+
+
 ### Agent-owned meeting summaries
 
 Meetings launched from Codex carry CODEX_THREAD_ID. On completion, the worker queues a waiting_agent request; /api/summarize only requests Agent work and does not invoke a backend summary model. The Codex conversation must have an actual app heartbeat follow-up to resume after a turn ends. The skill creates/reuses this follow-up after join; it polls notes-pending and personally reviews the transcript, writes summary.md and reports notes-status ready. No heartbeat means no autonomous wake-up. App/computer availability and polling cadence apply; this is not instantaneous event delivery. Only that conversation's explicitly tracked meetings are processed. Historical notes remain untouched unless regeneration was requested.
@@ -482,3 +503,13 @@ When preparing authorized meeting notes, the Agent instructions require a full o
 Applying selected mail items updates safely identified decision/action sections while retaining the greeting, summary and signature. Unknown formats are preserved with selections appended. Undo remains available; applying does not save automatically.
 
 Mail selection merges recognized existing sections and removes confirmed generated duplicates. Reapplying or changing choices does not keep appending sections; unfamiliar manual additions remain preserved and undo is available.
+
+Transcript search includes the currently selected translation, original text and speaker, with matching text highlighted. Results refresh as final/draft translations arrive; disabling translation excludes translated text from search.
+
+In **Settings → Appearance → Banner style**, select Flowing waves, Sound orbits or Water ripples. The choice is saved in this browser and paired automatically with the light/dark theme. All duck illustrations face left; desktop artwork reserves a separate zone for the top-right actions.
+
+### Public repository and contributions
+
+Public visibility does not grant write access to this repository. You are welcome to fork it, modify your own copy and submit a pull request. Only authorized maintainers can write to or merge into the upstream repository. MIT permits modifications and redistribution under its terms; it does not grant GitHub repository write permissions.
+
+The master branch requires a PR and at least one approving review for non-admin writers, dismisses stale approvals and requires resolved review conversations. Force pushes and branch deletion are not enabled. Repository administrators retain an exception for maintenance. On 2026-11-01, the owner `jaylooloomi` was the only collaborator and there were no pending invitations; future invitations can change repository access.

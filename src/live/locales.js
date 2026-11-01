@@ -1,5 +1,9 @@
 /* UI-only catalog. Meeting content is never localized here. */
 window.DuckLocaleCatalog={
+  "Banner 樣式": ["Banner style","バナースタイル","배너 스타일"],
+  "流動音波": ["Flowing waves","流れる音波","흐르는 음파"],
+  "環繞聲圈": ["Sound orbits","音のリング","소리 궤도"],
+  "水面漣漪": ["Water ripples","水面の波紋","수면 잔물결"],
   "會議紀錄": [
     "Meetings",
     "会議記録",

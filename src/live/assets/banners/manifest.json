@@ -1,0 +1,68 @@
+{
+  "variants": [
+    {
+      "id": "wave",
+      "title": "流動音波",
+      "light": {
+        "url": "/assets/banners/wave-light.png",
+        "width": 1920,
+        "height": 819,
+        "bytes": 1189550,
+        "sha256": "f6fbae6fa1332987aeb98c281260efa3cb0723c2da5a38ad5e746ffe6b8e66b3",
+        "facing": "left"
+      },
+      "dark": {
+        "url": "/assets/banners/wave-dark.png",
+        "width": 2172,
+        "height": 724,
+        "bytes": 1399025,
+        "sha256": "ae94570bb57953a34ff50b07f91dae42377399d30d839d0188f31988f6f5e7e8",
+        "facing": "left"
+      }
+    },
+    {
+      "id": "orbit",
+      "title": "環繞聲圈",
+      "light": {
+        "url": "/assets/banners/orbit-light.png",
+        "width": 1942,
+        "height": 809,
+        "bytes": 1414618,
+        "sha256": "bfd3df282e7f29172f19593e7ae3abcaae7ab1503f6afdff241098bbdf706dd2",
+        "facing": "left"
+      },
+      "dark": {
+        "url": "/assets/banners/orbit-dark.png",
+        "width": 1942,
+        "height": 809,
+        "bytes": 1475510,
+        "sha256": "fb9c062a7c0d3aa2597c4b7a1d47493d9b555aa4f03e68918d9d386c62d6a479",
+        "facing": "left"
+      }
+    },
+    {
+      "id": "ripple",
+      "title": "水面漣漪",
+      "light": {
+        "url": "/assets/banners/ripple-light.png",
+        "width": 1920,
+        "height": 819,
+        "bytes": 1480418,
+        "sha256": "89ce384043191959f6035f4e1c4aee4f2d1a31ec5930be41e0fb00c1f6ddc3b6",
+        "facing": "left"
+      },
+      "dark": {
+        "url": "/assets/banners/ripple-dark.png",
+        "width": 1942,
+        "height": 809,
+        "bytes": 1479749,
+        "sha256": "209d869436921d22fefaabf20f502194735d04a52087b4b82f208fa9c2e637e6",
+        "facing": "left"
+      }
+    }
+  ],
+  "css": "/assets/banners/banner.css",
+  "headerMinHeight": 110,
+  "backgroundSize": "720px auto",
+  "backgroundPosition": "right center"
+}
