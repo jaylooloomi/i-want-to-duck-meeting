@@ -2,7 +2,8 @@
 
 
 <p align="center">
-  <b>Focus on the meeting. Let AI keep the notes.</b><br>
+  <b>Focus on the meeting. Let your existing AI Agent keep the notes.</b><br>
+  No extra AI API key or separate model-token purchase.<br>
   Paste a Google Meet or Microsoft Teams link to capture transcripts and audio.<br>
   Afterward, ask “summarize this meeting” to turn the record into decisions and action items.
 </p>
@@ -20,6 +21,19 @@
 
 <p align="center"><img src="docs/images/meeting-hero-en.png" alt="Left: a participant struggles to take notes during a meeting. Right: an orange octopus with a headset helps preserve audio, transcripts, and action items. Labels: Focus on the meeting; Let AI take notes." width="900"></p>
 <p align="center"><sub>Illustrated use case, not a screenshot of the application.</sub></p>
+
+## Your existing AI Agent, now your meeting companion
+
+**No extra AI API key. No separate model-token purchase. Use the Agent subscription you already have.**
+
+Duck Meeting is a local meeting companion for **Codex and Claude Code**. It captures the meeting record, then lets your existing Agent read the transcript and prepare summaries, decisions, action items and email draft content. You do not need to wire up another summarization API or run an additional local language model.
+
+- **Bring your subscribed Agent:** use your existing signed-in Codex or Claude Code workflow to start recording and organize the results.
+- **No separate AI token budget to configure:** the standard subscription-based workflow requires no additional speech/summarization API key or separately purchased model API credits.
+- **Capture locally, organize with your Agent:** platform captions and local speech recognition provide the source material; your Agent handles the meeting notes and email draft content.
+- **One workflow, from meeting to follow-up:** keep recordings, bilingual transcripts, highlights, evidence-linked decisions and actions together in the workspace.
+
+**“No extra tokens” means no separate API-token purchase for this workflow, not zero usage.** Agent requests still count toward your existing plan's usage limits; an eligible Agent account/subscription and sign-in are required. If you choose an API-billed Agent configuration or connect other paid services, their charges are separate. Meeting sign-in, host admission, internet access and local runtime requirements still apply. Agent processing may send transcript content to your chosen AI provider.
 
 ## Windows installer (recommended)
 

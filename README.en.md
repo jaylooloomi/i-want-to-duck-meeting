@@ -1,5 +1,18 @@
 <h1 align="center">i-want-to-duck-meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting duck logo" width="44" height="44" align="absmiddle"></h1>
 
+## Your existing AI Agent, now your meeting companion
+
+**No extra AI API key. No separate model-token purchase. Use the Agent subscription you already have.**
+
+Duck Meeting is a local meeting companion for **Codex and Claude Code**. It captures the meeting record, then lets your existing Agent read the transcript and prepare summaries, decisions, action items and email draft content. You do not need to wire up another summarization API or run an additional local language model.
+
+- **Bring your subscribed Agent:** use your existing signed-in Codex or Claude Code workflow to start recording and organize the results.
+- **No separate AI token budget to configure:** the standard subscription-based workflow requires no additional speech/summarization API key or separately purchased model API credits.
+- **Capture locally, organize with your Agent:** platform captions and local speech recognition provide the source material; your Agent handles the meeting notes and email draft content.
+- **One workflow, from meeting to follow-up:** keep recordings, bilingual transcripts, highlights, evidence-linked decisions and actions together in the workspace.
+
+**“No extra tokens” means no separate API-token purchase for this workflow, not zero usage.** Agent requests still count toward your existing plan's usage limits; an eligible Agent account/subscription and sign-in are required. If you choose an API-billed Agent configuration or connect other paid services, their charges are separate. Meeting sign-in, host admission, internet access and local runtime requirements still apply. Agent processing may send transcript content to your chosen AI provider.
+
 ## Windows installer (recommended)
 
 Download **DuckMeeting-0.3.4-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
