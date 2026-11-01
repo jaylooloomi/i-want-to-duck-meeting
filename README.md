@@ -19,6 +19,8 @@
   <a href="README.zh-TW.md"><img src="https://img.shields.io/badge/lang-繁體中文-green" alt="繁體中文"></a>
 </p>
 
+<p align="center"><a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><strong>⬇ Download the latest Windows installer</strong></a></p>
+
 <p align="center"><img src="docs/images/meeting-hero-en.png" alt="Left: a participant struggles to take notes during a meeting. Right: an orange octopus with a headset helps preserve audio, transcripts, and action items. Labels: Focus on the meeting; Let AI take notes." width="900"></p>
 <p align="center"><sub>Illustrated use case, not a screenshot of the application.</sub></p>
 
@@ -34,6 +36,12 @@ Duck Meeting is a local meeting companion for **Codex and Claude Code**. It capt
 - **One workflow, from meeting to follow-up:** keep recordings, bilingual transcripts, highlights, evidence-linked decisions and actions together in the workspace.
 
 **“No extra tokens” means no separate API-token purchase for this workflow, not zero usage.** Agent requests still count toward your existing plan's usage limits; an eligible Agent account/subscription and sign-in are required. If you choose an API-billed Agent configuration or connect other paid services, their charges are separate. Meeting sign-in, host admission, internet access and local runtime requirements still apply. Agent processing may send transcript content to your chosen AI provider.
+
+### Why no separate API tokens are needed
+
+The recorder collects platform captions/audio and uses local speech models where required. When a meeting ends, the backend **queues work for your existing Agent**; it does not call an additional paid summary-model API. Your signed-in Agent reads the meeting files, writes the notes and email draft, and the local workspace displays them. **Agent processing still uses your existing account allowance.** Optional live translation contacts an online Google endpoint without a configured API key; it needs internet access and may be rate-limited. Automatic post-meeting processing requires the owning Agent to resume through a user request or an available host follow-up mechanism.
+
+[Detailed flow, text architecture and code references](docs/AGENT_ARCHITECTURE.md).
 
 ## Windows installer (recommended)
 

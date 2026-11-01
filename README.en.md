@@ -1,5 +1,18 @@
 <h1 align="center">i-want-to-duck-meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting duck logo" width="44" height="44" align="absmiddle"></h1>
 
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/version-0.3.4-informational" alt="Version 0.3.4">
+  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
+  <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-skill-black" alt="Codex skill">
+  <a href="README.md"><img src="https://img.shields.io/badge/lang-English-brightgreen" alt="English"></a>
+  <a href="README.zh-TW.md"><img src="https://img.shields.io/badge/lang-繁體中文-green" alt="繁體中文"></a>
+</p>
+
+<p align="center"><a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><strong>⬇ Download the latest Windows installer</strong></a></p>
+
 ## Your existing AI Agent, now your meeting companion
 
 **No extra AI API key. No separate model-token purchase. Use the Agent subscription you already have.**
@@ -12,6 +25,12 @@ Duck Meeting is a local meeting companion for **Codex and Claude Code**. It capt
 - **One workflow, from meeting to follow-up:** keep recordings, bilingual transcripts, highlights, evidence-linked decisions and actions together in the workspace.
 
 **“No extra tokens” means no separate API-token purchase for this workflow, not zero usage.** Agent requests still count toward your existing plan's usage limits; an eligible Agent account/subscription and sign-in are required. If you choose an API-billed Agent configuration or connect other paid services, their charges are separate. Meeting sign-in, host admission, internet access and local runtime requirements still apply. Agent processing may send transcript content to your chosen AI provider.
+
+### Why no separate API tokens are needed
+
+The recorder collects platform captions/audio and uses local speech models where required. When a meeting ends, the backend **queues work for your existing Agent**; it does not call an additional paid summary-model API. Your signed-in Agent reads the meeting files, writes the notes and email draft, and the local workspace displays them. **Agent processing still uses your existing account allowance.** Optional live translation contacts an online Google endpoint without a configured API key; it needs internet access and may be rate-limited. Automatic post-meeting processing requires the owning Agent to resume through a user request or an available host follow-up mechanism.
+
+[Detailed flow, text architecture and code references](docs/AGENT_ARCHITECTURE.md).
 
 ## Windows installer (recommended)
 

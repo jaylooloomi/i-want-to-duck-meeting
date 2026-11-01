@@ -19,6 +19,8 @@
   <a href="README.zh-TW.md"><img src="https://img.shields.io/badge/lang-繁體中文-brightgreen" alt="繁體中文"></a>
 </p>
 
+<p align="center"><a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><strong>⬇ 下載最新版 Windows 安裝包</strong></a></p>
+
 <p align="center"><img src="docs/images/meeting-hero-zh.png" alt="左側：參與者一邊開會一邊忙著寫筆記。右側：戴耳機的橘色章魚協助保存兩路音訊、逐字稿與待辦，讓參與者專心討論。" width="900"></p>
 <p align="center"><sub>功能情境插畫，非實際介面截圖。</sub></p>
 
@@ -34,6 +36,14 @@ Duck Meeting 是專為 **Codex 與 Claude Code** 設計的本機開會工具：�
 - **從開會到後續行動：** 錄音、雙語逐字稿、星標重點、可追溯來源的決議與待辦，都集中在同一個工作台。
 
 **「不用額外 Token」指不必另購這套流程專用的 API 額度，不代表完全不消耗用量。** Agent 請求仍計入你現有方案的使用額度，需具備可使用該 Agent 的帳號／訂閱並完成登入。若自行改用 API 計費的 Agent，或串接其他付費服務，費用依該服務計算。會議登入、主持人放行、網路與本機執行環境需求仍適用；Agent 整理時可能將逐字稿傳送至你選用的 AI 服務。
+
+### 為什麼不用額外購買 API Token？
+
+錄製端取得平台字幕與錄音，需要時使用本機語音模型。會議結束後，後端只會**排入工作，交由你既有的 Agent 接手**，不另外呼叫付費摘要模型 API。已登入的 Agent 讀取會議檔案，撰寫紀錄與郵件草稿，再由本機工作台呈現。因此免去「另外一套摘要 API 的金鑰與點數」，**並非 AI 整理完全不消耗 Token：仍使用既有 Agent 帳號的額度。**
+
+另外，即時翻譯會連線 Google 的免設定金鑰端點，仍依賴網路且可能限流，不代表無限服務。散會後自動整理也需要所屬 Agent 透過使用者指令或宿主可用的追蹤機制恢復執行，單靠本機待辦狀態不會喚醒已關閉的 Agent。
+
+[完整操作流程、文字架構圖與程式位置](docs/AGENT_ARCHITECTURE.md)。
 
 ## Windows 安裝包（建議）
 
