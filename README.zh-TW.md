@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.3.4-informational" alt="版本 0.3.4">
+  <img src="https://img.shields.io/badge/version-0.3.5-informational" alt="版本 0.3.5">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -47,7 +47,7 @@ Duck Meeting 是專為 **Codex 與 Claude Code** 設計的本機開會工具：�
 
 ## Windows 安裝包（建議）
 
-從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.4-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
+從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.5-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
 
 - 支援 Windows 10/11 x64；按使用者安裝至 `%LOCALAPPDATA%\Programs\DuckMeeting`，不需管理員權限。
 - 會議、錄音、登入設定及模型獨立存於 `%LOCALAPPDATA%\DuckMeeting\data`，升級預設保留。原始碼版的舊資料不會自動搬移。安裝包使用本機 8792 埠，原始碼版維持 8791。
@@ -59,9 +59,9 @@ Duck Meeting 是專為 **Codex 與 Claude Code** 設計的本機開會工具：�
 
 開發者可設定官方 Inno Setup 的 `ISCC_PATH`，執行 `npm ci`、`npm run build:windows` 重建；另提供手動 GitHub Actions 打包測試流程。[測試報告與限制](docs/qa/reports/windows-installer-030.md)。
 
-## master 工作區更新（v0.3.4 之後）
+## v0.3.5 工作區更新
 
-以下修正已納入目前原始碼，尚未包含於已發布的 v0.3.4 安裝包。
+以下修正已納入 v0.3.5 原始碼與 Windows 安裝包。
 
 - **統一表格布局：** 摘要、決議與待辦三個分頁的來源欄位置一致；來源狀態與按鈕同列。事項、負責人、期限與來源控制項全部上下置中。欄寬依視口分配，不隨文字內容改變；窄畫面會預留來源操作空間。
 - **核對來源：** 點擊已關聯的決議／待辦文字或「查看原文」，即可捲動並高亮逐字稿來源；未關聯項目可用「連結來源」選取證據。點未關聯的待辦文字不會切換 checkbox。
@@ -541,3 +541,9 @@ Agent 整理已授權場次時，指引要求為決議／待辦附上完整單�
 公開不代表所有人都能修改原儲存庫。歡迎 fork、在自己的副本修改，並以 Pull Request 提出貢獻；原儲存庫的寫入及合併權限僅授予維護者。MIT 授權允許依條款修改與散布副本，不會授予原 GitHub 儲存庫的寫入權限。
 
 master 已啟用分支保護：一般寫入者須透過 PR、取得至少 1 份核准，更新後舊核准失效，且須解決審查討論；未開啟強制推送或分支刪除。儲存庫管理員保留例外，以便作者日常維護。截至 2026-11-01 查核，唯一協作者為擁有者 `jaylooloomi`，沒有待接受的邀請；權限可能隨後續邀請而改變。
+
+新開工作台預設啟用英文翻譯，只指定原文顯示的網址也適用；明確指定其他翻譯語言或關閉翻譯的選擇仍會保留。
+
+### 逐字稿智慧跟隨
+
+會議進行中，向上捲動即暫停自動跟隨。新字幕、暫譯或正式譯文更新時保留目前閱讀段落，不強制跳到底部；有新發言時，在逐字稿下方、文字與錄音控制區之外顯示「↓ 有新發言・返回最新」。點擊會清除逐字稿搜尋／只看重點篩選並恢復跟隨，自行捲到底部也可恢復。搜尋與來源定位同樣會暫停追蹤，不會經過幾秒就強制返回。設定中的「自動捲動」仍可手動關閉。

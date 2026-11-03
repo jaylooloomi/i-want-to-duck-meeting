@@ -31,7 +31,7 @@
     const sum=data?.summary||{},ready=sum.state==='ready'&&!!sum.markdown;
     for(const button of document.querySelectorAll('[data-notes-tab]'))button.setAttribute('aria-pressed',String(button.dataset.notesTab===tab));
     const mail=tab==='mail';$('mail-panel').hidden=!mail;$('summary-body').hidden=mail||summaryCollapsed;document.getElementsByClassName('comparison-panel')[0].hidden=mail;$('notes-copy').hidden=$('notes-download').hidden=false;
-    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=kind==='actions'?data?.workspace?.actions?.items.length:kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null;button.textContent=label+(count?' ('+count+')':'');}
+    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=ready&&terminal(data?.status?.state)?(kind==='actions'?(data?.workspace?.actions?.items?.length||0):kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null):null;button.textContent=label+(count?' ('+count+')':'');}
     if(mail){notesSignature='';return;}
     $('notes-copy').disabled=$('notes-download').disabled=!ready;
     const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions,data?.noteItems]);

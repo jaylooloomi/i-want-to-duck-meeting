@@ -178,3 +178,7 @@ Final isolated release regression: **710 tests, 694 passed, 0 failed, 16 pre-exi
 Includes the retired-backend reference cleanup, footer language-picker alignment, and the subsequently requested completed source-evidence/mail-composition integration. Installer lifecycle smoke with test-only registry identity/Start-menu group passed install, upgrade, bundled-runtime CLI/HTTP, fresh upgraded source API, downgrade refusal, uninstall and data retention. Actual 8792 installation was not restarted or replaced; an automatic review rejected that direct-sync/restart action. The frozen code runs separately on 8793 with synthetic data.
 
 A separate CRC diagnostic confirmed existing BUG-ZIP-001 for large audio ZIP export; it is not fixed by this release. Preserve original WAV files directly. Passing regression counts do not establish ZIP CRC correctness, live-meeting/ASR acceptance or fresh-VM/SmartScreen behavior. Installer remains unsigned.
+
+## v0.3.5 release validation — 2026-11-03
+
+536 unit tests and 55 targeted browser/source/layout tests passed; isolated installer upgrade (0.3.4→0.3.5), Codex/Claude integration, HTTP/version/Banner checks, repair, downgrade refusal, uninstall and data retention passed. See [scope, commands and limits](docs/qa/reports/release-035.md). Existing ZIP CRC issue and historical acceptance limitations remain; these runs are not a full historical QA rerun or new live meeting acceptance.

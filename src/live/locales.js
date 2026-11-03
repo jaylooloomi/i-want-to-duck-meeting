@@ -1,5 +1,6 @@
 /* UI-only catalog. Meeting content is never localized here. */
 window.DuckLocaleCatalog={
+ "↓ 有新發言・返回最新": ["↓ New speech · Jump to latest","↓ 新しい発言・最新へ","↓ 새 발언 · 최신으로"],
   "Banner 樣式": ["Banner style","バナースタイル","배너 스타일"],
   "流動音波": ["Flowing waves","流れる音波","흐르는 음파"],
   "環繞聲圈": ["Sound orbits","音のリング","소리 궤도"],

@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.3.4-informational" alt="Version 0.3.4">
+  <img src="https://img.shields.io/badge/version-0.3.5-informational" alt="Version 0.3.5">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
@@ -45,7 +45,7 @@ The recorder collects platform captions/audio and uses local speech models where
 
 ## Windows installer (recommended)
 
-Download **DuckMeeting-0.3.4-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+Download **DuckMeeting-0.3.5-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
 
 - Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
 - Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
@@ -57,9 +57,9 @@ Download **DuckMeeting-0.3.4-Setup-x64.exe** from [GitHub Releases](https://gith
 
 Developers: install the official Inno Setup compiler, set `ISCC_PATH`, then run `npm ci` and `npm run build:windows`. The optional manual GitHub Actions workflow builds and smoke-tests the package. See [installer QA and limitations](docs/qa/reports/windows-installer-030.md).
 
-## Workspace improvements on master (after v0.3.4)
+## Workspace improvements in v0.3.5
 
-These changes are available in the current source checkout. The published v0.3.4 installer does not include them yet.
+These improvements are included in the v0.3.5 source and Windows installer.
 
 - **Consistent notes tables:** Overview, Decisions and Actions share the same source-column alignment. Source status and its button appear on one row; task text, owners, deadlines and source controls are vertically centered. Column widths depend on the viewport rather than content, with additional room reserved for sources on narrow screens.
 - **Check the evidence:** Select linked decision/action text or **View original** to scroll to and highlight its transcript source. For unlinked items, use **Link source** to choose evidence; clicking unlinked task text does not change its checkbox.
@@ -529,3 +529,9 @@ In **Settings → Appearance → Banner style**, select Flowing waves, Sound orb
 Public visibility does not grant write access to this repository. You are welcome to fork it, modify your own copy and submit a pull request. Only authorized maintainers can write to or merge into the upstream repository. MIT permits modifications and redistribution under its terms; it does not grant GitHub repository write permissions.
 
 The master branch requires a PR and at least one approving review for non-admin writers, dismisses stale approvals and requires resolved review conversations. Force pushes and branch deletion are not enabled. Repository administrators retain an exception for maintenance. On 2026-11-01, the owner `jaylooloomi` was the only collaborator and there were no pending invitations; future invitations can change repository access.
+
+English translation is enabled by default on newly opened workspaces, including URLs that specify only the original-text view. Explicit translation-language choices (including off) remain respected.
+
+### Smart transcript following
+
+During a live meeting, scrolling up pauses automatic following. Incoming captions and translations preserve the visible source paragraph instead of pulling you to the bottom. A new-speech button appears below the transcript, outside the text and audio controls. Click it (clearing transcript search/highlights filters) or manually scroll to the bottom to resume. Search and source navigation also pause following; no timeout forces you back to live speech. The existing Auto-scroll preference remains available.

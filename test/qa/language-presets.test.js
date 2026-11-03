@@ -47,3 +47,20 @@ for(const width of [1920,390])for(const language of ['zh-TW','en','ja','ko'])tes
  const sizes=await page.evaluate(()=>{const a=document.getElementById('primary-lang').getBoundingClientRect(),b=document.getElementById('secondary-lang').getBoundingClientRect();return {a:a.width,b:b.width,topA:a.top,topB:b.top,right:b.right,viewport:innerWidth};});
  assert.ok(Math.abs(sizes.a-sizes.b)<=1&&Math.abs(sizes.topA-sizes.topB)<=1&&sizes.right<=sizes.viewport,JSON.stringify(sizes));
 },{viewport:{width,height:930}}));
+
+for(const suffix of ['', '&primary=all','&secondary=invalid'])test(`LANG default English translation requests automatically ${suffix||'no params'}`,{timeout:15000},t=>browserCase(t,async({page,app})=>{
+ app.seed('english-default',{state:'done'},[record('預設英文翻譯測試')]);
+ const targets=[];await page.route('**/api/translate',route=>{const body=route.request().postDataJSON();targets.push(body.target);return route.fulfill({json:{translations:body.texts.map(()=>'Automatic English translation.')}});});
+ await page.goto(app.url+'/?id=english-default'+suffix);
+ await page.getByText('Automatic English translation.',{exact:true}).waitFor();
+ assert.equal(await page.getByRole('combobox',{name:'翻譯語言',exact:true}).inputValue(),'en');assert.ok(targets.length>0&&targets.every(target=>target==='en'));
+}));
+
+for(const suffix of ['', '&secondary=en','&primary=invalid&secondary=en'])test(`LANG Chinese-English default remains selected ${suffix||'no params'}`,{timeout:15000},t=>browserCase(t,async({page,app})=>{
+ app.seed('zh-en-default',{state:'done'},[record('中文預設測試')]);
+ await page.route('**/api/translate',route=>route.fulfill({json:{translations:['Default English translation.']}}));
+ await page.goto(app.url+'/?id=zh-en-default'+suffix);await page.getByText('Default English translation.',{exact:true}).waitFor();
+ assert.equal(await page.getByRole('combobox',{name:'原文顯示',exact:true}).inputValue(),'zh-TW');
+ assert.equal(await page.getByRole('combobox',{name:'翻譯語言',exact:true}).inputValue(),'en');
+ assert.equal(await page.getByRole('button',{name:'中英',exact:true}).getAttribute('aria-pressed'),'true');
+}));

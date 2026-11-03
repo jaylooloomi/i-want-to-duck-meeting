@@ -273,3 +273,17 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] BANNER-RIGHT-EDGE (FE-E2E): artwork anchors at card right edge, blends toward title, preserves theme geometry and clickability at 1920/1280/390. Eight related tests passed; desktop screenshot reviewed.
 
 - [x] BANNER-CHOICE (FE-E2E): three settings choices update immediately, persist across reload, pair with light/dark and retain transcript on desktop/mobile; all six assets face left (visual review); ten banner/integrity tests pass.
+
+- [x] LANG-ENGLISH-DEFAULT (FE-E2E): no language parameters, primary-only and invalid secondary URLs request and render English automatically; explicit language/off selections persist. 20 related tests passed.
+
+- [x] NOTES-COUNT-STATE (FE-E2E): counts clear when ready meeting transitions to active/idle/waiting/generating/failed and only restore for finalized ready notes; stale injected 12 items do not leak into unfinished tabs. Four related tests passed.
+
+- [x] LANG-ZH-EN-DEFAULT (FE-E2E): fresh URLs, secondary=en only and invalid primary select Chinese originals + English translation + active Chinese-English preset; explicit URL selections remain honored. Twelve related tests passed.
+
+- [x] TRANSCRIPT-HEADER-REFERENCE (FE-E2E): title/count above same-row search, presets and language controls for panels >=700px; narrower panels wrap without overflow, both themes. Nineteen header/scroll/integrity tests passed.
+
+- [x] BRAND-VERSION (FE-E2E): server reads its own package version and renders it below brand name, same alignment in both themes at desktop/mobile; five related tests passed.
+
+- [x] SMART-FOLLOW (FE-E2E): upward reading pauses auto-follow on desktop/mobile, preserving paragraph offset through earlier text expansion, pending captions and delayed translations; new nonmatching search speech still notifies, jump clears filters/resumes, manual bottom resumes, ended state hides notice; 10 follow/source/integrity tests passed. Earlier scroll/player regression: 15 passed.
+
+- [x] BRAND-INLINE-VERSION (FE-E2E): version appears immediately to right of product name with matching bottom edge, same geometry in both themes at desktop/mobile; supersedes earlier below-name version layout. Five related tests passed.

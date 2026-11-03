@@ -571,7 +571,13 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });
-      res.end(fs.readFileSync(new URL(asset[0], assets)));
+      let content=fs.readFileSync(new URL(asset[0], assets));
+      if(asset[0]==='index.html'){
+        const version=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
+        const label=typeof version==='string'&&/^[0-9A-Za-z.+-]+$/.test(version)?version:'unknown';
+        content=content.toString('utf8').replaceAll('__OPENMEETING_VERSION__',label);
+      }
+      res.end(content);
     } catch (error) { json({ error: req.method === 'POST' || url.pathname === '/api/audio-devices' ? error.message : '暫時無法讀取會議資料，稍後將重試' }, req.method === 'POST' ? 400 : 500); }
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });

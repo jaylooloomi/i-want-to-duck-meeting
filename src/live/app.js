@@ -10,10 +10,11 @@ const reportBtn = $('report-issue-btn'), sidebarReportBtn = $('sidebar-report-bt
 const issueTitleInput = $('issue-title-input'), issueDescInput = $('issue-desc-input'), issueCopyBtn = $('issue-copy-template'), issueGithubLink = $('issue-github-link');
 const params = new URLSearchParams(location.search);
 let selected = params.get('id') || 'latest';
-// Explicit language URLs retain their independently specified display preferences.
-if(params.has('primary')||params.has('secondary')){primaryLang.value='all';secondaryLang.value='none';}
-if (primaryLang && params.get('primary')) primaryLang.value = params.get('primary');
-if (secondaryLang && params.get('secondary')) secondaryLang.value = params.get('secondary');
+// Default to Chinese originals + English translation; explicit display choices win.
+primaryLang.value=params.get('secondary')==='none'&&!params.has('primary')?'all':'zh-TW';
+secondaryLang.value='en';
+if (primaryLang && params.get('primary')) { const requested=params.get('primary'); primaryLang.value=[...primaryLang.options].some(option=>option.value===requested)?requested:'zh-TW'; }
+if (secondaryLang && params.get('secondary')) { const requested=params.get('secondary'); secondaryLang.value=[...secondaryLang.options].some(option=>option.value===requested)?requested:'en'; }
 let signature = '', summarySignature = '', translating = false, summaryCollapsed = false, activeMeetingId = '';
 let meetingOptionsSignature = '', currentRecord = null, ownedRecordId = '', setupOpen = false, endingRecordId = '', stopRequestedFor = '';
 const setupPanel = document.querySelector('.mic-panel');
@@ -545,9 +546,35 @@ function appendSearchText(element,value){
   }
   element.append(document.createTextNode(text.slice(end)));
 }
+const transcriptBox=$('transcript'),latestBar=$('transcript-latest-bar');
+let followPaused=false,unseenSpeech=false,followMeeting='',speechSignature='',renderingTranscript=false;
+function nearTranscriptBottom(){return transcriptBox.scrollHeight-transcriptBox.clientHeight-transcriptBox.scrollTop<=32;}
+function updateLatestButton(){latestBar.hidden=!unseenSpeech||currentRecord?.status?.state!=='in_call';}
+function readingAnchor(){
+ const top=transcriptBox.getBoundingClientRect().top;
+ const visible=[...transcriptBox.children].filter(el=>el.dataset.scrollAnchor&&el.getBoundingClientRect().bottom>top);
+ return {source:visible[0]?.dataset.sourceRecord,key:visible[0]?.dataset.scrollAnchor,offset:visible[0]?.getBoundingClientRect().top-top,scrollTop:transcriptBox.scrollTop};
+}
+function restoreReadingAnchor(anchor){
+ const node=[...transcriptBox.children].find(el=>el.dataset.sourceRecord===anchor.source)||[...transcriptBox.children].find(el=>el.dataset.scrollAnchor===anchor.key);
+ if(node)transcriptBox.scrollTop+=node.getBoundingClientRect().top-transcriptBox.getBoundingClientRect().top-anchor.offset;
+ else transcriptBox.scrollTop=anchor.scrollTop;
+}
+transcriptBox.addEventListener('scroll',()=>{
+ if(renderingTranscript)return;
+ if(nearTranscriptBottom()){
+  if(!$('transcript-search').value.trim()&&!$('highlights-only').checked){followPaused=false;unseenSpeech=false;}
+ }else followPaused=true;
+ updateLatestButton();
+},{passive:true});
+$('follow').addEventListener('change',()=>{followPaused=!$('follow').checked;if($('follow').checked){unseenSpeech=false;transcriptBox.scrollTop=transcriptBox.scrollHeight;}updateLatestButton();});
+$('transcript-latest').addEventListener('click',()=>{
+ $('transcript-search').value='';$('highlights-only').checked=false;$('follow').checked=true;
+ followPaused=false;unseenSpeech=false;updateLatestButton();signature='';void pollNow();
+});
 function row(record, pending) {
   const renderedMeetingId=currentRecord?.id;
-  const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');card.dataset.sourceRecord=JSON.stringify([record.text,record.t0??null,record.speaker??null]);
+  const card = document.createElement('article'); card.className = 'utterance' + (pending ? ' pending' : '');card.dataset.sourceRecord=JSON.stringify([record.text,record.t0??null,record.speaker??null]);card.dataset.scrollAnchor=JSON.stringify([record.t0??record.text,record.speaker??null]);
   if(record.highlightCount)card.classList.add('important-utterance');
   const name = record.speaker || uiText('未知發言者');
   const hue = [...name].reduce((n, c) => (n * 31 + c.codePointAt(0)) % 360, 0);
@@ -632,12 +659,22 @@ async function pollNow() {
     }
     const target = secondaryLang ? secondaryLang.value : 'none';
     const next = JSON.stringify([data.id, filtered, data.pending, primaryLang?.value, target, filtered.map((r) => translations.get(target + ':' + r.text) || '')]);
+    if(followMeeting!==data.id){followMeeting=data.id;followPaused=false;unseenSpeech=false;speechSignature='';}
+    const sourceSignature=JSON.stringify([data.records,data.pending].map(list=>list.map(r=>[r.text,r.t0,r.speaker])));
+    const canFollow=$('follow').checked&&!followPaused&&!$('transcript-search').value.trim()&&!$('highlights-only').checked;
+    if(!canFollow&&speechSignature&&sourceSignature!==speechSignature)unseenSpeech=true;
+    speechSignature=sourceSignature;
     if (next !== signature) {
       const rows = [...filtered.map((r) => row(r, false)), ...searchRecords(filterRecords(data.pending)).map((r) => row(r, true))];
       if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = $('transcript-search').value.trim()?uiText('找不到符合的逐字稿'):uiText('尚無字幕，開始發言後會自動顯示。'); rows.push(empty); }
-      $('transcript').replaceChildren(...rows); signature = next;
-      if ($('follow').checked && data.status?.state === 'in_call' && filtered.length + data.pending.length > 0) { const box = $('transcript'); box.scrollTop = box.scrollHeight; rows.at(-1).scrollIntoView({ block:'nearest' }); }
+      const reading=readingAnchor();
+      renderingTranscript=true;transcriptBox.replaceChildren(...rows); signature = next;
+      updateLatestButton();
+      if(canFollow&&data.status?.state==='in_call'&&filtered.length+data.pending.length>0){transcriptBox.scrollTop=transcriptBox.scrollHeight;unseenSpeech=false;updateLatestButton();}
+      else restoreReadingAnchor(reading);
+      requestAnimationFrame(()=>{renderingTranscript=false;});
     }
+    updateLatestButton();
     $('connection').textContent = uiText('● 已連線 · 自動更新');
     $('updated').textContent = uiText('最後同步 ') + clock(Date.now());
   } catch { $('connection').textContent = uiText('連線中斷 · 正在重試'); $('speaking').textContent = uiText('畫面可能不是最新資料'); }
@@ -723,15 +760,15 @@ for (const [id,primary,secondary] of [['lang-en-zh','en','zh-TW'],['lang-zh-en',
 syncLanguagePresets();
 
 $('meeting-search').addEventListener('input',()=>renderSidebar(cachedMeetings));
-$('transcript-search').addEventListener('input',()=>{signature='';void pollNow();});
+$('transcript-search').addEventListener('input',()=>{if($('transcript-search').value.trim())followPaused=true;signature='';void pollNow();});
 
-$('highlights-only').addEventListener('change',()=>{signature='';void pollNow();});
+$('highlights-only').addEventListener('change',()=>{if($('highlights-only').checked)followPaused=true;signature='';void pollNow();});
 
 document.addEventListener('ui-language-change',()=>{signature='';summarySignature='';meetingOptionsSignature='';renderSidebar(cachedMeetings);syncLanguagePresets();void pollNow();});
 
 document.addEventListener('locate-note-source',async({detail})=>{
  if(currentRecord?.id!==detail.id)return;
- $('transcript-search').value='';$('highlights-only').checked=false;if(primaryLang)primaryLang.value='all';$('follow').checked=false;
+ $('transcript-search').value='';$('highlights-only').checked=false;if(primaryLang)primaryLang.value='all';followPaused=true;
  document.querySelector('[data-view="split"]').click();signature='';await pollNow();if(currentRecord?.id!==detail.id)return;
  const key=JSON.stringify([detail.source.text,detail.source.time,detail.source.speaker]);const card=[...document.querySelectorAll('.utterance')].find(card=>card.dataset.sourceRecord===key);
  if(card){card.classList.add('source-located');card.tabIndex=-1;card.scrollIntoView({block:'center'});card.focus({preventScroll:true});setTimeout(()=>card.classList.remove('source-located'),5000);}
