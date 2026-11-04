@@ -9,6 +9,8 @@ if(path.dirname(payload)!==dist||path.basename(payload)!=='payload')throw new Er
 fs.rmSync(payload,{recursive:true,force:true});fs.mkdirSync(payload,{recursive:true});
 const trees=['bin','src','scripts','stt','plugin','codex','.claude-plugin','installer'];
 for(const tree of trees)fs.cpSync(tree,path.join(payload,tree),{recursive:true,filter:source=>!source.includes('__pycache__')&&!source.endsWith('.pyc')&&!source.endsWith(path.join('meet','SKILL.md'))});
+fs.mkdirSync(path.join(payload,'docs','third-party'),{recursive:true});
+for(const file of ['before-you-do-LICENSE.txt','video-recording.md'])fs.copyFileSync(path.join('docs','third-party',file),path.join(payload,'docs','third-party',file));
 for(const file of ['package.json','package-lock.json','LICENSE','README.md','README.zh-TW.md'])fs.copyFileSync(file,path.join(payload,file));
 fs.mkdirSync(path.join(payload,'node_modules'),{recursive:true});fs.cpSync('node_modules/playwright-core',path.join(payload,'node_modules/playwright-core'),{recursive:true});
 async function download(url,file){const response=await fetch(url,{signal:AbortSignal.timeout(180000)});if(!response.ok)throw new Error(url+': '+response.status);fs.writeFileSync(file,Buffer.from(await response.arrayBuffer()));}

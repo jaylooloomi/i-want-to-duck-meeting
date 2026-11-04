@@ -98,7 +98,7 @@ export function workspaceData(dir, status, records) {
   return { title: meetingTitle(dir, status), audio, comparison: compareSources(status, records, transcription), speakerCount: new Set(records.map(r => r.speaker).filter(s => s && s !== '未知發言者' && s !== '講者未確認')).size };
 }
 
-export function streamAudio(req, res, file) {
+export function streamAudio(req, res, file, contentType='audio/wav') {
   const size = fs.statSync(file).size;
   let start = 0, end = size - 1, code = 200;
   if (req.headers.range) {
@@ -109,7 +109,7 @@ export function streamAudio(req, res, file) {
     if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start >= size || end < start) { res.writeHead(416, { 'Content-Range': `bytes */${size}` }).end(); return; }
     code = 206;
   }
-  res.writeHead(code, { 'Content-Type': 'audio/wav', 'Content-Length': end - start + 1, 'Accept-Ranges': 'bytes', ...(code === 206 ? { 'Content-Range': `bytes ${start}-${end}/${size}` } : {}) });
+  res.writeHead(code, { 'Content-Type': contentType, 'Content-Length': end - start + 1, 'Accept-Ranges': 'bytes', ...(code === 206 ? { 'Content-Range': `bytes ${start}-${end}/${size}` } : {}) });
   const stream = fs.createReadStream(file, { start, end });
   stream.on('error', () => res.destroy());
   res.on('close', () => stream.destroy());

@@ -1,3 +1,4 @@
+import {readMeetingPreferences,resolveMeetingLanguage} from './meeting-preferences.js';
 import {readMailDraft,saveMailDraft} from './mail-draft.js';
 /**
  * `openmeeting <command>` implementations (spec 5.15). bin/openmeeting.js only forwards argv.
@@ -90,6 +91,8 @@ const END_REASON_TEXT = {
 const USAGE = `openmeeting — Google Meet 靜音記錄機器人
 
 用法：openmeeting <指令> [參數]
+
+  preferences get                                  查看 Agent 共用的會議語言預設
 
   join <連結> [--name 名稱] [--lang 代碼] [--foreground]   加入會議（背景執行），印出 MEETING_ID= / MEETING_DIR=（已有會議在記錄時結束碼 5）
   wait <id|latest> [--timeout-min N]                      等到會議結束（結束碼 0 有逐字稿／2 沒字幕／3 失敗／4 逾時）
@@ -779,7 +782,8 @@ async function cmdJoin(ctx, pos, flags) {
     return 1;
   }
   const displayName = typeof flags.name === 'string' && flags.name.trim() ? flags.name.trim() : config.displayName;
-  const captionLang = typeof flags.lang === 'string' && flags.lang.trim() ? flags.lang.trim() : config.captionLang;
+  const languagePreferences=resolveMeetingLanguage(config,typeof flags.lang==='string'&&flags.lang.trim()?flags.lang.trim():undefined);
+  const captionLang=languagePreferences.captionLanguage;
   const audioOverrides = {};
   if (teamsUrl) {
     for (const key of ['input','output']) if (flags[key] !== undefined) {
@@ -819,7 +823,7 @@ async function cmdJoin(ctx, pos, flags) {
   for (let i = 2; fs.existsSync(path.join(config.meetingsDir, id)); i++) id = `${base}-${i}`;
   const dir = createMeetingDir(config.meetingsDir, id);
   writeStatus(dir, {
-    id, code: parsed.code, url: parsed.url, displayName, pid: null, state: 'starting',
+    id, languagePreferences, code: parsed.code, url: parsed.url, displayName, pid: null, state: 'starting',
     startedAt: new Date().toISOString(), joinedAt: null, endedAt: null, endReason: null, error: null, stats: emptyStats(),
       ...(ctx.env.CODEX_THREAD_ID ? {summaryAgentThread:ctx.env.CODEX_THREAD_ID} : {}),
       ...(teamsUrl ? {source:'teams',audioOverrides,teamsBrowserEnabled:!flags['no-open']} : {}),
@@ -888,10 +892,11 @@ async function cmdJoin(ctx, pos, flags) {
   if (launch.launcher === 'spawn-fallback') err(`WMI 啟動失敗，已改用一般方式啟動背景機器人（${launch.reason || '原因不明'}）。`);
 
   const livePort = Number(ctx.env.OPENMEETING_LIVE_PORT) || 8791;
-  const liveUrl = `http://127.0.0.1:${livePort}/?id=${encodeURIComponent(id)}${teamsUrl ? '&source=teams' : ''}`;
+  const liveUrl = `http://127.0.0.1:${livePort}/?id=${encodeURIComponent(id)}${teamsUrl ? '&source=teams' : ''}&primary=${encodeURIComponent(languagePreferences.originalDisplay)}&secondary=${encodeURIComponent(languagePreferences.translationLanguage)}`;
   out(`MEETING_ID=${id}`);
   out(`MEETING_DIR=${dir}`);
   out(`LIVE_URL=${liveUrl}`);
+  out(`LANGUAGE_PREFERENCES=${JSON.stringify(languagePreferences)}`);
   if (teamsUrl) {
     out('SOURCE=teams');
     out('背景雙路收音與即時網頁面板已自動啟動；用 status 確認 in_call、captureDevices 與 audioHealth。告知與會者正在記錄；結束時執行 leave。');
@@ -1075,6 +1080,7 @@ async function cmdLogin(ctx) {
 /** @param {Ctx} ctx */
 async function cmdDoctor(ctx) {
   const { out, config, env } = ctx;
+  out(`LANGUAGE_PREFERENCES=${JSON.stringify(resolveMeetingLanguage(config))}`);
   /** @type {[string, 'OK'|'WARN'|'FAIL'|'INFO', string][]} */
   const rows = [];
   let fatal = false;
@@ -1311,6 +1317,7 @@ export async function main(argv, io = {}) {
       case 'leave': return await cmdLeave(ctx, positionals, flags);
       case 'transcript': return await cmdTranscript(ctx, positionals);
       case 'login': return await cmdLogin(ctx);
+      case 'preferences': {if(positionals.length&&positionals[0]!=='get'){err('用法：openmeeting preferences get');return 1;}out(JSON.stringify({...readMeetingPreferences(ctx.config.home),effective:resolveMeetingLanguage(ctx.config)},null,2));return 0;}
       case 'doctor': return await cmdDoctor(ctx);
       case 'setup-stt': return await cmdSetupStt(ctx);
       case 'transcribe': return await cmdTranscribe(ctx, positionals, flags);

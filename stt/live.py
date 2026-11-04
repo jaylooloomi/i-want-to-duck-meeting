@@ -122,12 +122,39 @@ class Speakers:
         return '講者未確認', best
 
 
+class LocalMultilingualASR:
+    """Only an already cached multilingual model; never silently use Chinese ASR."""
+    def __init__(self, model_dir, language):
+        self.language = language
+        self.model = None
+        if language not in ('en', 'de', 'ja', 'ko'):
+            return
+        try:
+            from faster_whisper import WhisperModel
+            self.model = WhisperModel('large-v3-turbo', device='cpu', compute_type='int8',
+                                      cpu_threads=8, download_root=model_dir, local_files_only=True)
+        except Exception:
+            print('Multilingual model unavailable; retaining audio and platform captions.', file=sys.stderr)
+
+    def transcribe(self, audio):
+        if self.model is None:
+            return [], None
+        return self.model.transcribe(audio, language=self.language, beam_size=5,
+                                     word_timestamps=True, vad_filter=False, condition_on_previous_text=False)
+
+
 class Engine:
-    def __init__(self, model_dir, mode='microphone'):
+    def __init__(self, model_dir, mode='microphone', language='zh'):
         import sherpa_onnx
         from paraformer import Paraformer
         from transcribe import make_converter
-        self.asr = Paraformer(model_dir)
+        self.language = language
+        if language == 'zh':
+            self.asr = Paraformer(model_dir)
+            send(type='asr-status', engine='paraformer', language=language, available=True)
+        else:
+            self.asr = LocalMultilingualASR(model_dir, language)
+            send(type='asr-status', engine='whisper' if self.asr.model else 'unavailable', language=language, available=bool(self.asr.model))
         # Preserve spoken vocabulary: s2twp rewrites 代碼 to 程式碼, for example.
         self.converter = make_converter('s2t')
         config = sherpa_onnx.SpeakerEmbeddingExtractorConfig(
@@ -218,15 +245,16 @@ class Engine:
                 else:
                     groups.append(dict(speaker=speaker, confidence=confidence, text=text, start=begin, end=max(begin, end)))
         for group in groups:
-            text = normalize_digits(normalize_punct(self.converter.convert(group['text']).strip()))
+            text = (normalize_digits(normalize_punct(self.converter.convert(group['text']).strip()))
+                    if getattr(self, 'language', 'zh') == 'zh' else group['text'].strip())
             if text:
                 send(type='record', speaker=group['speaker'], confidence=round(group['confidence'], 3), text=text,
                      start=offset / RATE + group['start'], end=offset / RATE + group['end'], lane=lane)
         send(type='clear', lane=lane)
 
 
-def run(model_dir, mode='microphone'):
-    engine = Engine(model_dir, mode)
+def run(model_dir, mode='microphone', language='zh'):
+    engine = Engine(model_dir, mode, language)
     jobs = queue.Queue(maxsize=20)
     failures = []
 
@@ -304,9 +332,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-dir', required=True)
     parser.add_argument('--mode', choices=['microphone', 'teams'], default='microphone')
+    parser.add_argument('--language', choices=['zh', 'en', 'de', 'ja', 'ko', 'unsupported'], default='zh')
     args = parser.parse_args()
     try:
-        run(args.model_dir, args.mode)
+        run(args.model_dir, args.mode, args.language)
     except Exception as error:
         send(type='error', message=str(error))
         sys.exit(1)

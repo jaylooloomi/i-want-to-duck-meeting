@@ -227,7 +227,7 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
     } catch {
       /* EADDRINUSE: reuse existing live server on port */
     }
-    const liveUrl = `${baseUrl}/?id=${encodeURIComponent(id)}${status.source === 'teams' ? '&source=teams' : ''}`;
+    const liveUrl = `${baseUrl}/?id=${encodeURIComponent(id)}${status.source === 'teams' ? '&source=teams' : ''}${status.languagePreferences?'&primary='+encodeURIComponent(status.languagePreferences.originalDisplay)+'&secondary='+encodeURIComponent(status.languagePreferences.translationLanguage):''}`;
     try { writeStatus(dir, { liveUrl }); } catch { /* ignore */ }
     if (env.OPENMEETING_NO_BROWSER !== '1' && status.teamsBrowserEnabled !== false) {
       try {
@@ -251,7 +251,7 @@ export async function workerMain(argv, env = process.env, { crashHandlers = fals
       id,
       dir,
       displayName: args.name || status.displayName || config.displayName,
-      captionLang: args.lang || config.captionLang,
+      captionLang: status.languagePreferences?.captionLanguage || args.lang || config.captionLang,
       config,
       log: log.child('session'),
       foreground: false,

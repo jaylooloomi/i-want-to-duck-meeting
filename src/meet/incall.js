@@ -1,3 +1,4 @@
+import {LANGUAGES} from '../meeting-preferences.js';
 /**
  * Post-join setup (spec 5.9): dismiss popups, turn captions on, set the caption language,
  * and leave the call. All clicks are real Playwright mouse clicks (see meet/join.js). The one
@@ -25,6 +26,7 @@ const OPTION_SCOPE = ['[role="listbox"] [role="option"]', '[role="option"]'];
  * and how a combobox label alone is mapped back to a code (exact match only).
  */
 const CAPTION_LANG_LABELS = Object.freeze({
+  ...Object.fromEntries(Object.values(LANGUAGES).map(language=>[language.caption,language.meet])),
   'cmn-Hant-TW': ['Chinese (Mandarin, Traditional)'],
   'cmn-Hans-CN': ['Chinese (Mandarin, Simplified)'],
   'en-US': ['English', 'English (United States)'],
@@ -562,6 +564,8 @@ async function setViaSettings(page, code, L) {
     await sleep(300);
     await closeOverlays(page, L);
     dialogOpen = false;
+    const verified=await until(async()=>await getCaptionLanguage(page)===code,VERIFY_MS);
+    if(!verified)throw new Error('caption language change could not be verified');
     L.info(`incall: caption language set to ${code} via Settings`);
     return true;
   } catch (err) {
@@ -612,7 +616,7 @@ export async function prepareInCall(page, { captionLang, log } = {}) {
     const ok = await setCaptionLanguage(page, captionLang, { log: L });
     const shown = await getCaptionLanguage(page);
     if (shown && shown !== captionLang) L.warn(`incall: the caption language reads ${shown}, not ${captionLang}`);
-    lang = shown || (ok ? captionLang : 'unknown');
+    lang = shown || 'unknown';
   }
   try {
     const snap = await takeSnapshot(page);

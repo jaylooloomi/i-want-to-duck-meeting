@@ -24,7 +24,8 @@ export class MicrophoneService {
     this.current = null;
   }
 
-  async start({ mode = 'microphone', input, output, meetingId, meetingDir, managed = false, nativeCaptions = false } = {}) {
+  async start({ mode = 'microphone', input, output, meetingId, meetingDir, managed = false, nativeCaptions = false, spokenLanguage = 'zh', languagePreferences } = {}) {
+    if(!['zh','en','de','ja','ko','unsupported'].includes(spokenLanguage))throw new Error('不支援的辨識語言');
     if (!['microphone', 'teams'].includes(mode)) throw new Error('不支援的收音模式');
     if (mode === 'teams' && (!Number.isInteger(input) || !Number.isInteger(output))) throw new Error('請選擇 Teams 播放裝置與自己的麥克風');
     if (mode === 'teams' && input === output) throw new Error('自己的輸入與會議播放裝置不能是同一路 loopback');
@@ -36,24 +37,24 @@ export class MicrophoneService {
     const session = { id, dir, token:randomUUID(), sequence:0, startedAt, audioStart:null, pending:[], stopping:false, ready:false, lastAudio:Date.now(), lastClient:Date.now(), mode, managed, laneFrames:{ mic:0, system:0 }, laneOffsets:{} };
     this.current = session;
     const code = mode === 'teams' ? 'Teams 雙路收音' : '本機麥克風';
-    const store = new TranscriptStore(dir, { code, startedAt, sourceLabel:'本機音訊辨識（Paraformer／聲音特徵分群）' });
+    const store = new TranscriptStore(dir, { code, startedAt, sourceLabel:spokenLanguage==='zh'?'本機音訊辨識（Paraformer／聲音特徵分群）':'本機音訊辨識（多語 Whisper／聲音特徵分群）' });
     const wav = mode === 'teams' ? new MultiTrackWriter(dir) : new WavWriter(path.join(dir, 'audio.wav'));
     session.store = store; session.wav = wav;
-    const stats = () => ({ utterances:store.count, speakers:store.speakers, audioSeconds:wav.seconds, audioPeak:wav.peak, captionLang:'zh', captionsOn:!!session.captionRouter?.native.size,
+    const stats = () => ({ utterances:store.count, speakers:store.speakers, audioSeconds:wav.seconds, audioPeak:wav.peak, captionLang:nativeCaptions?(session.captionLanguage||'unknown'):spokenLanguage, recognitionLanguage:spokenLanguage, captionsOn:!!session.captionRouter?.native.size,
       ...(mode === 'teams' ? { levels:wav.levels, tracks:Object.fromEntries(Object.entries(wav.tracks).map(([name, track]) => [name, { audioSeconds:track.seconds, audioPeak:track.peak }])) } : {}) });
     const status = (patch) => writeStatus(dir, { stats:stats(), ...patch });
     if (mode === 'teams' && nativeCaptions) {
-      store.sourceLabel='Teams 原生字幕與 Paraformer 備援';
-      session.captionRouter=new TeamsCaptionRouter({dir,store,changed:status});
+      store.sourceLabel=spokenLanguage==='zh'?'Teams 原生字幕與 Paraformer 備援':'Teams 原生字幕與多語 Whisper 備援';
+      session.captionRouter=new TeamsCaptionRouter({dir,store,changed:status,fallbackEngine:spokenLanguage==='zh'?'paraformer':'whisper',captionLanguage:()=>session.captionLanguage||'unknown'});
       session.platformCaption=event=>{if(!session.stopping)session.captionRouter.platform(event);};
     }
-    status({ id, code, source:mode, state:'starting', startedAt, pid:process.pid });
+    status({ id, ...(languagePreferences?{languagePreferences}:{}), code, source:mode, state:'starting', startedAt, pid:process.pid });
     const live = () => {
       const file = path.join(dir, 'live.json');
       fs.writeFileSync(file + '.tmp', JSON.stringify({ pending:session.pending, updatedAt:new Date().toISOString() }));
       fs.renameSync(file + '.tmp', file);
     };
-    const child = spawn(sttPython({ home }), [path.join(repoRoot, 'stt/live.py'), '--model-dir', path.join(home, 'models'), '--mode', mode], {
+    const child = spawn(sttPython({ home }), [path.join(repoRoot, 'stt/live.py'), '--model-dir', path.join(home, 'models'), '--mode', mode,'--language',spokenLanguage], {
       windowsHide:true, env:{ ...process.env, HF_HUB_OFFLINE:'1', HF_HUB_DISABLE_TELEMETRY:'1', PYTHONIOENCODING:'utf-8' }, stdio:['pipe', 'pipe', 'pipe'],
     });
     session.child = child;
@@ -72,13 +73,14 @@ export class MicrophoneService {
       try {
         const event = JSON.parse(line);
         const iso = (seconds) => new Date((session.audioStart || Date.parse(startedAt)) + seconds * 1000).toISOString();
-        if (event.type === 'ready') {
+        if(event.type==='asr-status'){status({asrFallback:{engine:event.engine,language:event.language,available:event.available}});}
+        else if (event.type === 'ready') {
           clearTimeout(timer); session.ready = true; session.lastAudio = Date.now();
           status({ state:'in_call', joinedAt:new Date().toISOString() }); readyResolve();
         } else if (event.type === 'pending') {
           session.pending = [{ speaker:event.speaker, text:'正在辨識語音…', source:mode === 'teams' ? `teams-${event.lane}` : 'local-audio', t0:iso(event.start), t1:new Date().toISOString() }]; live();
         } else if (event.type === 'record') {
-          const record={ speaker:event.speaker, text:event.text, t0:iso(event.start), t1:iso(event.end), source:mode === 'teams' ? `teams-${event.lane}` : 'local-audio' };
+          const record={ speaker:event.speaker, text:event.text, t0:iso(event.start), t1:iso(event.end), source:mode === 'teams' ? `teams-${event.lane}` : 'local-audio', language:spokenLanguage };
           if(session.captionRouter) session.captionRouter.asr(record); else store.append(record);
           status({});
         } else if (event.type === 'clear') { session.pending = []; live(); }
@@ -93,9 +95,9 @@ export class MicrophoneService {
         session.capture?.stdin.end();
         wav.close(); session.pending = []; live();
         const endedAt = new Date().toISOString();
-        store.renderMarkdown({ endedAt, captionLang:'zh', extraNote:mode === 'teams'
-          ? '來源：Teams 原生字幕（有收到時）與 Windows 雙路 Paraformer 備援；原生字幕時間為接收時間，本機辨識的講者標籤為估計結果。'
-          : '來源：本機麥克風、Whisper 與聲音特徵分群；講者標籤為估計結果。' });
+        store.renderMarkdown({ endedAt, captionLang:spokenLanguage, extraNote:mode === 'teams'
+          ? '來源：Teams 原生字幕（有收到時）與 Windows 雙路本機語音辨識備援；原生字幕時間為接收時間，本機辨識的講者標籤為估計結果。'
+          : '來源：本機麥克風、本機語音辨識與聲音特徵分群；講者標籤為估計結果。' });
         status({ state:code === 0 && !failure ? 'done' : 'failed', endedAt, endReason:session.endReason || 'recognizer_exit', error:failure ? { code:'local_stt_failed', message:failure } : code !== 0 ? { code:'local_stt_failed', message:signal ? `辨識程序被 ${signal} 終止` : `辨識程序結束碼 ${code}` } : null });
         if (this.current === session) this.current = null;
         log.end(resolve);
@@ -178,7 +180,8 @@ export class MicrophoneService {
       createInterface({ input:child.stdout }).on('line', (line) => {
         try {
           const event = JSON.parse(line);
-          if (event.type === 'ready') { session.captureReady = true; session.status({ captureDevices:event.devices }); clearTimeout(timer); resolve(); }
+          if(event.type==='asr-status'){status({asrFallback:{engine:event.engine,language:event.language,available:event.available}});}
+        else if (event.type === 'ready') { session.captureReady = true; session.status({ captureDevices:event.devices }); clearTimeout(timer); resolve(); }
           else if (event.type === 'audio' && (!session.stopping || session.drainingCapture)) {
             // Stop accepting browser audio before native drain, but keep final native packets.
             const wasStopping = session.stopping; session.stopping = false;

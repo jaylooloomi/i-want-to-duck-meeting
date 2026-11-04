@@ -1,3 +1,4 @@
+import {readMeetingPreferences,LANGUAGES} from './meeting-preferences.js';
 // Paths + defaults for openmeeting, with environment overrides.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -102,7 +103,10 @@ export function getConfig(env = process.env) {
   for (const [key, def] of Object.entries(TIMEOUT_DEFAULTS)) {
     timeouts[key] = parseMs(env[timeoutEnvName(key)], def);
   }
+  const savedLanguage=readMeetingPreferences(home);
   return {
+    meetingPreferences:savedLanguage,
+    captionLangSource:env.OPENMEETING_CAPTION_LANG?'environment':savedLanguage.source,
     repoRoot: REPO_ROOT,
     livePort: Number.isInteger(installedPort) && installedPort > 0 && installedPort <= 65535 ? installedPort : 8791,
     home,
@@ -110,7 +114,7 @@ export function getConfig(env = process.env) {
     profileDir: env.OPENMEETING_PROFILE ? path.resolve(env.OPENMEETING_PROFILE) : path.join(home, 'chrome-profile'),
     chromePath: env.CHROME_PATH || null,
     displayName: env.OPENMEETING_NAME || DEFAULT_DISPLAY_NAME,
-    captionLang: env.OPENMEETING_CAPTION_LANG || DEFAULT_CAPTION_LANG,
+    captionLang: env.OPENMEETING_CAPTION_LANG || LANGUAGES[savedLanguage.preferences.spokenLanguage].caption,
     headless: env.OPENMEETING_HEADLESS === '1',
     muteAudio: env.OPENMEETING_MUTE !== '0',
     allowAnyHost: env.OPENMEETING_ALLOW_ANY_HOST === '1',

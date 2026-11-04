@@ -1,0 +1,33 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {browserCase,record} from './harness.js';
+import {createWavHeader} from '../../src/audio/wav-writer.js';
+
+for(const width of [1920,390])test(`AUDIO real playback gain reaches 150 percent and survives seeking and track changes ${width}`,{timeout:25000},t=>browserCase(t,async({page,app})=>{
+ const folder=app.seed('gain',{state:'done'},[record('音量增益測試')]),pcm=Buffer.alloc(16000*2*12);
+ for(let i=0;i<pcm.length/2;i++)pcm.writeInt16LE(Math.round(1800*Math.sin(2*Math.PI*440*i/16000)),i*2);
+ const wav=Buffer.concat([createWavHeader({dataBytes:pcm.length,sampleRate:16000}),pcm]);
+ fs.writeFileSync(path.join(folder,'audio.wav'),wav);fs.writeFileSync(path.join(folder,'audio-system.wav'),wav);
+ await page.addInitScript(()=>{const Original=window.AudioContext;window.AudioContext=class extends Original{createGain(){const gain=super.createGain();window.qaPlaybackGain=gain;window.qaPlaybackContext=this;return gain;}};});
+ await page.goto(app.url+'/?id=gain&secondary=none');
+ const volume=page.getByRole('slider',{name:'音量',exact:true}),audio=page.getByLabel('錄音播放引擎',{exact:true});
+ assert.equal(await volume.getAttribute('max'),'2');assert.equal(await volume.inputValue(),'1.5');
+ await page.getByRole('button',{name:'播放錄音',exact:false}).click();
+ await page.waitForFunction(()=>window.qaPlaybackGain?.gain.value===1.5&&window.qaPlaybackContext?.state==='running');
+ await volume.evaluate(el=>{el.value='1';el.dispatchEvent(new Event('input'));});
+ await page.evaluate(()=>{window.qaAnalyser=window.qaPlaybackContext.createAnalyser();window.qaAnalyser.fftSize=2048;window.qaPlaybackGain.connect(window.qaAnalyser);});
+ const rms=()=>page.evaluate(()=>{const data=new Float32Array(window.qaAnalyser.fftSize);window.qaAnalyser.getFloatTimeDomainData(data);return Math.sqrt(data.reduce((sum,x)=>sum+x*x,0)/data.length);});
+ await page.waitForFunction(()=>{const a=new Float32Array(2048);window.qaAnalyser.getFloatTimeDomainData(a);return Math.max(...a)>.05&&window.qaPlaybackGain.gain.value===1;});const normal=await rms();
+ const changedAt=await page.evaluate(()=>window.qaPlaybackContext.currentTime);
+ await volume.evaluate(el=>{el.value='1.5';el.dispatchEvent(new Event('input'));});
+ await page.waitForFunction(at=>window.qaPlaybackContext.currentTime>at+.15,changedAt);const boosted=await rms();
+ assert.ok(boosted/normal>1.35&&boosted/normal<1.65,JSON.stringify({normal,boosted,ratio:boosted/normal}));
+ assert.equal(await volume.getAttribute('aria-valuetext'),'150%');
+ await page.getByRole('slider',{name:'錄音播放位置',exact:true}).evaluate(el=>{el.value='4';el.dispatchEvent(new Event('input'));});assert.ok(await audio.evaluate(el=>el.currentTime)>=4);
+ await page.getByRole('combobox',{name:'音軌',exact:true}).selectOption('audio-system.wav');if(await audio.evaluate(el=>el.paused))await page.getByRole('button',{name:'播放錄音',exact:false}).click();await page.waitForFunction(()=>!document.getElementById('meeting-audio').paused);
+ assert.equal(await page.evaluate(()=>window.qaPlaybackGain.gain.value),1.5);
+ await volume.evaluate(el=>{el.value='0';el.dispatchEvent(new Event('input'));});assert.equal(await audio.evaluate(el=>el.volume),0);
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+} ,{viewport:{width,height:930}}));

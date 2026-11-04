@@ -14,7 +14,7 @@ test('HTTP start cannot override the worker identity, filesystem destination or 
   const response=await fetch(running.url+'/api/microphone/start',{method:'POST',headers:{Origin:running.url,'Content-Type':'application/json'},
     body:JSON.stringify({mode:'teams',input:20,output:23,meetingId:'arbitrary',meetingDir:'C:/outside',managed:true})});
   assert.equal(response.status,200);
-  assert.deepEqual(received,{mode:'teams',input:20,output:23});
+  const {spokenLanguage,languagePreferences,...devices}=received;assert.deepEqual(devices,{mode:'teams',input:20,output:23});assert.equal(spokenLanguage,'zh');assert.equal(languagePreferences.captionLanguage,'cmn-Hant-TW');
 });
 
 test('live captions revise, retain separate speakers, and disappear after finalization', () => {

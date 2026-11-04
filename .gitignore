@@ -14,3 +14,10 @@ plugin/skills/meet/SKILL.md
 dist/
 installation.json
 integration-receipt.json
+video-recording.lock
+
+# Generated tutorial playback builds and visual audit frames
+docs/design/tutorial-visual-v2/animation/qa/
+docs/design/tutorial-visual-v2/animation/*.zip
+docs/design/tutorial-visual-v2/animation/*.html
+docs/qa/reports/tutorial-installed.png

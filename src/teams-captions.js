@@ -4,8 +4,8 @@ import path from 'node:path';
 // Platform events have no documented wall-clock mapping. Never infer that a
 // nearby native caption proves a different ASR sentence was captured.
 export class TeamsCaptionRouter {
-  constructor({dir, store, changed = () => {}}) {
-    Object.assign(this, {dir, store, changed});
+  constructor({dir, store, changed = () => {},fallbackEngine='paraformer',captionLanguage=()=> 'zh-TW'}) {
+    Object.assign(this, {dir, store, changed,fallbackEngine,captionLanguage});
     this.native = new Map(); this.fallback = []; this.received = 0;
   }
   platform(event) {
@@ -28,7 +28,7 @@ export class TeamsCaptionRouter {
   }
   asr(record) {
     this.fallback.push(record);
-    fs.appendFileSync(path.join(this.dir, 'transcript-paraformer.jsonl'), JSON.stringify(record)+'\n');
+    fs.appendFileSync(path.join(this.dir, this.fallbackEngine==='whisper'?'transcript-whisper-live.jsonl':'transcript-paraformer.jsonl'), JSON.stringify(record)+'\n');
     this.publish();
   }
   publish() {
@@ -42,7 +42,7 @@ export class TeamsCaptionRouter {
       return a && a===b && stamp>=start-5000 && stamp<=end+15000;
     }));
     this.store.replaceAll([...native,...fallback].sort((a,b)=>Date.parse(a.t0)-Date.parse(b.t0)));
-    this.store.renderMarkdown({captionLang:'zh-TW', extraNote:'Teams 平台原生字幕優先；未有等值字幕的 Paraformer 段落保留為備援。平台字幕時間為接收時間，備援講者為估計。'});
+    this.store.renderMarkdown({captionLang:this.captionLanguage(), extraNote:'Teams 平台原生字幕優先；未有等值字幕的 '+(this.fallbackEngine==='whisper'?'Whisper':'Paraformer')+' 段落保留為備援。平台字幕時間為接收時間，備援講者為估計。'});
     this.changed({nativeCaptions:{state:native.length?'receiving':'waiting', messages:native.length, revisions:this.received}, transcriptPolicy:'native-preferred-with-unmatched-asr'});
   }
 }

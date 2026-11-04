@@ -1,5 +1,20 @@
 (() => {
   const $=id=>document.getElementById(id), audio=$('meeting-audio');
+  let playbackContext=null,playbackGain=null;
+  function applyPlaybackVolume(){
+    const requested=Math.max(0,Math.min(2,Number($('audio-volume').value)||0));
+    audio.volume=Math.min(1,requested);if(playbackGain)playbackGain.gain.value=Math.max(1,requested);
+    const label=Math.round(requested*100)+'%';$('audio-volume-value').textContent=label;$('audio-volume').setAttribute('aria-valuetext',label);
+  }
+  async function enablePlaybackGain(){
+    if(!playbackContext){
+      const Context=window.AudioContext||window.webkitAudioContext;playbackContext=new Context();
+      playbackGain=playbackContext.createGain();const limiter=playbackContext.createDynamicsCompressor();
+      limiter.threshold.value=-1;limiter.knee.value=0;limiter.ratio.value=20;limiter.attack.value=.003;limiter.release.value=.1;
+      playbackGain.connect(limiter);limiter.connect(playbackContext.destination);playbackContext.createMediaElementSource(audio).connect(playbackGain);
+    }
+    applyPlaybackVolume();await playbackContext.resume();
+  }
   let rowSelection=null,storageSignature='',taskBusy=false,sourceFilesSignature='',storageUpdatedAt=0,storagePending=false;
   document.addEventListener('ui-language-change',()=>{notesSignature='';sourceFilesSignature='';highlightsSignature='';storageUpdatedAt=0;const select=$('audio-track');if(select)delete select.dataset.signature;$('audio-play').textContent=uiText(audio.paused?'▶ 播放錄音':'Ⅱ 暫停錄音');});
   const requestedNotesTab=new URLSearchParams(location.search).get('notes');
@@ -96,9 +111,9 @@
     if(!info)return;
     const key=current.id+':'+name;
     if(key===audioKey)return;
-    audioKey=key;audio.pause();duration=info.seconds;pendingSeek=null;$('audio-message').textContent='';
+    audioKey=key;audio.pause();$('audio-play').textContent=uiText('▶ 播放錄音');$('audio-play').dataset.playing='false';duration=info.seconds;pendingSeek=null;$('audio-message').textContent='';
     audio.src='/api/audio?id='+encodeURIComponent(current.id)+'&file='+encodeURIComponent(name);
-    audio.playbackRate=Number($('audio-speed').value);audio.volume=Number($('audio-volume').value);
+    audio.playbackRate=Number($('audio-speed').value);applyPlaybackVolume();
     $('audio-play').disabled=false;drawWaveform(info.waveform);updateTime();
   }
   function renderAudio(data){
@@ -165,14 +180,14 @@
   const speed=readPref('speed','1');if([...$('audio-speed').options].some(o=>o.value===speed))$('audio-speed').value=speed;
   $('audio-track').addEventListener('change',()=>loadTrack($('audio-track').value));
   $('audio-play').addEventListener('click',async()=>{if(!audio.paused){audio.pause();return;}try{await audio.play();}catch{ $('audio-message').textContent=uiText('無法播放這份錄音，請切換音軌或下載後檢查。'); }});
-  audio.addEventListener('play',()=>{$('audio-play').textContent=uiText('Ⅱ 暫停錄音');$('audio-play').dataset.playing='true';});audio.addEventListener('pause',()=>{$('audio-play').textContent=uiText('▶ 播放錄音');$('audio-play').dataset.playing='false';});
+  audio.addEventListener('play',()=>{void enablePlaybackGain().catch(()=>{$('audio-message').textContent=uiText('音量增益無法啟用，請重新載入後再播放。');});$('audio-play').textContent=uiText('Ⅱ 暫停錄音');$('audio-play').dataset.playing='true';});audio.addEventListener('pause',()=>{$('audio-play').textContent=uiText('▶ 播放錄音');$('audio-play').dataset.playing='false';});
   audio.addEventListener('timeupdate',updateTime);audio.addEventListener('loadedmetadata',()=>{if(pendingSeek!==null){audio.currentTime=pendingSeek;pendingSeek=null;}updateTime();});
   audio.addEventListener('error',()=>{if(audioKey){$('audio-message').textContent=uiText('錄音檔案無法讀取或格式不支援，請匯出檔案檢查。');$('audio-play').disabled=true;}});
   $('audio-seek').addEventListener('input',()=>seek(Number($('audio-seek').value)));
   $('audio-speed').addEventListener('change',()=>{audio.playbackRate=Number($('audio-speed').value);savePref('speed',$('audio-speed').value);});
-  $('audio-volume').addEventListener('input',()=>{audio.volume=Number($('audio-volume').value);});
-  function seek(seconds,preferMixed=false){if(preferMixed && current?.workspace?.audio?.some(track=>track.name==='audio.wav')){$('audio-track').value='audio.wav';loadTrack('audio.wav');}if(!audioKey){message(uiText('這場尚無可播放錄音，無法跳轉。'));return;}const target=Math.max(0,Math.min(duration,seconds));if(audio.readyState>=1)audio.currentTime=target;else pendingSeek=target;updateTime();}
-  document.addEventListener('seek-recording',({detail})=>{const base=Date.parse(current?.status?.joinedAt||current?.status?.startedAt);if(Number.isFinite(base))seek((Date.parse(detail.time)-base)/1000,true);});
+  $('audio-volume').addEventListener('input',applyPlaybackVolume);applyPlaybackVolume();
+  function seek(seconds,preferMixed=false,play=false){const wasPlaying=play||!audio.paused;if(preferMixed && current?.workspace?.audio?.some(track=>track.name==='audio.wav')){$('audio-track').value='audio.wav';loadTrack('audio.wav');}if(!audioKey){if(!current?.video?.segments?.length)message(uiText('這場尚無可播放錄音，無法跳轉。'));return;}const target=Math.max(0,Math.min(duration,seconds));if(audio.readyState>=1)audio.currentTime=target;else pendingSeek=target;if(wasPlaying&&audio.paused)void audio.play().catch(()=>{$('audio-message').textContent=uiText('無法播放這份錄音，請切換音軌或下載後檢查。');});updateTime();}
+  document.addEventListener('seek-recording',({detail})=>{const base=Date.parse(current?.status?.joinedAt||current?.status?.startedAt);if(Number.isFinite(base))seek((Date.parse(detail.time)-base)/1000,true,detail.play===true);});
   function renderHighlights(data){
     renderAudioHighlights();
     const markers=data?.highlights||[],live=data?.status?.state==='in_call';

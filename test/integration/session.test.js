@@ -14,7 +14,7 @@ import { createMeetingDir, newMeetingId, readStatus } from '../../src/status.js'
 import { parseMeetUrl } from '../../src/url.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const ROOT = path.join(REPO, 'test', '.tmp', 'integ-session');
+const ROOT = fs.mkdtempSync(path.join(REPO, 'test', '.tmp', 'integ-session-'));
 const CODE = 'abc-defg-hij';
 const NAME = '測試 Bot 的會議記錄';
 /** Parameters that make a scenario run in about a second once captions are on. */
@@ -179,16 +179,16 @@ test('happy: joins silently, records the exact transcript, audio and stats', { t
   assert.equal(final.stats.audioTracks, undefined, 'no "no audio tracks" warning');
 });
 
-test('langpicker=settings: no caption-bar combobox → the Settings fallback sets the caption language', { timeout: TEST_TIMEOUT }, async () => {
+test('langpicker=settings: no caption-bar combobox → unreadable Settings changes are not reported as verified', { timeout: TEST_TIMEOUT }, async () => {
   const { final, dir, mockState } = await runMock({ scenario: 'happy', ...QUICK, langpicker: 'settings' });
   assert.equal(final.state, 'done');
   assert.equal(final.endReason, 'meeting_ended');
-  assert.equal(final.stats.captionLang, 'cmn-Hant-TW');
+  assert.equal(final.stats.captionLang, 'unknown');
   assert.equal(mockState.captionLang, 'cmn-Hant-TW');
   assert.deepEqual(langChanges(mockState), ['cmn-Hant-TW/settings']);
   const log = readLog(dir);
   assert.match(log, /no "Meeting language" combobox in the caption bar; using Settings > Captions/);
-  assert.match(log, /caption language set to cmn-Hant-TW via Settings/);
+  assert.match(log, /caption language change could not be verified/);
   assert.doesNotMatch(log, /last resort/, 'the Settings list item was clicked with a real click');
   const utterances = readUtterances(dir);
   assert.ok(utterances.length >= 1);

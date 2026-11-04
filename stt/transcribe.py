@@ -136,12 +136,12 @@ def main(argv=None):
         vad_filter=True,
         condition_on_previous_text=False,
         beam_size=5,
-        initial_prompt=INITIAL_PROMPT,
+        initial_prompt=INITIAL_PROMPT if args.lang.startswith('zh') else None,
     )
 
     segments = []
     for seg in seg_iter:
-        text = normalize_punct(cc.convert(seg.text or '').strip())
+        text = (normalize_punct(cc.convert(seg.text or '').strip()) if args.lang.startswith('zh') else (seg.text or '').strip())
         if not text:
             continue
         item = {'start': round(float(seg.start), 2), 'end': round(float(seg.end), 2), 'text': text}

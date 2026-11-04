@@ -12,15 +12,15 @@ export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
     teamsBrowser:{state:status.teamsBrowserEnabled===false?'disabled':'starting'},
     nativeCaptions:{state:'waiting',messages:0,revisions:0}});
   const service=deps.service || new MicrophoneService({meetingsDir:config.meetingsDir,home:config.home,repoRoot:config.repoRoot});
-  const {token}=await service.start({mode:'teams',input:selected.input.id,output:selected.output.id,meetingId:id,meetingDir:dir,managed:true,nativeCaptions:true});
+  const {token}=await service.start({mode:'teams',input:selected.input.id,output:selected.output.id,meetingId:id,meetingDir:dir,managed:true,nativeCaptions:true,spokenLanguage:status.languagePreferences?(status.languagePreferences.asrLanguage || 'unsupported'):'zh'});
   const session=service.current;
   if (!session) return readStatus(dir); // stopped during model startup
   let browser;
   const controller=new AbortController();
   // Audio is independent: failure/login in the browser must not discard recordings.
-  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config:{...config,displayName:status.displayName||config.displayName},url,signal:controller.signal,
+  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config:{...config,displayName:status.displayName||config.displayName,captionLang:status.languagePreferences?.captionLanguage || config.captionLang},url,signal:controller.signal,
     onCaption:event=>session.platformCaption?.(event),
-    onState:state=>{if(service.current===session && !session.stopping)writeStatus(dir,{teamsBrowser:state});},
+    onState:state=>{session.captionLanguage=state.captionLanguage||'unknown';if(service.current===session && !session.stopping)writeStatus(dir,{teamsBrowser:state});},
   }).then(result=>{browser=result;}).catch(error=>{
     if(service.current===session && !session.stopping)writeStatus(dir,{teamsBrowser:{state:'unavailable',error:error.message}});
   });

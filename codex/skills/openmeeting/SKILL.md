@@ -26,7 +26,7 @@ description: "記錄 Google Meet 或 Teams 的逐字稿、發言者及錄音，�
 
 使用者直接貼上 Teams 會議連結要求記錄時，執行 `CLI join '<完整Teams連結>'`，保留 `?p=` 等加入參數，不套用 Meet 的連結清理規則。不要自行拼接心跳、HTTP 或 Python 指令。
 
-CLI 自動準備環境、啟動背景錄音、開啟即時逐字稿網頁面板（LIVE_URL）並開啟專用 Teams Chrome，嘗試加入、關閉麥克風／鏡頭、啟用字幕及設定中文。使用者僅在必要時登入／授權／請主持人放行。不要求手動字幕設定。一般不要加 `--no-open`，它會跳過原生字幕瀏覽器，只保留音訊／Paraformer。
+CLI 自動準備環境、啟動背景錄音、開啟即時逐字稿網頁面板（LIVE_URL）並開啟專用 Teams Chrome，嘗試加入、關閉麥克風／鏡頭、啟用字幕及套用本機保存的會議辨識語言。使用者僅在必要時登入／授權／請主持人放行。不要求手動字幕設定。一般不要加 `--no-open`，它會跳過原生字幕瀏覽器，只保留音訊／Paraformer。
 
 保存 MEETING_ID，讀 `status` 的 `teamsBrowser.state` 判斷登入／入會，讀 `nativeCaptions` 確認實際字幕；頂層 `in_call` 僅代表音訊程序啟動。平台字幕優先，未對應的 Paraformer 結果保留，措辭不同時可能重複；原始事件另存 transcript-native.jsonl、transcript-paraformer.jsonl。字幕時間為接收時間；未知發言者不猜姓名。
 
@@ -43,6 +43,12 @@ CLI 自動準備環境、啟動背景錄音、開啟即時逐字稿網頁面板�
 - 機器人麥克風與攝影機維持封鎖、關閉。它們的權限警示不代表接收錄音需要打開麥克風；不要點選啟用裝置或代替使用者說話。
 - join 需要登入時會進入 waiting_login；使用者在同一專用視窗自行登入並保持視窗開啟，程式自動接續。不碰日常 Chrome。只有單獨準備／切換帳號時才用 CLI login。
 - 平常由 CLI 處理加入與字幕。確有介面改版或使用者明確要求放行某人時，才在該授權範圍使用可用的診斷／瀏覽器工具。
+
+## 共用會議語言預設
+
+開會前用 `CLI preferences get` 讀取本機共用預設與 effective 值。`join` 會自行讀取，無須依賴對話記憶；若使用者沒有另指定，直接 join 並核對輸出的 LANGUAGE_PREFERENCES。使用者明確說「這次德文」時，用 `--lang de-DE` 覆蓋這一場，不修改保存的預設。英文 en-US、日文 ja-JP、韓文 ko-KR。介面語系、原文顯示與翻譯目標不等於會議辨識語言。
+
+每場 status.languagePreferences 是建立時的快照；後來更改設定只作用於新會議。Meet 核對 languageSetup 的 requested／observed／verified，Teams 核對 teamsBrowser.captionLanguage；未讀回實際語言不可宣稱成功。Teams 權限受限時不可停止別人的轉錄強制改語言。非中文不使用中文 Paraformer；asrFallback.available=false 時說明只有平台字幕與保存的錄音可用，不編造辨識能力。登入、選帳號與主持人放行沿用既有自動接續，不因語言設定重複 join。
 
 ## 啟動記錄
 

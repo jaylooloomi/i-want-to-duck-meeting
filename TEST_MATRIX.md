@@ -287,3 +287,32 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] SMART-FOLLOW (FE-E2E): upward reading pauses auto-follow on desktop/mobile, preserving paragraph offset through earlier text expansion, pending captions and delayed translations; new nonmatching search speech still notifies, jump clears filters/resumes, manual bottom resumes, ended state hides notice; 10 follow/source/integrity tests passed. Earlier scroll/player regression: 15 passed.
 
 - [x] BRAND-INLINE-VERSION (FE-E2E): version appears immediately to right of product name with matching bottom edge, same geometry in both themes at desktop/mobile; supersedes earlier below-name version layout. Five related tests passed.
+
+- [x] HIGHLIGHT-STAR-STATE (Backend / FE-E2E): moment and whole-paragraph marks both activate the star; paragraph toggle clears all associated marks but preserves unrelated paragraphs and per-marker cancellation; pending speaker rename/finalization and reload remain consistent. 12 related tests passed. Formal installation sync was rejected by automatic approval review; source fix is not deployed there.
+
+- [x] SOURCE-PICKER (FE-E2E): bounded searchable list replaces native select; 200 records/very long unbroken text wrap without horizontal overflow; exact original text/time saved after filtering; empty search/reopen and desktop/mobile light/dark verified. Eleven picker/source/integrity tests passed.
+
+- [x] AUDIO-GAIN (FE-E2E): real generated sine playback measured at 100% vs 150% via audio analyser; 1.35–1.65 amplitude ratio, default 150%, maximum 200%, seek/track switch/mute preserved, desktop/mobile no overflow. Five final gain/integrity tests passed; ten scroll/player bounds tests passed before explicit track-button sync correction.
+
+- Formal mail option 1: desktop/mobile full-template metadata, default-all choices, copy parity, saved empty selection persistence; see `test/qa/mail-draft.test.js` and `docs/qa/reports/mail-formal-20261103.md`.
+
+- Highlight toolbar locale height: `test/qa/highlight-toolbar.test.js` checks zh-TW/en/ja/ko at desktop/mobile in both themes, fixed responsive row height, horizontal containment and usable filter.
+
+### Optional Windows window video — 2026-11-03
+
+- [x] VIDEO-UNIT: bounded argv, exact HWND grammar, safe media paths, cross-server lock and dead-owner recovery.
+- [x] VIDEO-NATIVE: real synthetic encoding/decoding, nonzero muxed tone, accelerated >120s media, own-window pixel verification and owner-crash process cleanup.
+- [x] VIDEO-API: exact identity, origin, unsupported actions, no arbitrary/synthetic arguments, byte ranges and traversal rejection.
+- [x] VIDEO-UI: explicit selection/start, loading/double-submit guard, failure feedback, phone/desktop and both themes, real browser video playback and transcript offset seek.
+- [x] VIDEO-REGRESSION: 540 unit cases, 22 feature cases and 27 core/native/video/scroll cases passed; evidence and outstanding native acceptance listed in [report](docs/qa/reports/video-recording-20261103.md).
+- Manual acceptance outstanding: actual Meet/Teams participants and screen sharing, long real-time capture, minimized/covered/mixed-DPI behavior. Synthetic tests do not mark these passed.
+
+## 會議語言預設（方案 1）
+
+- [x] PREF-API / Backend：同源、schema、版本衝突、共用資料目錄與快照隔離。
+- [x] PREF-UI / FE-E2E：德文預設儲存、重試、單次送出、390/1280與明暗主題、既有會議不變。
+- [x] PREF-SNAPSHOT / FE-E2E：本場語言初始化與明確 URL 覆蓋。
+- [x] LANG-PLATFORM / Integration：Meet／Teams 德日韓字幕設定讀回，權限不足不誤報成功。
+- [x] LANG-ASR / Backend：本機多語模型使用正確語系、不下載、缺模型不走中文。
+
+驗收與重跑：[完整報告](docs/qa/reports/meeting-language-defaults-20261103.md)。真人語音準確度尚未驗證。

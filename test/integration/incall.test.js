@@ -373,11 +373,12 @@ test('setCaptionLanguage: a combobox pick that does not stick → Escape, then S
   }
 });
 
-test('setCaptionLanguage: Settings path clicks the hidden list item from page script only as the last resort', async () => {
+test('setCaptionLanguage: Settings path without observable readback never claims verification', async () => {
   const page = await openLangPage({ combobox: false, deadTrigger: true });
   const lines = [];
   try {
-    assert.equal(await setCaptionLanguage(page, 'cmn-Hant-TW', { log: (m) => lines.push(m) }), true);
+    assert.equal(await setCaptionLanguage(page, 'cmn-Hant-TW', { log: (m) => lines.push(m) }), false);
+    assert.equal(await getCaptionLanguage(page), null);
     const st = await pageState(page);
     assert.equal(st.lang, 'cmn-Hant-TW');
     assert.ok(st.events.includes('trigger:true'), 'tried to open the dropdown with a real click first');

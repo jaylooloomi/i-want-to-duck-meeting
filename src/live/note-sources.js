@@ -15,11 +15,21 @@
   $('note-source-unlink').disabled=busy||!source.linked&&!source.previous;
   $('note-source-save').disabled=busy||$('note-source-record').value==='';
  }
+ function renderCandidates(){
+  const box=$('note-source-options'),query=$('note-source-search').value.trim().toLocaleLowerCase();box.replaceChildren();
+  base.records.forEach((record,index)=>{
+   if(query&&![record.text,record.speaker].join(' ').toLocaleLowerCase().includes(query))return;
+   const option=document.createElement('button');option.type='button';option.setAttribute('role','option');option.setAttribute('aria-selected',String($('note-source-record').value===String(index)));
+   const meta=document.createElement('small');meta.textContent=(record.t0||t('時間未知'))+' · '+(record.speaker||t('未知發言者'));
+   const quote=document.createElement('span');quote.textContent=record.text;option.append(meta,quote);
+   option.addEventListener('click',()=>{$('note-source-record').value=String(index);$('note-source-selected').textContent=meta.textContent+'\n'+record.text;for(const child of box.children)child.setAttribute('aria-selected',String(child===option));render();});box.append(option);
+  });
+  if(!box.children.length){const empty=document.createElement('p');empty.textContent=t('沒有符合的原文');box.append(empty);}
+ }
  function open(detail){
   if(current?.id!==detail.id)return;opened=detail.itemId;if(!item())return;
   base={id:current.id,revision:current.noteItems.revision,evidenceRevision:current.noteItems.evidenceRevision,records:current.records};
-  const select=$('note-source-record');select.replaceChildren(new Option(t('請選擇原文，不推測時間'),''));
-  current.records.forEach((record,index)=>select.append(new Option((record.t0||t('時間未知'))+' · '+(record.speaker||t('未知發言者'))+' · '+record.text,index)));
+  $('note-source-record').value='';$('note-source-search').value='';$('note-source-selected').textContent=t('尚未選擇原文');renderCandidates();
   $('note-source-feedback').textContent='';render();$('note-source-dialog').showModal();
  }
  document.addEventListener('mail-meeting',({detail})=>{
@@ -28,7 +38,8 @@
  });
  document.addEventListener('ui-language-change',render);
  document.addEventListener('note-source-open',({detail})=>open(detail));
- $('note-source-record').addEventListener('change',render);
+ $('note-source-search').addEventListener('input',renderCandidates);
+ $('note-source-options').addEventListener('keydown',event=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;const options=[...$('note-source-options').children].filter(el=>el.getAttribute('role')==='option');if(!options.length)return;event.preventDefault();let index=options.indexOf(document.activeElement);index=event.key==='Home'?0:event.key==='End'?options.length-1:Math.max(0,Math.min(options.length-1,index+(event.key==='ArrowDown'?1:-1)));options[index].focus();});
  async function save(unlink=false){
   if(busy||!base||!item())return;const recordIndex=unlink?null:Number($('note-source-record').value);if(!unlink&&$('note-source-record').value==='')return;
   const record=recordIndex===null?null:base.records[recordIndex],id=base.id;

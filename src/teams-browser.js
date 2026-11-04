@@ -1,3 +1,4 @@
+import {LANGUAGES,canonicalLanguage} from './meeting-preferences.js';
 import path from 'node:path';
 import {launchChrome, connectChrome} from './chrome.js';
 import {installTeamsCaptionTap} from './teams-captions.js';
@@ -22,7 +23,7 @@ async function muteLocalDevices(page, camera=false) {
 }
 
 // Limit automation to the requested meeting surface. Never fill sign-in fields.
-export async function configureTeamsPage(page, {displayName, language='中文（台灣）'}={}) {
+export async function configureTeamsPage(page, {displayName, language='cmn-Hant-TW'}={}) {
   const host=new URL(page.url()).hostname;
   if (host==='login.live.com' || host==='login.microsoftonline.com') return 'needs_login';
   if (!['teams.live.com','teams.microsoft.com','teams.cloud.microsoft'].includes(host)) return 'waiting_page';
@@ -37,15 +38,26 @@ export async function configureTeamsPage(page, {displayName, language='中文（
         await clickVisible(page.getByRole('menuitem',{name:/Turn on live captions|Show live captions|開啟即時字幕|顯示即時字幕/i}));
       }
     }
-    // Language settings, when available. No private session endpoints are used.
-    if(await clickVisible(page.locator('[data-tid="closed-captions-settings-menu-trigger-button"]'))) {
-      await clickVisible(page.getByRole('menuitem',{name:/Language settings|語言設定/i}));
-      const combo=page.getByRole('combobox',{name:/Meeting spoken language|會議口說語言|會議使用語言|口語/i}).first();
-      if(await combo.isVisible().catch(()=>false)) {
-        let selected=false;
-        if(await combo.evaluate(el=>el.tagName==='SELECT')) selected=await combo.selectOption({label:language},{timeout:2000}).then(()=>true).catch(()=>false);
-        else {await combo.click();selected=await clickVisible(page.getByRole('option',{name:/Chinese.*Taiwan|中文.*台灣|中文.*臺灣/i}));}
-        if(selected && await clickVisible(page.getByRole('button',{name:/^(Update|更新)$/i}))) page.__omCaptionLanguage='zh-TW';
+    // Configure only the requested spoken language, then read back actual selection.
+    const canonical=canonicalLanguage(language),definition=LANGUAGES[canonical];
+    if(definition&&page.__omCaptionLanguage!==canonical&&(page.__omLanguageAttempts||0)<3&&Date.now()>=(page.__omLanguageRetryAt||0)){
+      page.__omLanguageAttempts=(page.__omLanguageAttempts||0)+1;page.__omLanguageRetryAt=Date.now()+60000;
+      const matches=value=>definition.teams.some(label=>String(value||'').replace(/\s+/g,' ').trim().toLowerCase()===label.toLowerCase())||[canonical,definition.caption].includes(value);
+      if(await clickVisible(page.locator('[data-tid="closed-captions-settings-menu-trigger-button"]'))){
+        await clickVisible(page.getByRole('menuitem',{name:/Language settings|語言設定/i}));
+        const combo=page.getByRole('combobox',{name:/Meeting spoken language|會議口說語言|會議使用語言|口語/i}).first();
+        if(await combo.isVisible().catch(()=>false)){
+          const read=()=>combo.evaluate((el,codes)=>el.tagName==='SELECT'?(codes.includes(el.value)?el.value:el.selectedOptions[0]?.textContent):(codes.includes(el.getAttribute('data-value'))?el.getAttribute('data-value'):el.textContent),[canonical,definition.caption]).catch(()=>null);
+          let selected=matches(await read());
+          if(!selected){
+            if(await combo.evaluate(el=>el.tagName==='SELECT')){
+              const option=await combo.evaluate((el,{labels,codes})=>[...el.options].find(o=>labels.includes(o.textContent.trim())||codes.includes(o.value))?.value,{labels:definition.teams,codes:[canonical,definition.caption]});
+              if(option!==undefined)selected=await combo.selectOption(option,{timeout:2000}).then(()=>true).catch(()=>false);
+            }else{await combo.click();for(const label of definition.teams){if(await clickVisible(page.getByRole('option',{name:label,exact:true}))){selected=true;break;}}}
+            if(selected)selected=await clickVisible(page.getByRole('button',{name:/^(Update|更新)$/i}));
+          }
+          if(selected&&matches(await read()))page.__omCaptionLanguage=canonical;
+        }
       }
     }
     return 'in_call';
@@ -82,7 +94,7 @@ export async function startTeamsBrowser({config,url,onCaption,onState,signal}) {
     await context.addInitScript(installTeamsCaptionTap);
     const tick=async()=>{
       if(stopped || running)return;running=true;
-      try {onState({state:await configureTeamsPage(page,{displayName:config.displayName}), url:page.url(),captionLanguage:page.__omCaptionLanguage || 'unverified'});}
+      try {onState({state:await configureTeamsPage(page,{displayName:config.displayName,language:config.captionLang}), url:page.url(),captionLanguage:page.__omCaptionLanguage || 'unverified'});}
       catch(error){onState({state:'setup_retry',error:error.message});}
       finally{running=false;}
     };

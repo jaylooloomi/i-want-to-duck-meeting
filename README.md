@@ -535,3 +535,35 @@ English translation is enabled by default on newly opened workspaces, including 
 ### Smart transcript following
 
 During a live meeting, scrolling up pauses automatic following. Incoming captions and translations preserve the visible source paragraph instead of pulling you to the bottom. A new-speech button appears below the transcript, outside the text and audio controls. Click it (clearing transcript search/highlights filters) or manually scroll to the bottom to resume. Search and source navigation also pause following; no timeout forces you back to live speech. The existing Auto-scroll preference remains available.
+
+A transcript star is active when its paragraph has any associated moment or whole-paragraph highlight. Clicking the active star removes that paragraph’s associated highlights; the highlights list still supports removing an individual marker. Other paragraphs are preserved.
+
+Source linking uses a bounded searchable paragraph list instead of a native dropdown. Search source text or speaker, select a record, inspect its full preview, then explicitly save. Long text wraps; selection alone does not save or infer timestamps.
+
+Recording playback supports 0–200% volume with Web Audio gain and a peak limiter. The default is 150%; the percentage is displayed beside the slider. This changes playback only, not the original WAV. Seeking and track changes retain the gain setting.
+
+### Formal complete mail draft
+
+Select mail content, preview, then apply. New drafts include meeting time (Asia/Taipei), location/code, recorded speakers, summary, discussion, decisions and actions. Choices default to all selected; saved empty selections remain empty. Existing manually edited bodies are preserved outside recognized decisions/actions; undo is available. Speakers are not a full attendance roster, and missing discussion or metadata is explicitly marked. Copy/download never creates or sends a mailbox message.
+
+### Optional Windows meeting video (source branch)
+
+The meeting **… → Meeting video / recording** menu can record an explicitly selected window with local FFmpeg, preserve segments, stop when the meeting ends, and merge the available mixed audio. Transcript timestamps can locate video after enabling synchronization in the video dialog. No extra AI API/token is used. First version has no pause; real Meet/Teams video acceptance is still required. Download video separately (excluded from the general meeting ZIP). See [setup, limitations and verification](docs/VIDEO_RECORDING.md) and [runtime/license notices](docs/third-party/video-recording.md). This does not upgrade an existing installed Release automatically.
+
+## Shared meeting language defaults
+
+Open **Settings → Meeting language**, choose the spoken/caption language, original-text display and translation language, then select **Done**. For example: German → Follow meeting language → Traditional Chinese. New Codex and Claude Code meeting commands read the same local defaults and store an immutable language snapshot for each new session.
+
+- Spoken languages: Chinese, English, German, Japanese and Korean. Original-text display is a reading filter, not a control for changing an active meeting's captions.
+- Defaults: Chinese speech, original display following the meeting language, English translation. Saving defaults does not change existing sessions.
+- Settings live in `meeting-preferences.json` under the data directory. Inspect them with `node bin/openmeeting.js preferences get`. Explicit CLI caption-language and environment settings take precedence.
+- Platform language changes require observable readback. Missing permissions or unreadable state remain unverified; the tool does not stop another participant's transcription.
+- Chinese fallback uses Paraformer. English/German/Japanese/Korean use a locally cached multilingual Whisper model. Missing models produce an availability warning without an automatic download or silent Chinese fallback; recording and platform captions remain available.
+- Translation uses the existing online text service. Automated platform fixtures verify configuration behavior, not real-world speech accuracy.
+
+See [meeting language details](docs/MEETING_LANGUAGES.md).
+
+
+### Built-in tutorial
+
+Use **Tutorial** at the bottom of the sidebar to play the 15-scene walkthrough in a modal. Narration is enabled by default. If autoplay is blocked, press Play. Closing the tutorial stops its audio and keeps the current meeting unchanged. The walkthrough uses fictional demonstration data; narration is in Chinese.

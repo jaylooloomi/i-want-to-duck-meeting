@@ -13,7 +13,7 @@ export const defer=()=>{let resolve;const promise=new Promise(r=>resolve=r);retu
 
 // Real HTTP and browser PCM, isolated speech/device boundary. Never claims ASR quality.
 export async function fixture() {
-  const root=path.join(runRoot,'data-'+randomUUID());fs.mkdirSync(root,{recursive:true});
+  const home=path.join(runRoot,'data-'+randomUUID()),root=path.join(home,'meetings');fs.mkdirSync(root,{recursive:true});
   const calls={start:[],audio:[],stop:[],heartbeat:[]};let current;
   const seed=(id='qa-first',patch={},records=[])=>{
     const dir=path.join(root,id);fs.mkdirSync(dir,{recursive:true});
@@ -41,7 +41,7 @@ export async function fixture() {
     heartbeat(token){assert.ok(current,'Capture must exist');assert.equal(token,current.token);calls.heartbeat.push(token);return {ok:true};},
   };
   const server=await startLiveServer({meetingsDir:root,port:0,microphone});
-  return {...server,root,calls,seed,close:()=>server.shutdown()};
+  return {...server,root,home,calls,seed,close:()=>server.shutdown()};
 }
 export function record(text,speaker='QA speaker',at='2026-01-01T00:00:00.000Z') {
   return {text,speaker,t0:at,t1:at};

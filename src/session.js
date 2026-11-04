@@ -1,3 +1,4 @@
+import {canonicalLanguage,LANGUAGES} from './meeting-preferences.js';
 /**
  * One meeting, start to finish (spec 5.14): launch Chrome, join, record captions + audio,
  * detect the end, finalize the transcript. Used by the detached worker and `join --foreground`.
@@ -224,7 +225,7 @@ export async function runSession(opts) {
     if (!force && now - lastStatsWrite < STATS_EVERY_MS) return;
     lastStatsWrite = now;
     try {
-      writeStatus(dir, { stats: { ...stats } });
+      writeStatus(dir, { stats: { ...stats },languageSetup:{requested:captionLang,observed:stats.captionLang,verified:stats.captionLang===captionLang} });
     } catch (err) {
       L.warn(`could not write stats: ${err && err.message}`);
     }
@@ -402,7 +403,7 @@ export async function runSession(opts) {
         L.debug(`setCaptionLanguage failed: ${err && err.message}`);
       }
       const shown = await getCaptionLanguage(page);
-      stats.captionLang = shown || (ok ? captionLang : current || stats.captionLang);
+      stats.captionLang = shown || 'unknown';
       if (stats.captionLang === captionLang) langRetries = 0;
       writeStats(true);
     };
@@ -781,7 +782,7 @@ export async function runSession(opts) {
     stats.speakers = store.speakers;
     // Captions in the wrong language (Meet's default is English) turn Mandarin speech into
     // nonsense that still counts as utterances, so the recording is transcribed then too.
-    const langMissed = joinedAtMs !== null && !!captionLang && ZH_LANG_RE.test(captionLang) && stats.captionLang !== captionLang;
+    const langMissed = joinedAtMs !== null && !!captionLang && stats.captionLang !== captionLang;
     const langNote = `字幕語言未能設定為 ${captionLang}，下面的字幕內容可能不正確`;
     const enoughAudio = stats.audioSeconds >= MIN_WHISPER_AUDIO_S;
     if (langMissed && store.count > 0) {
@@ -798,7 +799,7 @@ export async function runSession(opts) {
       const why = store.count === 0 ? '沒有擷取到字幕' : langNote;
       try {
         setStatus({ state: 'transcribing', endedAt, endReason, stats: { ...stats } });
-        const r = await runTranscribe({ config, wavPath: path.join(dir, 'audio.wav'), outDir: dir, log: sub('stt') });
+        const r = await runTranscribe({ config, wavPath: path.join(dir, 'audio.wav'), outDir: dir, lang:LANGUAGES[canonicalLanguage(captionLang)]?.asr || captionLang.split('-')[0], offline:canonicalLanguage(captionLang)!=='zh-TW', log: sub('stt') });
         extraNote = `${why}，已用 Whisper 語音辨識錄音：transcript-whisper.md（${r.segments} 段）`;
       } catch (err) {
         L.warn(`Whisper fallback failed: ${err && err.message}`);

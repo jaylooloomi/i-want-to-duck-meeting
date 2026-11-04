@@ -1,3 +1,6 @@
+import {createHash} from 'node:crypto';
+import {readMeetingPreferences,saveMeetingPreferences,resolveMeetingLanguage,LANGUAGES} from './meeting-preferences.js';
+import {VideoService,readVideo,safeVideoFile} from './video-recording.js';
 import {summaryItems,setSummarySource} from './summary-items.js';
 import {readMailDraft,saveMailDraft} from './mail-draft.js';
 import http from 'node:http';
@@ -42,6 +45,7 @@ function collectExportFiles(rootDir, prefix = '') {
     const full = path.join(rootDir, e.name);
     const rel = prefix ? `${prefix}/${e.name}` : e.name;
     if (e.isDirectory()) {
+      if(e.name==='video')continue; // Large video is downloaded independently; preserve ZIP compatibility.
       out.push(...collectExportFiles(full, rel));
     } else if (e.isFile()) {
       try {
@@ -379,7 +383,7 @@ export function readLiveMeeting(meetingsDir, id = 'latest') {
     const key=highlightKey(record);
     const markers=highlights.filter(m=>m.anchorKey===key || (m.pending && m.quoteAt===record.t0 && timeCounts.get(record.t0)===1));
     const whole=markers.find(m=>m.kind==='utterance');
-    return {...record,highlightKey:whole?.key||key,highlighted:!!whole,highlightCount:markers.length};
+    return {...record,highlightKey:whole?.key||key,highlighted:markers.length>0,highlightCount:markers.length,highlightKeys:markers.map(marker=>marker.key)};
   };
   // Recent text changes indicate caption activity, not an audio-based speaker detector.
   const activeSpeakers = status?.state === 'in_call'
@@ -387,10 +391,10 @@ export function readLiveMeeting(meetingsDir, id = 'latest') {
   records.sort((a, b) => Date.parse(a.t0) - Date.parse(b.t0));
   const summary = getMeetingSummaryState(meeting.dir, status, records);
   let mailDraft;try{mailDraft=readMailDraft(meeting.dir);}catch(error){mailDraft={observedAt:new Date().toISOString(),available:false,draft:null,revision:null,error:error.message};}
-  return { id: meeting.id, status, mailDraft, noteItems:summaryItems(meeting.dir,summary.markdown||'',records), records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
+  return { id: meeting.id, status, video:readVideo(meeting.dir), mailDraft, noteItems:summaryItems(meeting.dir,summary.markdown||'',records), records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
 }
 
-export async function startLiveServer({ meetingsDir, port = 8791, microphone = new MicrophoneService({ meetingsDir }) }) {
+export async function startLiveServer({ meetingsDir, port = 8791, microphone = new MicrophoneService({ meetingsDir }), video = new VideoService({home:path.dirname(meetingsDir)}) }) {
   const assets = new URL('./live/', import.meta.url);
   const server = http.createServer(async (req, res) => {
     const origin = `http://127.0.0.1:${server.address().port}`;
@@ -403,6 +407,37 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
     const url = new URL(req.url, origin);
     const json = (data, code = 200) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); };
     try {
+      if(url.pathname==='/api/meeting-preferences'){
+        const home=path.dirname(meetingsDir);
+        if(req.method==='GET'){json(readMeetingPreferences(home));return;}
+        if(req.method==='PUT'){
+          if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){json({error:'preferences_forbidden'},403);return;}
+          try{json(saveMeetingPreferences(home,JSON.parse((await body(req)).toString())));}catch(error){json({error:error.message},error.message==='meeting_preferences_conflict'?409:400);}return;
+        }
+        json({error:'method_not_allowed'},405);return;
+      }
+      if(url.pathname==='/api/video/install'&&req.method==='POST'){if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){json({error:'video_forbidden'},403);return;}const input=JSON.parse((await body(req)).toString()||'{}');if(Object.keys(input).length){json({error:'video_invalid_request'},400);return;}json(await video.install());return;}
+      if(url.pathname==='/api/video/windows'&&req.method==='GET'){json({...video.capabilities(),windows:video.capabilities().workerReady?await video.windows():[]});return;}
+      if(url.pathname==='/api/video'&&req.method==='POST'){
+        if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){json({error:'video_forbidden'},403);return;}
+        const input=JSON.parse((await body(req)).toString()||'{}');
+        if(!input||typeof input.id!=='string'||input.id==='latest'||Object.keys(input).some(key=>!['id','action','windowId'].includes(key))){json({error:'video_invalid_request'},400);return;}
+        const meeting=resolveMeeting(meetingsDir,input.id);if(!meeting||meeting.id!==input.id){json({error:'找不到會議'},404);return;}
+        if(input.action==='start'){json(await video.start({id:meeting.id,dir:meeting.dir,windowId:input.windowId}));return;}
+        if(input.action==='stop'){json(await video.stop(meeting.id));return;}
+        json({error:'不支援的錄影操作'},400);return;
+      }
+      if(url.pathname==='/api/video'&&req.method==='GET'){
+        const id=url.searchParams.get('id'),meeting=resolveMeeting(meetingsDir,id);if(!meeting||meeting.id!==id){json({error:'找不到會議'},404);return;}
+        if(video.current?.id===id&&['done','failed','archived'].includes(readStatus(meeting.dir)?.state))void video.stop(id).catch(()=>{});
+        const state=video.recover(meeting.dir);if(state.state==='ready'&&['done','failed','archived'].includes(readStatus(meeting.dir)?.state)&&!state.error)void video.finalize(meeting.dir).catch(()=>{});
+        json({...video.capabilities(),...state});return;
+      }
+      if(url.pathname==='/api/video-file'&&req.method==='GET'){
+        const id=url.searchParams.get('id'),meeting=resolveMeeting(meetingsDir,id);if(!meeting||meeting.id!==id){json({error:'找不到會議'},404);return;}
+        const file=safeVideoFile(meeting.dir,url.searchParams.get('file')||'meeting-video.webm');if(!file){json({error:'找不到影片'},404);return;}
+        streamAudio(req,res,file,'video/webm');return;
+      }
       if (req.method === 'POST' && url.pathname === '/api/translate') {
         if (req.headers.origin !== origin || req.headers['content-type'] !== 'application/json') { res.writeHead(403).end(); return; }
         const input = JSON.parse((await body(req)).toString() || '{}');
@@ -494,6 +529,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
             try { process.kill(st.pid); } catch { /* ignore */ }
           }
 
+          if(video.current?.id===meeting.id)await video.stop(meeting.id);
           fs.rmSync(meeting.dir, { recursive: true, force: true });
           json({ ok: true, id: meeting.id, deleted: true }); return;
         }
@@ -509,7 +545,8 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
           const { mode, input, output } = options;
           const active = listMeetings(meetingsDir).find(m=>!['done','failed','archived'].includes(m.status?.state) && (microphone.current?.id === m.id || (m.status?.pid && isProcessAlive(m.status.pid))));
           if (active) { json({error:'已有進行中的記錄，請先返回該場。',id:active.id},409); return; }
-          json(await microphone.start({ mode, input, output })); return;
+          const home=path.dirname(meetingsDir),saved=readMeetingPreferences(home),languagePreferences=resolveMeetingLanguage({home,captionLang:LANGUAGES[saved.preferences.spokenLanguage].caption,captionLangSource:saved.source});
+          json(await microphone.start({ mode, input, output,spokenLanguage:languagePreferences.asrLanguage,languagePreferences })); return;
         }
         if (url.pathname === '/api/microphone/audio' && req.headers['content-type'] === 'application/octet-stream') {
           const audio = await body(req);
@@ -566,12 +603,17 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         }
         json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
-      const routes = { '/note-sources.js':['note-sources.js','text/javascript'], '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const routes = { '/tutorial.js':['tutorial.js','text/javascript'], '/tutorial.html':['tutorial.html','text/html'], '/meeting-preferences.js':['meeting-preferences.js','text/javascript'], '/video.js':['video.js','text/javascript'], '/note-sources.js':['note-sources.js','text/javascript'], '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       for (const file of ['wave-light.png','wave-dark.png','orbit-light.png','orbit-dark.png','ripple-light.png','ripple-dark.png','banner.css','manifest.json','preview.css','preview-light.html','preview-dark.html']) routes['/assets/banners/'+file]=['assets/banners/'+file,file.endsWith('.png')?'image/png':file.endsWith('.css')?'text/css':file.endsWith('.html')?'text/html':'application/json'];
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }
-      res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });
       let content=fs.readFileSync(new URL(asset[0], assets));
+      if(asset[0]==='tutorial.html'){
+        const html=content.toString('utf8');
+        const hashes=tag=>[...html.matchAll(new RegExp('<'+tag+'[^>]*>([\\s\\S]*?)</'+tag+'>','g'))].map(match=>"'sha256-"+createHash('sha256').update(match[1].replace(/\r\n?/g,'\n')).digest('base64')+"'").join(' ');
+        res.setHeader('Content-Security-Policy',`default-src 'none'; script-src ${hashes('script')}; style-src ${hashes('style')}; img-src data:; media-src data:; frame-ancestors 'self'`);
+      }
+      res.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });
       if(asset[0]==='index.html'){
         const version=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
         const label=typeof version==='string'&&/^[0-9A-Za-z.+-]+$/.test(version)?version:'unknown';
@@ -584,6 +626,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
   return {
     server, url:`http://127.0.0.1:${server.address().port}`,
     async shutdown() {
+      await video.shutdown();
       const session = microphone.current;
       if (session) { microphone.stop(session.token, 'server_stop'); await session.finished; }
       server.closeAllConnections();

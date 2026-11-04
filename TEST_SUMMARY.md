@@ -182,3 +182,17 @@ A separate CRC diagnostic confirmed existing BUG-ZIP-001 for large audio ZIP exp
 ## v0.3.5 release validation — 2026-11-03
 
 536 unit tests and 55 targeted browser/source/layout tests passed; isolated installer upgrade (0.3.4→0.3.5), Codex/Claude integration, HTTP/version/Banner checks, repair, downgrade refusal, uninstall and data retention passed. See [scope, commands and limits](docs/qa/reports/release-035.md). Existing ZIP CRC issue and historical acceptance limitations remain; these runs are not a full historical QA rerun or new live meeting acceptance.
+
+### 2026-11-03 optional window video
+
+Implementation and synthetic/native evidence: [video report](docs/qa/reports/video-recording-20261103.md). Full unit regression: 540 passed; related feature regression: 22 passed; final video/native/scroll regression: 27 passed. No additional npm/Python dependency. Real Meet/Teams video acceptance and installer/release remain separate, unclaimed checks.
+
+## 會議語言預設（方案 1）
+
+- [x] PREF-API / Backend：同源、schema、版本衝突、共用資料目錄與快照隔離。
+- [x] PREF-UI / FE-E2E：德文預設儲存、重試、單次送出、390/1280與明暗主題、既有會議不變。
+- [x] PREF-SNAPSHOT / FE-E2E：本場語言初始化與明確 URL 覆蓋。
+- [x] LANG-PLATFORM / Integration：Meet／Teams 德日韓字幕設定讀回，權限不足不誤報成功。
+- [x] LANG-ASR / Backend：本機多語模型使用正確語系、不下載、缺模型不走中文。
+
+驗收與重跑：[完整報告](docs/qa/reports/meeting-language-defaults-20261103.md)。真人語音準確度尚未驗證。

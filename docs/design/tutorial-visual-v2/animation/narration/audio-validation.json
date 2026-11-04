@@ -1,0 +1,126 @@
+{
+  "duration": 144,
+  "sampleRate": 16000,
+  "scenes": [
+    {
+      "scene": 1,
+      "offset": 0.6,
+      "seconds": 4.31375,
+      "rms": 2625.0891753477563,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 2,
+      "offset": 9.6,
+      "seconds": 5.1755,
+      "rms": 2277.5413524886685,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 3,
+      "offset": 18.6,
+      "seconds": 5.327375,
+      "rms": 2462.224476859425,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 4,
+      "offset": 27.6,
+      "seconds": 4.47675,
+      "rms": 2584.0925369894726,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 5,
+      "offset": 36.6,
+      "seconds": 4.774375,
+      "rms": 2487.6088548682033,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 6,
+      "offset": 45.6,
+      "seconds": 8.30425,
+      "rms": 2325.7286261114336,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 7,
+      "offset": 63.6,
+      "seconds": 4.549625,
+      "rms": 2390.289870554325,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 8,
+      "offset": 72.6,
+      "seconds": 4.813875,
+      "rms": 2261.4461566422187,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 9,
+      "offset": 81.6,
+      "seconds": 6.448375,
+      "rms": 2485.0767267310134,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 10,
+      "offset": 90.6,
+      "seconds": 4.4645,
+      "rms": 2405.8673586310047,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 11,
+      "offset": 99.6,
+      "seconds": 4.904,
+      "rms": 2697.6493681733805,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 12,
+      "offset": 108.6,
+      "seconds": 5.6545,
+      "rms": 3119.584545475803,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 13,
+      "offset": 117.6,
+      "seconds": 6.979625,
+      "rms": 2419.068367374778,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 14,
+      "offset": 126.6,
+      "seconds": 4.88175,
+      "rms": 2348.9108800462723,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    },
+    {
+      "scene": 15,
+      "offset": 135.6,
+      "seconds": 6.991875,
+      "rms": 2222.5142848126934,
+      "voice": "Microsoft Hanhan Desktop",
+      "rate": 1
+    }
+  ]
+}

@@ -29,8 +29,15 @@ export function updateHighlight(dir,data,input,now=Date.now()) {
   const existing=readHighlights(dir);
   if(input.action==='unmark') {
     if(typeof input.key!=='string')throw new Error('缺少重點標記識別碼');
-    if(!existing.some(m=>m.key===input.key))return existing;
-    fs.appendFileSync(path.join(dir,'highlights.jsonl'),JSON.stringify({action:'unmark',key:input.key,at:new Date(now).toISOString()})+'\n');
+    let keys=[input.key];
+    if(input.kind==='utterance'){
+      const quote=[...data.records,...data.pending].find(record=>(record.highlightKey||highlightKey(record))===input.key);
+      if(!quote)throw new Error('該段字幕已更新，請重新選擇要標記的話語');
+      keys=Array.isArray(quote.highlightKeys)?quote.highlightKeys:existing.filter(marker=>marker.anchorKey===highlightKey(quote)).map(marker=>marker.key);
+    }
+    const active=new Set(existing.map(marker=>marker.key));keys=keys.filter(key=>active.has(key));
+    if(!keys.length)return existing;
+    fs.appendFileSync(path.join(dir,'highlights.jsonl'),keys.map(key=>JSON.stringify({action:'unmark',key,at:new Date(now).toISOString()})+'\n').join(''));
   } else if(input.action==='mark') {
     if(!['in_call','done','failed','archived'].includes(data.status?.state))throw new Error('請先進入會議再標記重點');
     if(existing.length>=1000)throw new Error('本場重點已達上限');

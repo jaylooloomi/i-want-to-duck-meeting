@@ -15,6 +15,7 @@ primaryLang.value=params.get('secondary')==='none'&&!params.has('primary')?'all'
 secondaryLang.value='en';
 if (primaryLang && params.get('primary')) { const requested=params.get('primary'); primaryLang.value=[...primaryLang.options].some(option=>option.value===requested)?requested:'zh-TW'; }
 if (secondaryLang && params.get('secondary')) { const requested=params.get('secondary'); secondaryLang.value=[...secondaryLang.options].some(option=>option.value===requested)?requested:'en'; }
+let languageInitialized=false;
 let signature = '', summarySignature = '', translating = false, summaryCollapsed = false, activeMeetingId = '';
 let meetingOptionsSignature = '', currentRecord = null, ownedRecordId = '', setupOpen = false, endingRecordId = '', stopRequestedFor = '';
 const setupPanel = document.querySelector('.mic-panel');
@@ -582,9 +583,9 @@ function row(record, pending) {
   const body = document.createElement('div'); body.className = 'body';
   const meta = document.createElement('div'); meta.className = 'meta';
   const speaker = document.createElement('strong'); appendSearchText(speaker,name);
-  const time = document.createElement('button'); time.type='button';time.className='transcript-seek';time.textContent=recordingClock(record.t0);time.title=clock(record.t0);time.setAttribute('aria-label',uiText('跳至錄音 ')+recordingClock(record.t0));time.disabled=!currentRecord?.workspace?.audio?.length || !['done','failed','archived'].includes(currentRecord?.status?.state);time.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('seek-recording',{detail:{time:record.t0}})));
-  meta.append(speaker,time);
-  const mark=document.createElement('button');mark.type='button';mark.className='utterance-highlight';mark.textContent=record.highlighted?'★':'☆';mark.title=record.highlighted?uiText('取消整段重點'):uiText('標記整段重點');mark.setAttribute('aria-label',(record.highlighted?uiText('取消整段重點：'):uiText('標記整段重點：'))+record.text.slice(0,40));mark.setAttribute('aria-pressed',String(!!record.highlighted));mark.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('highlight-utterance',{detail:{meetingId:renderedMeetingId,key:record.highlightKey,action:record.highlighted?'unmark':'mark'}})));meta.append(mark);
+  const time = document.createElement('button'); time.type='button';time.className='transcript-seek';time.textContent=recordingClock(record.t0);time.title=uiText('從此處播放 ')+recordingClock(record.t0);time.setAttribute('aria-label',uiText('從此處播放 ')+recordingClock(record.t0));time.disabled=(!currentRecord?.workspace?.audio?.length&&!currentRecord?.video?.segments?.length) || !['done','failed','archived'].includes(currentRecord?.status?.state);time.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('seek-recording',{detail:{time:record.t0,play:true}})));
+  meta.append(speaker);if(currentRecord?.workspace?.audio?.length)meta.append(time);
+  const mark=document.createElement('button');mark.type='button';mark.className='utterance-highlight';mark.textContent=record.highlighted?'★':'☆';mark.title=record.highlighted?uiText('取消整段重點'):uiText('標記整段重點');mark.setAttribute('aria-label',(record.highlighted?uiText('取消整段重點：'):uiText('標記整段重點：'))+record.text.slice(0,40));mark.setAttribute('aria-pressed',String(!!record.highlighted));mark.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('highlight-utterance',{detail:{meetingId:renderedMeetingId,key:record.highlightKey,kind:'utterance',action:record.highlighted?'unmark':'mark'}})));meta.append(mark);
   const more=document.createElement('button');more.type='button';more.className='utterance-more';more.textContent='⋯';more.setAttribute('aria-label',uiText('段落操作：')+record.text.slice(0,40));more.addEventListener('click',()=>document.dispatchEvent(new CustomEvent('utterance-menu',{detail:{record,meetingId:renderedMeetingId}})));meta.append(more);
   if(record.highlightCount){const label=document.createElement('small');label.className='important-label';label.textContent='★ '+record.highlightCount+uiText(' 個重點');meta.append(label);}
   if (pending) { const draft = document.createElement('span'); draft.className = 'draft'; draft.textContent = record.source === 'local-audio' || record.source?.startsWith('teams-') ? uiText('語音辨識中') : uiText('字幕更新中'); meta.append(draft); }
@@ -620,7 +621,8 @@ async function pollNow() {
     if (!meetings.length) {
       document.dispatchEvent(new CustomEvent('workspace-empty'));
       currentRecord = null; activeMeetingId = ''; updateRecordControls();
-      $('state').textContent = uiText('尚無會議'); $('speaking').textContent = uiText('加入會議後將自動顯示');
+      $('state').textContent = uiText('尚無會議'); const fallbackWarning=$('asr-fallback-warning');if(fallbackWarning){fallbackWarning.hidden=data.status?.asrFallback?.available!==false;fallbackWarning.textContent=uiText('本機未備妥此語言的辨識模型，錄音仍會保存；平台字幕持續收集。');}
+      $('speaking').textContent = uiText('加入會議後將自動顯示');
       $('transcript').replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:uiText('尚無字幕，開始發言後會自動顯示。') }));
       if (summaryBody) summaryBody.replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:uiText('尚無會議記錄可供整理。') }));
       $('count').textContent = uiText('0 段發言'); if (paneCount) paneCount.textContent = uiText('0 段對話');
@@ -632,7 +634,8 @@ async function pollNow() {
     const data = await get('/api/transcript?id=' + encodeURIComponent(requestedId));
     if (selected !== requestedId) return;
     activeMeetingId = data.id || '';
-    currentRecord = data; updateRecordControls();
+    if(!languageInitialized){languageInitialized=true;const defaults=data.status?.languagePreferences;if(defaults){for(const [control,key,param] of [[primaryLang,'originalDisplay','primary'],[secondaryLang,'translationLanguage','secondary']])if(!params.has(param)&&[...control.options].some(option=>option.value===defaults[key]))control.value=defaults[key];syncLanguagePresets();}}
+     currentRecord = data; updateRecordControls();
     updateSidebarActive();
     document.dispatchEvent(new CustomEvent('meeting-status', { detail:data }));
     $('state').textContent = uiText(states[data.status?.state] || '未知狀態');
@@ -658,7 +661,7 @@ async function pollNow() {
       }catch{}
     }
     const target = secondaryLang ? secondaryLang.value : 'none';
-    const next = JSON.stringify([data.id, filtered, data.pending, primaryLang?.value, target, filtered.map((r) => translations.get(target + ':' + r.text) || '')]);
+    const next = JSON.stringify([data.id, data.status?.state,!!data.video?.segments?.length,!!data.workspace?.audio?.length, filtered, data.pending, primaryLang?.value, target, filtered.map((r) => translations.get(target + ':' + r.text) || '')]);
     if(followMeeting!==data.id){followMeeting=data.id;followPaused=false;unseenSpeech=false;speechSignature='';}
     const sourceSignature=JSON.stringify([data.records,data.pending].map(list=>list.map(r=>[r.text,r.t0,r.speaker])));
     const canFollow=$('follow').checked&&!followPaused&&!$('transcript-search').value.trim()&&!$('highlights-only').checked;

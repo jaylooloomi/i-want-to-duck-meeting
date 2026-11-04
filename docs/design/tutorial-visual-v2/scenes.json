@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "title": "貼上會議連結",
+    "kind": "chat",
+    "voice": "將會議連結貼給 Agent，開始記錄。",
+    "source": "illustration",
+    "sourceScene": 1
+  },
+  {
+    "id": 2,
+    "title": "開啟記錄端",
+    "kind": "chrome",
+    "voice": "Agent 啟動記錄端，必要時才請你登入。",
+    "source": "illustration",
+    "sourceScene": 2
+  },
+  {
+    "id": 3,
+    "title": "登入記錄帳號",
+    "kind": "login",
+    "voice": "在 Google 原生頁面選擇記錄帳號並完成驗證。",
+    "source": "illustration",
+    "sourceScene": 3
+  },
+  {
+    "id": 4,
+    "title": "等待主持人放行",
+    "kind": "lobby",
+    "voice": "主持人放行後，程式接續同一場會議。",
+    "source": "illustration",
+    "sourceScene": 4
+  },
+  {
+    "id": 5,
+    "title": "自動準備記錄",
+    "kind": "live",
+    "voice": "入會後，背景腳本準備字幕並檢查記錄狀態。",
+    "source": "actual fixture UI",
+    "sourceScene": 5
+  },
+  {
+    "id": 6,
+    "title": "逐字稿持續更新",
+    "kind": "live",
+    "voice": "發言逐段顯示；翻譯啟用時依服務可用性更新。",
+    "source": "actual fixture UI",
+    "sourceScene": 6
+  },
+  {
+    "id": 7,
+    "title": "標記重要發言",
+    "kind": "highlight",
+    "voice": "點星星保存重要段落，供會後整理參考。",
+    "source": "actual fixture UI",
+    "sourceScene": 7
+  },
+  {
+    "id": 8,
+    "title": "結束並請求整理",
+    "kind": "chat",
+    "voice": "告訴 Agent 結束並整理，先正常收尾錄音與字幕。",
+    "source": "illustration",
+    "sourceScene": 9
+  },
+  {
+    "id": 9,
+    "title": "Agent 核對來源",
+    "kind": "agent",
+    "voice": "Agent 讀取來源，核對後撰寫摘要、決議與待辦。",
+    "source": "illustration",
+    "sourceScene": 10
+  },
+  {
+    "id": 10,
+    "title": "查看會議成果",
+    "kind": "results",
+    "voice": "站台顯示整理結果，人員欄為已記錄發言者。",
+    "source": "actual fixture UI",
+    "sourceScene": 11
+  },
+  {
+    "id": 11,
+    "title": "核對待辦與來源",
+    "kind": "source",
+    "voice": "核對待辦，點來源查看原文；未指定資訊不補造。",
+    "source": "actual fixture UI",
+    "sourceScene": 12
+  },
+  {
+    "id": 12,
+    "title": "點時間回聽",
+    "kind": "playback",
+    "voice": "按時間膠囊，直接跳到該段錄音並播放。",
+    "source": "actual fixture UI",
+    "sourceScene": 13
+  },
+  {
+    "id": 13,
+    "title": "調整郵件草稿",
+    "kind": "mail",
+    "voice": "修改主旨、收件人及正文，保存本機草稿。",
+    "source": "actual fixture UI",
+    "sourceScene": 14
+  },
+  {
+    "id": 14,
+    "title": "授權 Agent 寄信",
+    "kind": "chat",
+    "voice": "確認內容後，要求 Agent 使用已連線郵件工具寄送。",
+    "source": "illustration",
+    "sourceScene": 15
+  },
+  {
+    "id": 15,
+    "title": "確認交付結果",
+    "kind": "delivery",
+    "voice": "只有工具實際成功才回報寄出；站台不顯示假成功。",
+    "source": "illustration",
+    "sourceScene": 16
+  }
+]

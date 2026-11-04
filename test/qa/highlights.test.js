@@ -22,7 +22,9 @@ for(const width of [1920,390])test(`HL-UI mark live moment, whole utterance, fil
  fs.writeFileSync(path.join(dir,'live.json'),JSON.stringify({pending:[{...record('這句是重要的話語1357','甲',now),t1:new Date().toISOString(),source:'captions'}]}));
  await page.goto(app.url+'/?id=live-highlights&primary=all&secondary=none');await page.getByText('這句是重要的話語1357',{exact:true}).waitFor();
  await page.getByRole('button',{name:'★ 標記此刻重點',exact:true}).click();await page.getByRole('button',{name:'查看重點（1）',exact:true}).waitFor();
- await page.getByRole('button',{name:'標記整段重點：這句是重要的話語1357',exact:true}).click();await page.getByRole('button',{name:'查看重點（2）',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'取消整段重點：這句是重要的話語1357',exact:true}).getAttribute('aria-pressed'),'true');
+ const momentData=await(await fetch(app.url+'/api/transcript?id=live-highlights')).json();
+ await fetch(app.url+'/api/highlights',{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json'},body:JSON.stringify({id:'live-highlights',action:'mark',kind:'utterance',key:momentData.pending[0].highlightKey})});await page.getByRole('button',{name:'查看重點（2）',exact:true}).waitFor();
  await page.getByRole('checkbox',{name:'只看重點',exact:true}).check();await page.getByRole('region',{name:'會議逐字稿'}).getByText('另一句一般內容',{exact:true}).waitFor({state:'hidden'});assert.equal(await page.getByRole('region',{name:'會議逐字稿'}).getByText('另一句一般內容',{exact:true}).isVisible(),false);
  await page.getByRole('button',{name:'查看重點（2）',exact:true}).click();const dialog=page.getByRole('dialog',{name:'使用者標記重點',exact:true});await dialog.waitFor();assert.equal(await dialog.getByText('這句是重要的話語1357',{exact:true}).count(),2);
  await dialog.getByRole('button',{name:'關閉',exact:true}).click();
@@ -30,7 +32,9 @@ for(const width of [1920,390])test(`HL-UI mark live moment, whole utterance, fil
  await page.reload();await page.getByRole('button',{name:'查看重點（2）',exact:true}).waitFor();
  const pcm=Buffer.alloc(32000*20);fs.writeFileSync(path.join(dir,'audio.wav'),Buffer.concat([createWavHeader({dataBytes:pcm.length}),pcm]));
  app.seed('live-highlights',{state:'done'},[record('這句是重要的話語1357','已確認甲',now)]);await page.getByText('已確認甲',{exact:true}).waitFor();
- await page.getByRole('button',{name:'取消整段重點：這句是重要的話語1357',exact:true}).click();await page.getByRole('button',{name:'查看重點（1）',exact:true}).waitFor();
+ await page.getByRole('button',{name:'查看重點（2）',exact:true}).click();
+ await page.getByRole('dialog',{name:'使用者標記重點'}).getByRole('button',{name:/取消此標記 .*整段重點/}).click();await page.getByRole('button',{name:'查看重點（1）',exact:true}).waitFor();
+ await page.getByRole('dialog',{name:'使用者標記重點'}).getByRole('button',{name:'關閉',exact:true}).click();
  await page.getByRole('button',{name:'查看重點（1）',exact:true}).click();
  await page.getByRole('dialog',{name:'使用者標記重點'}).getByRole('button',{name:/^跳至錄音 /}).click();
  const audio=page.getByLabel('錄音播放引擎',{exact:true});await audio.evaluate(el=>el.readyState>=1?Promise.resolve():new Promise(resolve=>el.addEventListener('loadedmetadata',resolve,{once:true})));
@@ -53,3 +57,20 @@ for(const width of [1920,390])test(`HL-TIMELINE star position, seek, removal and
  await page.getByRole('button',{name:'取消整段重點：時間軸重點',exact:true}).click();await pin.waitFor({state:'detached'});
  assert.equal(await pin.count(),0);
 },{viewport:{width,height:width===390?844:1080}}));
+
+for(const width of [1920,390])test(`HL moment-only star toggles all associated markers without touching another paragraph ${width}`,{timeout:20000},t=>browserCase(t,async({page,app})=>{
+ const now=new Date().toISOString(),older=new Date(Date.now()-60000).toISOString();
+ const folder=app.seed('moment-star',{state:'in_call',joinedAt:older},[record('其他段落','乙',older)]);
+ fs.writeFileSync(path.join(folder,'live.json'),JSON.stringify({pending:[{...record('此刻的重要內容','未確認甲',now),t1:now}]}));
+ await page.goto(app.url+'/?id=moment-star&primary=all&secondary=none');await page.getByText('此刻的重要內容',{exact:true}).waitFor();
+ for(let i=0;i<2;i++){await page.getByRole('button',{name:'★ 標記此刻重點',exact:true}).click();await page.getByRole('button',{name:`查看重點（${i+1}）`,exact:true}).waitFor();}
+ const star=page.getByRole('button',{name:'取消整段重點：此刻的重要內容',exact:true});assert.equal(await star.textContent(),'★');assert.equal(await star.getAttribute('aria-pressed'),'true');
+ const before=await(await fetch(app.url+'/api/transcript?id=moment-star')).json();assert.equal(before.pending[0].highlighted,true);assert.equal(before.pending[0].highlightKeys.length,2);
+ await fetch(app.url+'/api/highlights',{method:'POST',headers:{Origin:app.url,'Content-Type':'application/json'},body:JSON.stringify({id:'moment-star',action:'mark',key:before.records[0].highlightKey})});await page.getByRole('button',{name:'查看重點（3）',exact:true}).waitFor();
+ app.seed('moment-star',{state:'done',joinedAt:older},[record('其他段落','乙',older),record('此刻的重要內容','確認甲',now)]);
+ await page.getByText('確認甲',{exact:true}).waitFor();assert.equal(await star.getAttribute('aria-pressed'),'true');
+ await star.click();await page.getByRole('button',{name:'查看重點（1）',exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'標記整段重點：此刻的重要內容',exact:true}).getAttribute('aria-pressed'),'false');
+ const after=await(await fetch(app.url+'/api/transcript?id=moment-star')).json();assert.equal(after.highlights.length,1);assert.equal(after.highlights[0].text,'其他段落');assert.equal(after.records[1].highlightCount,0);
+ await page.reload();await page.getByRole('button',{name:'標記整段重點：此刻的重要內容',exact:true}).waitFor();
+}));
