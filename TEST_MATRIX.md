@@ -316,3 +316,16 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] LANG-ASR / Backend：本機多語模型使用正確語系、不下載、缺模型不走中文。
 
 驗收與重跑：[完整報告](docs/qa/reports/meeting-language-defaults-20261103.md)。真人語音準確度尚未驗證。
+
+
+## 會議模板與後續追蹤
+
+- [x] FU-BE-01 Backend：逐場模板保存與衝突／生成中／CSRF／格式限制。
+- [x] FU-BE-02 Backend：Agent pending、匯出提示與真實CLI帶入本場規格；對話隔離保持。
+- [x] FU-BE-03 Backend：風險章節擷取、表格／舊條列、跨場狀態隔離與來源一致。
+- [x] FU-E2E-01 FE-E2E：選模板→儲存→F5維持→原紀錄不被改寫。
+- [x] FU-E2E-02 FE-E2E：待確認分頁只顯示待確認章節，不混入決議。
+- [x] FU-E2E-03 FE-E2E：跨會議篩選、勾選、持久化、封存、逾期與模糊日期。
+- [x] FU-E2E-04 FE-E2E：來源點擊回正確會議並高亮唯一原文。
+- [x] FU-E2E-05 FE-E2E：空清單、特殊字元、錯誤回饋／重試、防重複送出狀態。
+- [x] FU-E2E-06 FE-E2E：390/1440淺深色布局、零瀏覽器錯誤。

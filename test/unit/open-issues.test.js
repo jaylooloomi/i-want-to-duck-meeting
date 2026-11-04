@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {openIssues} from '../../src/open-issues.js';
+test('uncertainties stay in their own section and include nested risks',()=>{const m='## 決議\n- 發布第一版。\n## 未確認事項與風險\n- 尚未決定驗收日期。\n### 風險\n- 客戶尚未確認相容性。\n## 後續待辦\n- 寄出結果。';const result=openIssues(m);assert.equal(result.count,2);assert.match(result.markdown,/尚未決定/);assert.doesNotMatch(result.markdown,/發布|寄出/);assert.equal(openIssues('## 未確認事項與風險\n- 未提及。').count,0);assert.equal(openIssues('## 摘要\n沒有相關段落').markdown,'');});

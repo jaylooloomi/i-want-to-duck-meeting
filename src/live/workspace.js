@@ -18,7 +18,7 @@
   let rowSelection=null,storageSignature='',taskBusy=false,sourceFilesSignature='',storageUpdatedAt=0,storagePending=false;
   document.addEventListener('ui-language-change',()=>{notesSignature='';sourceFilesSignature='';highlightsSignature='';storageUpdatedAt=0;const select=$('audio-track');if(select)delete select.dataset.signature;$('audio-play').textContent=uiText(audio.paused?'▶ 播放錄音':'Ⅱ 暫停錄音');});
   const requestedNotesTab=new URLSearchParams(location.search).get('notes');
-  let current=null, tab=['overview','decisions','actions','mail'].includes(requestedNotesTab)?requestedNotesTab:'overview', notesSignature='', audioKey='', duration=0, pendingSeek=null,renameMeetingId='',marking=false,highlightsSignature='';
+  let current=null, tab=['overview','decisions','actions','open','mail'].includes(requestedNotesTab)?requestedNotesTab:'overview', notesSignature='', audioKey='', duration=0, pendingSeek=null,renameMeetingId='',marking=false,highlightsSignature='';
   const terminal=state=>['done','failed','archived'].includes(state);
   const message=text=>{$('workspace-message').textContent=text;};
   const readPref=(key,fallback)=>{try{return localStorage.getItem('duck-meeting:'+key)||fallback;}catch{return fallback;}};
@@ -28,7 +28,7 @@
   function saveFile(text,name,type='text/markdown'){ const url=URL.createObjectURL(new Blob([text],{type:type+';charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
   function partition(markdown,kind,preserveLines=false){
     if(kind==='overview')return markdown;
-    const wanted=kind==='actions'?/行動|待辦|action items|next steps/i:/決議|決策|決定|decisions?/i;
+    const wanted=kind==='open'?/未確認|待確認|未決|風險|open questions|unresolved|risks?/i:kind==='actions'?/行動|待辦|action items|next steps/i:/決議|決策|決定|decisions?/i;
     const lines=String(markdown).split(/\r?\n/),out=[];let capture=false,level=0;
     for(let i=0;i<lines.length;i++){
       const line=lines[i];
@@ -46,14 +46,14 @@
     const sum=data?.summary||{},ready=sum.state==='ready'&&!!sum.markdown;
     for(const button of document.querySelectorAll('[data-notes-tab]'))button.setAttribute('aria-pressed',String(button.dataset.notesTab===tab));
     const mail=tab==='mail';$('mail-panel').hidden=!mail;$('summary-body').hidden=mail||summaryCollapsed;document.getElementsByClassName('comparison-panel')[0].hidden=mail;$('notes-copy').hidden=$('notes-download').hidden=false;
-    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=ready&&terminal(data?.status?.state)?(kind==='actions'?(data?.workspace?.actions?.items?.length||0):kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null):null;button.textContent=label+(count?' ('+count+')':'');}
+    for(const button of document.querySelectorAll('[data-notes-tab]')){const kind=button.dataset.notesTab,label=kind==='mail'?uiText('郵件'):kind==='actions'?uiText('待辦'):kind==='open'?uiText('待確認'):kind==='decisions'?uiText('決議'):uiText('摘要');button.setAttribute('aria-label',label);const count=ready&&terminal(data?.status?.state)?(kind==='open'?(data?.openIssues?.count||0):kind==='actions'?(data?.workspace?.actions?.items?.length||0):kind==='decisions'?(partition(sum.markdown,'decisions').match(/^\s*(?:[-*]|\d+\.)\s+\S/gm)||[]).length:null):null;button.textContent=label+(count?' ('+count+')':'');}
     if(mail){notesSignature='';return;}
     $('notes-copy').disabled=$('notes-download').disabled=!ready;
     const key=JSON.stringify([data?.id,sum.state,sum.markdown,sum.updatedAt,tab,data?.workspace?.actions,data?.noteItems]);
     if(key===notesSignature)return;notesSignature=key;
     if(!ready)return;
     const markdown=partition(sum.markdown,tab,true);
-    const fragment=renderMarkdownDom(markdown.trim() ? markdown : (tab==='actions'?uiText('這份紀錄未列出待辦段落，請查看摘要全文。'):uiText('這份紀錄未列出獨立決議段落，請查看摘要全文。')));
+    const fragment=renderMarkdownDom(markdown.trim() ? markdown : (tab==='open'?uiText('這份紀錄未列出待確認事項與風險；不代表沒有風險。'):tab==='actions'?uiText('這份紀錄未列出待辦段落，請查看摘要全文。'):uiText('這份紀錄未列出獨立決議段落，請查看摘要全文。')));
     const cards=document.createDocumentFragment();let card=null;
     for(const node of [...fragment.childNodes]){if(!card||node.classList?.contains('summary-h')){card=document.createElement('section');card.className='note-card';cards.append(card);}card.append(node);}
     $('summary-body').replaceChildren(cards);

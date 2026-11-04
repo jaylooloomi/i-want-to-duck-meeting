@@ -196,3 +196,13 @@ Implementation and synthetic/native evidence: [video report](docs/qa/reports/vid
 - [x] LANG-ASR / Backend：本機多語模型使用正確語系、不下載、缺模型不走中文。
 
 驗收與重跑：[完整報告](docs/qa/reports/meeting-language-defaults-20261103.md)。真人語音準確度尚未驗證。
+
+
+## 會議後續追蹤驗收（2026-11-04）
+
+單元＋紀錄整合549通過；真實模板CLI 1通過；新功能瀏覽器7通過並重跑7通過；相關交接／郵件回歸12通過。明細：docs/qa/reports/meeting-followup-20261104.md。
+
+
+## 可讀性（2026-11-04）
+
+新增停用／啟用／選取／hover／focus的淺深色對比驗證。18畫面2058筆文字樣本均達本次4.5:1檢查門檻，含重複樣本。詳見docs/qa/reports/control-contrast-20261104.md。

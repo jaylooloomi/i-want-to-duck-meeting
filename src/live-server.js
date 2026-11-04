@@ -1,3 +1,6 @@
+import {taskBoard} from './task-board.js';
+import {openIssues} from './open-issues.js';
+import {readSummaryPlan,saveSummaryPlan,summaryInstructions,SUMMARY_TEMPLATES} from './summary-plan.js';
 import {createHash} from 'node:crypto';
 import {readMeetingPreferences,saveMeetingPreferences,resolveMeetingLanguage,LANGUAGES} from './meeting-preferences.js';
 import {VideoService,readVideo,safeVideoFile} from './video-recording.js';
@@ -242,22 +245,22 @@ function buildFallbackSummary(status, records) {
   return lines.join('\n') + '\n';
 }
 
-export function buildAiPromptPackage(status,transcriptText,highlightText='',sourceRecords=[]) {
+export function buildAiPromptPackage(status,transcriptText,highlightText='',sourceRecords=[],summaryPlan=null) {
   const timeRange = formatTimeRange(status?.startedAt, status?.endedAt);
   const location = status?.url || (status?.source === 'teams' ? 'Microsoft Teams 線上會議' : status?.source === 'microphone' ? '現場會議（本機收音）' : 'Google Meet 線上會議');
   const recorder = status?.displayName || 'Arthur Wang';
 
-  const systemPrompt = `你是一位專業的企業會議記錄秘書。請根據提供的「會議狀態資訊」與「會議逐字稿」，用**繁體中文（台灣用語）**整理出一份結構清晰、專業精煉的 Markdown 會議記錄。
+  const systemPrompt = `${summaryPlan?.instructions || summaryInstructions('standard')}\n\n你是一位專業的企業會議記錄秘書。請根據提供的「會議狀態資訊」與「會議逐字稿」，用**繁體中文（台灣用語）**整理出一份結構清晰、專業精煉的 Markdown 會議記錄。
 
 【核心原則（極重要）】
-1. **如果沒有該項資訊，絕對不要硬寫、不要編造，直接省略該小項或該區塊**（例如：逐字稿中若無「請假/缺席人員」、「臨時動議」、「下次會議預告」，請直接不要列出該項目，不要寫「無」或「未提及」充數）。
+1. **固定段落依前述整理模板保留；缺少來源時寫「未提及」，絕對不要硬寫或編造。** 非必要細項（例如「請假/缺席人員」、「臨時動議」、「下次會議預告」）沒有資料可省略。「未確認事項與風險」必須保留；沒有相關來源時寫「未提及」，不代表已確認沒有風險。
 2. 逐字稿為語音辨識（ASR）與字幕產生，可能包含同音異字（如：紅絲/紅石/宏斯科技、來意/萊伊/來毅、新購三/Single Sign-On/SSO、發的/FIDO2、歐森全/AuthTron 等），請根據前後文自動修正為正確的專有名詞或於括號內標註。
 3. 請直接輸出純 Markdown 內容（以 \`## 1. 基本資訊（會議身分證）\` 開頭），不要加任何開場白或結語，不要用 \`\`\`markdown 包裹，也**絕對不要使用 LaTeX 語法**（例如請直接寫 \`→\` 或 \`->\`，不要寫 \`$\\rightarrow$\`）。
 4. 「3. 行動方案」中的「負責人（Owner）」只在逐字稿明確指定時填具體個人（如：Benjamin、艾薇、Steven、技術長），未知填「未指定」；避免只寫模糊的「某公司團隊」或「某部門」。
 
 5. 決議與待辦每筆必須附逐字稿證據：決議另列「決議」表格，欄位為「決議」「來源原文」「來源時間」；待辦表格另加「來源原文」「來源時間」。來源原文逐字複製完整單段原始發言，不修字、不摘要；來源時間使用該段原始 ISO 時間。缺原文或時間就寫「未連結」或「時間未知」，不得推測。負責人、期限未知寫「未指定」，不得指派未曾確認的人選。
 
-【會議記錄結構規範（僅列出實際有內容的項目）】
+【會議記錄結構規範（固定段落依前述模板；以下說明細項）】
 
 ## 1. 基本資訊（會議身分證）
 - **會議名稱**：清楚載明本次會議的主題（依討論內容歸納）。
@@ -274,7 +277,7 @@ export function buildAiPromptPackage(status,transcriptText,highlightText='',sour
 - **討論議題與結論**：採取「**案由** -> **討論要點** -> **最終決議**」的結構撰寫（可分多個議題），略過無意義的重複與寒暄，只留關鍵論點與定案。
 
 ## 3. 行動方案（後續執行指標）
-（若有明確後續待辦事項，請以 Markdown 表格呈現：包含「待辦事項（Action Items）」、「負責人（Owner，指派到個人）」、「完成時限（Due Date）」；若無則省略）
+（若有明確後續待辦事項，請以 Markdown 表格呈現：包含「待辦事項（Action Items）」、「負責人（Owner，指派到個人）」、「完成時限（Due Date）」；若無待辦則保留段落並寫「未提及」）
 
 ## 4. 結尾與附錄
 （僅在會議中有提及時才列出對應子項，沒有的子項直接省略；若三項皆無則整個第 4 節省略）
@@ -391,7 +394,7 @@ export function readLiveMeeting(meetingsDir, id = 'latest') {
   records.sort((a, b) => Date.parse(a.t0) - Date.parse(b.t0));
   const summary = getMeetingSummaryState(meeting.dir, status, records);
   let mailDraft;try{mailDraft=readMailDraft(meeting.dir);}catch(error){mailDraft={observedAt:new Date().toISOString(),available:false,draft:null,revision:null,error:error.message};}
-  return { id: meeting.id, status, video:readVideo(meeting.dir), mailDraft, noteItems:summaryItems(meeting.dir,summary.markdown||'',records), records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
+  return { id: meeting.id, status, summaryPlan:readSummaryPlan(meeting.dir),openIssues:openIssues(summary.markdown||''), video:readVideo(meeting.dir), mailDraft, noteItems:summaryItems(meeting.dir,summary.markdown||'',records), records:records.map(decorate), pending:pending.map(decorate), highlights, activeSpeakers, summary, workspace:{...workspaceData(meeting.dir,status,records),actions:actionItems(meeting.dir,summary.markdown||'')} };
 }
 
 export async function startLiveServer({ meetingsDir, port = 8791, microphone = new MicrophoneService({ meetingsDir }), video = new VideoService({home:path.dirname(meetingsDir)}) }) {
@@ -407,6 +410,17 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
     const url = new URL(req.url, origin);
     const json = (data, code = 200) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' }); res.end(JSON.stringify(data)); };
     try {
+      if(url.pathname==='/api/tasks'){if(req.method!=='GET'){json({error:'method_not_allowed'},405);return;}json(taskBoard(meetingsDir));return;}
+      if(url.pathname==='/api/summary-plan'){
+        const id=url.searchParams.get('id');
+        if(req.method==='GET'){const meeting=resolveMeeting(meetingsDir,id);if(!id||id==='latest'||!meeting||meeting.id!==id){json({error:'meeting_missing'},404);return;}json({...readSummaryPlan(meeting.dir),templates:SUMMARY_TEMPLATES});return;}
+        if(req.method!=='PUT'){json({error:'method_not_allowed'},405);return;}
+        if(req.headers.origin!==origin||req.headers['content-type']!=='application/json'){json({error:'forbidden'},403);return;}
+        const input=JSON.parse((await body(req)).toString()||'{}');
+        if(!input||typeof input.id!=='string'||input.id==='latest'){json({error:'meeting_required'},400);return;}
+        const meeting=resolveMeeting(meetingsDir,input.id);if(!meeting||meeting.id!==input.id){json({error:'meeting_missing'},404);return;}
+        try{json(saveSummaryPlan(meeting.dir,input,readStatus(meeting.dir)));}catch(error){json({error:error.message},error.message==='summary_plan_invalid'?400:409);}return;
+      }
       if(url.pathname==='/api/meeting-preferences'){
         const home=path.dirname(meetingsDir);
         if(req.method==='GET'){json(readMeetingPreferences(home));return;}
@@ -592,7 +606,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         if (!meeting) { json({ error: '找不到會議' }, 404); return; }
         const data = readLiveMeeting(meetingsDir, meeting.id);
         const transcriptText = cleanTranscriptForPrompt(meeting.dir, data?.records || []);
-        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id },transcriptText,renderHighlightsMarkdown(data?.highlights || []),data?.records||[]);
+        const { combined } = buildAiPromptPackage(data?.status || { id: meeting.id },transcriptText,renderHighlightsMarkdown(data?.highlights || []),data?.records||[],readSummaryPlan(meeting.dir));
         if (url.searchParams.get('download') === '1') {
           res.writeHead(200, {
             'Content-Type': 'text/markdown; charset=utf-8',
@@ -603,7 +617,7 @@ export async function startLiveServer({ meetingsDir, port = 8791, microphone = n
         }
         json({ id: meeting.id, filename: `${meeting.id}-ai-prompt.md`, content: combined }); return;
       }
-      const routes = { '/tutorial.js':['tutorial.js','text/javascript'], '/tutorial.html':['tutorial.html','text/html'], '/meeting-preferences.js':['meeting-preferences.js','text/javascript'], '/video.js':['video.js','text/javascript'], '/note-sources.js':['note-sources.js','text/javascript'], '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const routes = { '/followup.js':['followup.js','text/javascript'], '/tutorial.js':['tutorial.js','text/javascript'], '/tutorial.html':['tutorial.html','text/html'], '/meeting-preferences.js':['meeting-preferences.js','text/javascript'], '/video.js':['video.js','text/javascript'], '/note-sources.js':['note-sources.js','text/javascript'], '/mail.js':['mail.js','text/javascript'], '/locales.js':['locales.js','text/javascript'], '/i18n.js':['i18n.js','text/javascript'], '/theme.js':['theme.js','text/javascript'], '/emerald.css':['emerald.css','text/css'], '/assets/duck.svg':['assets/duck.svg','image/svg+xml'], '/assets/chevron.svg':['assets/chevron.svg','image/svg+xml'], '/fonts/roboto-variable.ttf':['fonts/roboto-variable.ttf','font/ttf'], '/fonts/inter-variable.ttf':['fonts/inter-variable.ttf','font/ttf'], '/': ['index.html', 'text/html'], '/app.js': ['app.js', 'text/javascript'], '/microphone.js': ['microphone.js', 'text/javascript'], '/workspace.js':['workspace.js','text/javascript'], '/pcm-worklet.js': ['pcm-worklet.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       for (const file of ['wave-light.png','wave-dark.png','orbit-light.png','orbit-dark.png','ripple-light.png','ripple-dark.png','banner.css','manifest.json','preview.css','preview-light.html','preview-dark.html']) routes['/assets/banners/'+file]=['assets/banners/'+file,file.endsWith('.png')?'image/png':file.endsWith('.css')?'text/css':file.endsWith('.html')?'text/html':'application/json'];
       const asset = routes[url.pathname];
       if (!asset) { res.writeHead(404).end(); return; }

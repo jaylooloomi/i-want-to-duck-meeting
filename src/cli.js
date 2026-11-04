@@ -1,3 +1,4 @@
+import {readSummaryPlan} from './summary-plan.js';
 import {readMeetingPreferences,resolveMeetingLanguage} from './meeting-preferences.js';
 import {readMailDraft,saveMailDraft} from './mail-draft.js';
 /**
@@ -110,6 +111,7 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   notes-list                                              盤點所有會議與是否已整理會議紀錄（供「會議紀錄整理」指令使用）
   notes-follow <id>                                        將本場交給目前 Codex 對話自動追蹤收尾
   mail-draft <id> [--file JSON檔]                          讀取／保存本場郵件草稿（不操作信箱）
+  notes-plan <id>                                          讀取本場整理模板與 Agent 輸出規格
   notes-pending                                           列出目前 Codex 對話待接手的會議
   notes-status <id> <generating|ready|failed|idle> [--progress N] [--stage 文字]  同步更新網頁面板的 Agent 整理階段
   transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
@@ -1308,6 +1310,7 @@ export async function main(argv, io = {}) {
         const m=findMeeting(ctx,positionals[0]);if(!m)return 1;
         followAgentMeeting(m.dir,env.CODEX_THREAD_ID);out('AGENT_FOLLOW=enabled');return 0;
       }
+      case 'notes-plan': {const id=positionals[0],m=resolveMeeting(ctx.config.meetingsDir,id);if(!id||id==='latest'||!m||m.id!==id){err('請指定確切會議');return 1;}out(JSON.stringify(readSummaryPlan(m.dir),null,2));return 0;}
       case 'notes-pending': {
         for(const m of listMeetings(ctx.config.meetingsDir))if(env.CODEX_THREAD_ID && m.status?.summaryAgentThread===env.CODEX_THREAD_ID){
           const s=reconcileStatus(m.dir,m.status);if(['done','failed'].includes(s?.state))enqueueFinishedAgentMeeting(m.dir);

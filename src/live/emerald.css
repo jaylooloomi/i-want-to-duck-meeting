@@ -613,3 +613,62 @@ main{overflow-y:auto;overflow-x:hidden}
 @media(min-width:721px){.sidebar-footer{grid-template-rows:36px 59px 34px 40px;height:233px;min-height:233px}}
 @media(max-width:720px){.sidebar-footer{grid-template-rows:36px 34px 36px;height:150px;min-height:150px}}
 .sidebar-footer .tutorial-entry{order:-1;margin:0;height:36px}
+
+.summary-plan-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin:8px 0;font-size:12px}.summary-plan-control select,.summary-plan-control button{height:32px;max-width:100%;font-size:12px}.summary-plan-control small{flex-basis:100%;line-height:1.5}
+
+.notes-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}.notes-tabs button{min-width:0;padding-inline:4px}
+
+.task-board-entry{margin:0 14px 8px;flex-shrink:0;min-height:34px;font-size:12px}
+#task-board-dialog{width:min(1100px,96vw);max-width:96vw;max-height:92dvh;padding:18px;overflow:auto}.task-board-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.task-board-heading h2{margin:0;font-size:22px}.task-board-filters{display:flex;gap:12px;align-items:end;flex-wrap:wrap}.task-board-filters label{display:flex;flex-direction:column;gap:5px;font-size:12px;min-width:0}.task-board-filters input,.task-board-filters select{width:100%;min-height:34px;max-width:230px}.task-board-filters label:has(input[type=checkbox]){flex-direction:row;align-items:center}.task-board-filters input[type=checkbox]{width:16px;min-height:16px}.task-board-scroll{overflow:auto;max-height:60dvh;margin-top:12px}.task-board-scroll table{width:100%;min-width:680px;table-layout:fixed;border-collapse:collapse}.task-board-scroll th,.task-board-scroll td{padding:10px;text-align:left;vertical-align:middle;border-bottom:1px solid #91a5b344;overflow-wrap:anywhere}.task-board-scroll th:nth-child(1){width:64px}.task-board-scroll th:nth-child(2){width:42%}.task-board-scroll th:nth-child(3){width:15%}.task-board-scroll th:nth-child(4){width:18%}.task-board-scroll p{margin:0 0 5px}.task-board-scroll small{display:block}.task-board-scroll a{color:#087d6a}.task-board-scroll td{font-size:13px}:root[data-theme=dark] .task-board-scroll a{color:#7ccfff}
+@media(max-width:720px){#task-board-dialog{padding:12px}.task-board-filters>label{max-width:100%;flex:1 1 130px}.task-board-filters input,.task-board-filters select{max-width:100%}.notes-tabs button{font-size:10px}}
+
+.task-board-entry{border:1px solid #a5c9c2;border-radius:7px;background:#edf7f4;color:#126654;font-weight:600;cursor:pointer}:root[data-theme=dark] .task-board-entry{border-color:#31536b;background:#142b40;color:#9edbf1}
+:root[data-theme=dark] #task-board-dialog button,:root[data-theme=dark] .summary-plan-control button{background:#19364b;color:#c8e7f8;border-color:#395e75}
+#task-board-dialog td:nth-child(2)>a{display:inline-block;font-size:12px;padding:4px 7px}#task-board-dialog input[type=checkbox]{accent-color:#008f7b}
+
+.summary-header{grid-template-rows:36px auto 32px;height:auto}.summary-plan-control{grid-column:1/-1;grid-row:2;margin:0;min-height:58px}.summary-plan-control small{min-height:18px}.notes-tabs{grid-row:3}
+
+/* Shared control contrast: disabled remains readable without becoming actionable. */
+:root{--control-muted-text:#526575;--control-disabled-bg:#e8edf2;--control-disabled-text:#536171;--control-disabled-border:#a4afbb;--control-primary:#007967;--control-primary-hover:#006351;--control-primary-text:#fff}
+:root[data-theme=dark]{--control-muted-text:#b1c4d9;--control-disabled-bg:#1c2d42;--control-disabled-text:#adbed3;--control-disabled-border:#506781;--control-primary:#285bd6;--control-primary-hover:#214db7;--control-primary-text:#fff}
+:root :is(button,input,select,textarea):disabled,:root button[aria-disabled=true]{opacity:1!important;color:var(--control-disabled-text)!important;-webkit-text-fill-color:var(--control-disabled-text)!important;background:var(--control-disabled-bg)!important;border-color:var(--control-disabled-border)!important;box-shadow:none!important;text-shadow:none!important;cursor:not-allowed}
+:root label,:root .ui-language-control>span,:root .toolbar>label>span{color:var(--control-muted-text)}
+:root :is(input,textarea)::placeholder{color:var(--control-muted-text);opacity:1}
+:root .notes-tabs button:not([aria-pressed=true]),:root .language-presets button:not([aria-pressed=true]){color:var(--control-muted-text)}
+:root .notes-tabs button[aria-pressed=true],:root #audio-play:not(:disabled),:root #save-summary-template:not(:disabled),:root #mail-save:not(:disabled),:root #new-record,:root #workspace-export:not(:disabled){background:var(--control-primary);color:var(--control-primary-text);-webkit-text-fill-color:var(--control-primary-text)}
+:root .notes-tabs button[aria-pressed=true]:hover,:root #audio-play:hover:not(:disabled),:root #save-summary-template:hover:not(:disabled),:root #mail-save:hover:not(:disabled),:root #new-record:hover,:root #workspace-export:hover:not(:disabled){background:var(--control-primary-hover);color:var(--control-primary-text)}
+:root .summary-actions button:not(:disabled),:root #audio-expand,:root .utterance-mark,:root .utterance-menu{color:var(--control-muted-text)}
+:root .utterance .meta .transcript-seek:not(:disabled){color:#076b5d}
+:root .decision-source-link{color:#405e77}
+:root .source-file button:not(:disabled){color:#006b5c}
+:root[data-theme=dark] .utterance .meta .transcript-seek:not(:disabled){color:#9bd9ff}
+:root[data-theme=dark] .decision-source-link,:root[data-theme=dark] .source-file button:not(:disabled){color:#9bd9ff}
+:root #save-summary-template{display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid transparent;padding:0 12px;font-weight:600;line-height:1.3}
+:root :is(button,select,input,textarea,a,summary):focus-visible{outline:2px solid #007967;outline-offset:3px}:root[data-theme=dark] :is(button,select,input,textarea,a,summary):focus-visible{outline-color:#70d8f5}
+
+:root #new-record:not(:disabled),:root #workspace-export:not(:disabled),:root #audio-play:not(:disabled),:root #save-summary-template:not(:disabled),:root #mail-save:not(:disabled),:root .notes-tabs button[aria-pressed=true]:not(:disabled){background:var(--control-primary)!important;color:var(--control-primary-text)!important}
+:root #new-record:hover:not(:disabled),:root #workspace-export:hover:not(:disabled),:root #audio-play:hover:not(:disabled),:root #save-summary-template:hover:not(:disabled),:root #mail-save:hover:not(:disabled),:root .notes-tabs button[aria-pressed=true]:hover:not(:disabled){background:var(--control-primary-hover)!important}
+:root .language-shortcuts button[aria-pressed=false]{color:var(--control-muted-text)!important}
+:root .utterance-highlight[aria-pressed=false],:root .utterance-more{color:var(--control-muted-text)!important}
+:root .utterance-highlight[aria-pressed=true]{color:#946200!important}:root[data-theme=dark] .utterance-highlight[aria-pressed=true]{color:#ffc34b!important}
+:root #summary-body .decision-source-link{color:#365a78!important}:root[data-theme=dark] #summary-body .decision-source-link{color:#9bd9ff!important}
+:root[data-theme=dark] #mail-section-choices .mail-item-choice{background:#162d40;color:#c6d8e9}
+
+:root .meeting-card-meta,:root .meeting-card-meta span{color:var(--control-muted-text)}
+:root:not([data-theme=dark]) #meeting-total,:root:not([data-theme=dark]) .meeting-card-state.done{color:#006452}
+
+:root #note-source-options [role=option] small,:root #capture-settings>summary{color:var(--control-muted-text)}
+
+:root{--readable-body:#344d64}:root[data-theme=dark]{--readable-body:#d5e3f2}
+:root .summary-body,:root .summary-body :is(p,li,td,th,.summary-p,.task-label,.owner-chip){color:var(--readable-body)}
+:root .meeting-day,:root .local-storage :is(strong,small),:root #product-version,:root #meeting-metadata,:root .source-card small,:root .comparison-panel :is(p,small),:root .mail-panel>p,:root .mail-panel .mail-footer-note,:root .settings-privacy{color:var(--control-muted-text)}
+:root .note-source-controls small{color:var(--control-muted-text)}
+:root .decision-number{background:#1864c4;color:#fff}
+
+:root #count,:root #pane-count,:root #meeting-duration,:root .source-file :is(span,small),:root #mail-panel>p,:root #settings-dialog .settings-privacy{color:var(--control-muted-text)}
+:root .utterance .subtext,:root .utterance .subtext span{color:var(--control-muted-text)!important}
+:root:not([data-theme=dark]) #state,:root:not([data-theme=dark]) .avatar{color:#006452}
+:root:not([data-theme=dark]) #summary-badge{color:#6542b4}
+:root:not([data-theme=dark]) .source-file .source-file-icon{color:#006452}
+:root .language-shortcuts button[aria-pressed=true]:not(:disabled){background:var(--control-primary)!important;color:var(--control-primary-text)!important}
+:root .language-shortcuts button[aria-pressed=true]:hover:not(:disabled){background:var(--control-primary-hover)!important}

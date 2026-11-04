@@ -1,3 +1,4 @@
+import {readSummaryPlan} from './summary-plan.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
@@ -30,7 +31,7 @@ export function enqueueFinishedAgentMeeting(dir) {
 export function pendingAgentMeetings(meetingsDir,threadId) {
   if(!threadId)return [];
   return listMeetings(meetingsDir).filter(({status})=>status?.summaryAgentThread===threadId && status.summaryJob?.provider==='agent' && status.summaryJob.state==='waiting_agent')
-    .map(({id,dir,status})=>({id,dir,state:status.state,requestedAt:status.summaryJob.requestedAt}));
+    .map(({id,dir,status})=>({id,dir,state:status.state,requestedAt:status.summaryJob.requestedAt,summaryPlan:readSummaryPlan(dir)}));
 }
 
 export function completeAgentSummary(dir) {

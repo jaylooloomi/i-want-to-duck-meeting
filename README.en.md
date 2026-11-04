@@ -149,3 +149,10 @@ See [meeting language details](docs/MEETING_LANGUAGES.md).
 ### Built-in tutorial
 
 Use **Tutorial** at the bottom of the sidebar to play the 15-scene walkthrough in a modal. Narration is enabled by default. If autoplay is blocked, press Play. Closing the tutorial stops its audio and keeps the current meeting unchanged. The walkthrough uses fictional demonstration data; narration is in Chinese.
+
+
+### Meeting templates and follow-up
+
+Choose a per-meeting **Note template** (General / Project review / Customer interview / Technical review), then save before the next Agent summary. Existing notes are not rewritten. The Agent reads `notes-plan <ID>`; the export prompt includes the same instructions. **Open** separates unresolved questions, risks and missing task details from decisions.
+
+Use **All action items** in the sidebar to filter tasks by owner, open/completed/overdue status, unclear deadline, or archived meetings. Checkboxes save back to the original meeting. Linked sources return to and highlight the exact transcript; identical tasks from separate meetings remain separate. Only completed/failed/archived meetings with available notes are included. Legacy bullet tasks retain unknown owner/deadline; relative dates are not guessed. There is no new model API; Agent processing uses the existing subscription quota.
