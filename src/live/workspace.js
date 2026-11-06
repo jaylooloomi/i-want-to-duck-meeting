@@ -29,13 +29,13 @@
   function partition(markdown,kind,preserveLines=false){
     if(kind==='overview')return markdown;
     const wanted=kind==='open'?/未確認|待確認|未決|風險|open questions|unresolved|risks?/i:kind==='actions'?/行動|待辦|action items|next steps/i:/決議|決策|決定|decisions?/i;
-    const lines=String(markdown).split(/\r?\n/),out=[];let capture=false,level=0;
+    const lines=String(markdown).split(/\r?\n/),out=[];let capture=false,level=0,blocked=false,blockedLevel=0;
     for(let i=0;i<lines.length;i++){
       const line=lines[i];
       const heading=/^(#{1,6})\s+(.+)$/.exec(line);
-      if(heading){if(capture && heading[1].length<=level)capture=false;if(wanted.test(heading[2])){capture=true;level=heading[1].length;}}
+      if(heading){if(capture && heading[1].length<=level)capture=false;if(kind!=='open'&&/未確認|待確認|未決|風險|open questions|unresolved|risks?/i.test(heading[2])){if(!blocked)blockedLevel=heading[1].length;blocked=true;capture=false;}else if(blocked&&heading[1].length<=blockedLevel)blocked=false;if(!blocked&&wanted.test(heading[2])){capture=true;level=heading[1].length;}}
       if(capture)out.push(line);
-      else if(kind==='decisions' && /(?:最終)?決議(?:\*\*)?\s*[：:]/.test(line)){
+      else if(kind==='decisions' && !blocked && /^(?:\*\*)?(?:最終)?(?:決議|決定)(?:\*\*)?\s*[：:]/.test(line.trim().replace(/^(?:[-*•]|\d+[.)])\s+/,''))){
         out.push(line);
         while(i+1<lines.length && (/^\s{2,}\S/.test(lines[i+1]) || !lines[i+1].trim()))out.push(lines[++i]);
       }else if(preserveLines)out.push('');
@@ -173,6 +173,7 @@
   document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{if(button.dataset.view==='summary')audio.pause();if($('settings-dialog').open)$('settings-dialog').close();}));
   $('toggle-transcript-search').addEventListener('click',()=>{$('transcript-search').focus();});
   $('open-settings').addEventListener('click',()=>$('settings-dialog').showModal());
+  $('close-settings').addEventListener('click',()=>{$('settings-dialog').close();$('open-settings').focus();});
   $('open-help').addEventListener('click',()=>$('help-dialog').showModal());
   $('help-report').addEventListener('click',()=>{$('help-dialog').close();openIssueModal();});
   const density=readPref('density','comfortable');$('density-setting').value=['comfortable','compact'].includes(density)?density:'comfortable';document.documentElement.dataset.density=$('density-setting').value;

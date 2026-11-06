@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.3.5-informational" alt="版本 0.3.5">
+  <img src="https://img.shields.io/badge/version-0.3.7-informational" alt="版本 0.3.7">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -47,7 +47,7 @@ Duck Meeting 是專為 **Codex 與 Claude Code** 設計的本機開會工具：�
 
 ## Windows 安裝包（建議）
 
-從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.5-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
+從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.7-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
 
 - 支援 Windows 10/11 x64；按使用者安裝至 `%LOCALAPPDATA%\Programs\DuckMeeting`，不需管理員權限。
 - 會議、錄音、登入設定及模型獨立存於 `%LOCALAPPDATA%\DuckMeeting\data`，升級預設保留。原始碼版的舊資料不會自動搬移。安裝包使用本機 8792 埠，原始碼版維持 8791。
@@ -59,9 +59,9 @@ Duck Meeting 是專為 **Codex 與 Claude Code** 設計的本機開會工具：�
 
 開發者可設定官方 Inno Setup 的 `ISCC_PATH`，執行 `npm ci`、`npm run build:windows` 重建；另提供手動 GitHub Actions 打包測試流程。[測試報告與限制](docs/qa/reports/windows-installer-030.md)。
 
-## v0.3.5 工作區更新
+## v0.3.7 工作區更新
 
-以下修正已納入 v0.3.5 原始碼與 Windows 安裝包。
+以下修正已納入 v0.3.7 原始碼與 Windows 安裝包。
 
 - **統一表格布局：** 摘要、決議與待辦三個分頁的來源欄位置一致；來源狀態與按鈕同列。事項、負責人、期限與來源控制項全部上下置中。欄寬依視口分配，不隨文字內容改變；窄畫面會預留來源操作空間。
 - **核對來源：** 點擊已關聯的決議／待辦文字或「查看原文」，即可捲動並高亮逐字稿來源；未關聯項目可用「連結來源」選取證據。點未關聯的待辦文字不會切換 checkbox。
@@ -588,3 +588,11 @@ master 已啟用分支保護：一般寫入者須透過 PR、取得至少 1 份�
 「待確認」分頁獨立呈現未定案問題、風險與缺漏，不視為正式決議。舊紀錄沒寫此節會明確提示，並不代表沒有風險。
 
 左側「跨會議待辦」可按負責人、未完成／已完成／逾期、期限待確認及已封存會議篩選。勾選會保存到原場次；來源已連結者可回到逐字稿高亮。不同場次同名任務不自動合併。只彙整終態且已整理的場次；生成中不列入。舊版條列待辦的人名與期限保留未指定，相對日期不猜測。無新增模型API，整理仍使用既有Agent訂閱額度。
+
+## 畫面回歸檢查
+
+執行 `npm run test:ui:recent` 檢查近期畫面修正，或 `npm run test:ui` 跑完整已知問題回歸。測試自動啟動隔離站台與 Headless Chrome，失敗保留截圖、DOM 與 Playwright trace。詳見[畫面回歸指南](docs/qa/UI_REGRESSION.md)。
+
+## v0.3.7 發布內容
+
+Windows 安裝包已納入深色郵件勾選區、元件與 X 統一、窄／矮視窗排版、會議模板與跨會議待辦，以及自然女聲、播放一次即停止的操作教學。原始碼或本機覆蓋檔案不等於安裝包更新：執行新版 Setup 後，請確認產品名稱旁顯示 v0.3.7。原會議資料保留在獨立的本機資料目錄。

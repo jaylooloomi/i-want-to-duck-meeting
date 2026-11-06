@@ -6,7 +6,7 @@ for e in entries:
   assert (f.getframerate(),f.getnchannels(),f.getsampwidth())==(rate,1,2);pcm=array.array('h');pcm.frombytes(f.readframes(f.getnframes()))
  offset=int((e['start']+.6)*rate);assert offset+len(pcm)<int(e['end']*rate),e
  for i in range(min(160,len(pcm)//2)):pcm[i]=int(pcm[i]*i/160);pcm[-i-1]=int(pcm[-i-1]*i/160)
- timeline[offset:offset+len(pcm)]=pcm;stats.append({'scene':e['scene'],'offset':e['start']+.6,'seconds':len(pcm)/rate,'rms':math.sqrt(sum(v*v for v in pcm)/len(pcm)),'voice':'Microsoft Hanhan Desktop','rate':1})
+ timeline[offset:offset+len(pcm)]=pcm;stats.append({'scene':e['scene'],'offset':e['start']+.6,'seconds':len(pcm)/rate,'rms':math.sqrt(sum(v*v for v in pcm)/len(pcm)),'voice':'zh-TW-HsiaoChenNeural','engine':'Microsoft Edge online TTS via edge-tts'})
 with wave.open(str(root/'tutorial-narration.wav'),'wb') as f:f.setparams((1,2,rate,0,'NONE','not compressed'));f.writeframes(timeline.tobytes())
 (root/'audio-validation.json').write_text(json.dumps({'duration':total,'sampleRate':rate,'scenes':stats},indent=2),encoding='utf-8')
 def stamp(t):

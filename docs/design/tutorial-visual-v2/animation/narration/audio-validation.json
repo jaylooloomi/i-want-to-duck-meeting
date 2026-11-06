@@ -5,122 +5,122 @@
     {
       "scene": 1,
       "offset": 0.6,
-      "seconds": 4.31375,
-      "rms": 2625.0891753477563,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 4.992,
+      "rms": 3510.6514211098865,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 2,
       "offset": 9.6,
-      "seconds": 5.1755,
-      "rms": 2277.5413524886685,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.712,
+      "rms": 3698.9659560588866,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 3,
       "offset": 18.6,
-      "seconds": 5.327375,
-      "rms": 2462.224476859425,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 6.024,
+      "rms": 3567.8639385037814,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 4,
       "offset": 27.6,
-      "seconds": 4.47675,
-      "rms": 2584.0925369894726,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 4.92,
+      "rms": 3620.0733258635887,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 5,
       "offset": 36.6,
-      "seconds": 4.774375,
-      "rms": 2487.6088548682033,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.208,
+      "rms": 3704.4379084711263,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 6,
       "offset": 45.6,
-      "seconds": 8.30425,
-      "rms": 2325.7286261114336,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 8.88,
+      "rms": 3555.483793299163,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 7,
       "offset": 63.6,
-      "seconds": 4.549625,
-      "rms": 2390.289870554325,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.064,
+      "rms": 3591.3128056532437,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 8,
       "offset": 72.6,
-      "seconds": 4.813875,
-      "rms": 2261.4461566422187,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.4,
+      "rms": 3733.126205531178,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 9,
       "offset": 81.6,
-      "seconds": 6.448375,
-      "rms": 2485.0767267310134,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 7.32,
+      "rms": 3855.3003939251284,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 10,
       "offset": 90.6,
-      "seconds": 4.4645,
-      "rms": 2405.8673586310047,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.184,
+      "rms": 3613.511132375291,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 11,
       "offset": 99.6,
-      "seconds": 4.904,
-      "rms": 2697.6493681733805,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.472,
+      "rms": 3600.2953106911223,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 12,
       "offset": 108.6,
-      "seconds": 5.6545,
-      "rms": 3119.584545475803,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 6.0,
+      "rms": 3507.9618169630685,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 13,
       "offset": 117.6,
-      "seconds": 6.979625,
-      "rms": 2419.068367374778,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 8.088,
+      "rms": 3322.8530884423863,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 14,
       "offset": 126.6,
-      "seconds": 4.88175,
-      "rms": 2348.9108800462723,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 5.424,
+      "rms": 3469.566298938329,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     },
     {
       "scene": 15,
       "offset": 135.6,
-      "seconds": 6.991875,
-      "rms": 2222.5142848126934,
-      "voice": "Microsoft Hanhan Desktop",
-      "rate": 1
+      "seconds": 7.872,
+      "rms": 3394.339190881545,
+      "voice": "zh-TW-HsiaoChenNeural",
+      "engine": "Microsoft Edge online TTS via edge-tts"
     }
   ]
 }

@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.3.5-informational" alt="Version 0.3.5">
+  <img src="https://img.shields.io/badge/version-0.3.7-informational" alt="Version 0.3.7">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
@@ -45,7 +45,7 @@ The recorder collects platform captions/audio and uses local speech models where
 
 ## Windows installer (recommended)
 
-Download **DuckMeeting-0.3.5-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+Download **DuckMeeting-0.3.7-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
 
 - Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
 - Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
@@ -57,9 +57,9 @@ Download **DuckMeeting-0.3.5-Setup-x64.exe** from [GitHub Releases](https://gith
 
 Developers: install the official Inno Setup compiler, set `ISCC_PATH`, then run `npm ci` and `npm run build:windows`. The optional manual GitHub Actions workflow builds and smoke-tests the package. See [installer QA and limitations](docs/qa/reports/windows-installer-030.md).
 
-## Workspace improvements in v0.3.5
+## Workspace improvements in v0.3.7
 
-These improvements are included in the v0.3.5 source and Windows installer.
+These improvements are included in the v0.3.7 source and Windows installer.
 
 - **Consistent notes tables:** Overview, Decisions and Actions share the same source-column alignment. Source status and its button appear on one row; task text, owners, deadlines and source controls are vertically centered. Column widths depend on the viewport rather than content, with additional room reserved for sources on narrow screens.
 - **Check the evidence:** Select linked decision/action text or **View original** to scroll to and highlight its transcript source. For unlinked items, use **Link source** to choose evidence; clicking unlinked task text does not change its checkbox.
@@ -574,3 +574,11 @@ Use **Tutorial** at the bottom of the sidebar to play the 15-scene walkthrough i
 Choose a per-meeting **Note template** (General / Project review / Customer interview / Technical review), then save before the next Agent summary. Existing notes are not rewritten. The Agent reads `notes-plan <ID>`; the export prompt includes the same instructions. **Open** separates unresolved questions, risks and missing task details from decisions.
 
 Use **All action items** in the sidebar to filter tasks by owner, open/completed/overdue status, unclear deadline, or archived meetings. Checkboxes save back to the original meeting. Linked sources return to and highlight the exact transcript; identical tasks from separate meetings remain separate. Only completed/failed/archived meetings with available notes are included. Legacy bullet tasks retain unknown owner/deadline; relative dates are not guessed. There is no new model API; Agent processing uses the existing subscription quota.
+
+## UI regression checks
+
+Run `npm run test:ui:recent` for recent UI fixes, or `npm run test:ui` for the full known-issue browser regression suite. Tests launch isolated local servers and Headless Chrome; failures retain screenshots, DOM snapshots and Playwright traces. See [UI regression guide](docs/qa/UI_REGRESSION.md).
+
+## v0.3.7 release contents
+
+The Windows installer now bundles the workspace fixes: dark mail checklists, consistent controls and close icons, responsive tablet/short-window layout, meeting templates and follow-up tasks, and the natural narrated tutorial that stops after one play. Source-only or local file updates are not installer updates: verify the version shown below Duck Meeting is v0.3.7 after running Setup. Existing meeting data remains in the separate local data directory.

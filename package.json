@@ -1,6 +1,6 @@
 {
   "name": "i-want-to-duck-meeting",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Local meeting notes for Codex and Claude Code: Google Meet captions and audio, live transcripts, and offline microphone transcription.",
   "type": "module",
   "private": true,
@@ -19,7 +19,9 @@
     "setup": "node scripts/install.js",
     "install-codex": "node scripts/install.js --target codex",
     "install-plugin": "node scripts/install-plugin.js",
-    "build:windows": "node scripts/build-windows.js"
+    "build:windows": "node scripts/build-windows.js",
+    "test:ui:recent": "node scripts/test-ui.js --recent",
+    "test:ui": "node scripts/test-ui.js"
   },
   "dependencies": {
     "playwright-core": "^1.63.0"

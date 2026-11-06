@@ -206,3 +206,15 @@ Implementation and synthetic/native evidence: [video report](docs/qa/reports/vid
 ## 可讀性（2026-11-04）
 
 新增停用／啟用／選取／hover／focus的淺深色對比驗證。18畫面2058筆文字樣本均達本次4.5:1檢查門檻，含重複樣本。詳見docs/qa/reports/control-contrast-20261104.md。
+
+## 2026-11-05 畫面回歸自動化
+
+新增 `npm run test:ui:recent`（17項）及 `npm run test:ui`（21檔、164項），含獨立證據目錄、run.log、result.json及失敗trace。主套件首輪110/124通過；14項修正後相關重跑全過，補充40項全過。新一鍵近期入口17/17通過。詳細初跑限制與重跑證據見 [報告](docs/qa/reports/ui-regression-20261105.md)，使用方式見 [指南](docs/qa/UI_REGRESSION.md)。
+
+## codex/ui-consistency-20261105
+
+手機段落與共用元件樣式修正，新增4項一致性案例，目前完整入口168項、近期入口21項。完整執行164/168直接通過；4項郵件舊36px預期改為新34px精確斷言，相關重跑4/4通過。產品CSS未在重跑前變更。前後截圖、原始失敗與完整證據見 [一致性修正報告](docs/qa/style-consistency-after-20261105/CHANGES.md)。
+
+## 窄／矮視窗斷點補驗
+
+responsive-breakpoints 16/16、既有transcript-scroll 10/10通過；完整入口現184項，近期入口37項。本輪僅跑相關回歸，詳見[斷點修正報告](docs/qa/reports/responsive-20261105.md)。

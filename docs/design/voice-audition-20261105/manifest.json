@@ -1,0 +1,21 @@
+{
+  "text": "歡迎使用 Duck Meeting。只要貼上會議連結，助理就會幫你準備錄音與字幕。會議進行時，即時顯示原文與翻譯；結束後，再整理摘要、決議和待辦事項。重要發言，也可以隨時標記，方便會後回聽。",
+  "engine": "Microsoft Edge online TTS via edge-tts",
+  "voices": [
+    [
+      "01-friendly-female",
+      "zh-TW-HsiaoChenNeural",
+      "-5%"
+    ],
+    [
+      "02-calm-male",
+      "zh-TW-YunJheNeural",
+      "-5%"
+    ],
+    [
+      "03-clear-female",
+      "zh-TW-HsiaoYuNeural",
+      "-5%"
+    ]
+  ]
+}

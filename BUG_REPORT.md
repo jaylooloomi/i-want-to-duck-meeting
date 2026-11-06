@@ -192,3 +192,7 @@ Known BUG-004 skips remain unchanged and are not counted as passes. No new live-
 Status: confirmed, not changed in this release scope. `src/live-server.js:122` enqueues a subarray of a reusable read buffer, then reads the next chunk before asynchronous writes finish. A 320044-byte synthetic WAV exported through `/api/export` fails `zipfile.ZipFile.testzip()` at audio.wav; its leading RIFF header can be overwritten. This predates the source-link integration.
 
 Independent reproduction used the isolated 8793 synthetic preview, saved to ignored `test/.tmp/source-export.zip`; CRC validation returned `20261031-linked-source-demo/audio.wav`. Original WAV and notes remain intact. Until fixed, retain/backup original WAV files directly rather than relying on ZIP audio. The full unit/QA suite does not assert ZIP audio CRC, so its passing count does not establish ZIP integrity.
+
+## UI-REG-20261105：手機語系切換使模板區高度改變（已修正）
+
+390px 下，英文整理模板標籤較長，原 flex 換行導致 summary-header 比繁中多 40px。模板區窄版改為固定的標籤列、等寬控制列及狀態列；英文／日文／韓文採用按鈕文案縮短以符合128px寬。保留 locale-geometry 對所有語系相同高度的斷言，並新增按鈕文字不可溢出的檢查。390px 淺深色重跑2項通過。

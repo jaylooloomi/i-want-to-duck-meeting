@@ -5,6 +5,7 @@ window.DuckLocaleCatalog={
  "專案週會":["Project review", "プロジェクト週次", "프로젝트 주간"],
  "客戶訪談":["Customer interview", "顧客インタビュー", "고객 인터뷰"],
  "技術討論":["Technical review", "技術検討", "기술 논의"],
+ "採用此模板":["Use template", "採用する", "템플릿 적용"],
  "儲存模板":["Save template", "テンプレート保存", "템플릿 저장"],
  "待確認":["Open", "未確認", "확인 필요"],
  "跨會議待辦":["All action items", "会議横断タスク", "전체 할 일"],

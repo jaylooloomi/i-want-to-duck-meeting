@@ -1,3 +1,4 @@
+import {OPEN_ISSUES_HEADING} from './open-issues.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
@@ -10,11 +11,12 @@ function readEvidence(dir){
 }
 export function summaryItems(dir,markdown='',records=[]){
   markdown=String(markdown).trim();
-  const saved=readEvidence(dir),items=[];let kind=null,level=0,headers=null;
+  const saved=readEvidence(dir),items=[];let kind=null,level=0,headers=null,excluded=false,excludedLevel=0;
   String(markdown).split(/\r?\n/).forEach((raw,lineIndex)=>{
     const line=raw.trim(),heading=/^(#{1,6})\s+(.+)$/.exec(line);
-    if(heading){const next=/行動|待辦|action items|next steps/i.test(heading[2])?'action':/決議|決策|決定|decisions?/i.test(heading[2])?'decision':null;if(next){kind=next;level=heading[1].length;}else if(heading[1].length<=level)kind=null;headers=null;return;}
-    const inlineDecision=/(?:最終)?(?:決議|決定)(?:\*\*)?\s*[：:]/.test(line);
+    if(heading){if(OPEN_ISSUES_HEADING.test(heading[2])){if(!excluded)excludedLevel=heading[1].length;excluded=true;}else if(excluded&&heading[1].length<=excludedLevel)excluded=false;const next=excluded?null:/行動|待辦|action items|next steps/i.test(heading[2])?'action':/決議|決策|決定|decisions?/i.test(heading[2])?'decision':null;if(next){kind=next;level=heading[1].length;}else if(excluded||heading[1].length<=level)kind=null;headers=null;return;}
+    if(excluded)return;
+    const inlineDecision=/^(?:\*\*)?(?:最終)?(?:決議|決定)(?:\*\*)?\s*[：:]/.test(line.replace(/^(?:[-*•]|\d+[.)])\s+/,''));
     if((!kind&&!inlineDecision)||!line)return;
     const itemKind=kind||(inlineDecision?'decision':null);
     let text,values,declared=null;

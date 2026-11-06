@@ -1,1 +1,4 @@
-import {spawnSync} from 'node:child_process';import path from 'node:path';import fs from 'node:fs';for(const {scene:n} of JSON.parse(fs.readFileSync('docs/design/tutorial-visual-v2/animation/narration/script.json','utf8'))){const id=String(n).padStart(2,'0');const base=path.resolve('docs/design/tutorial-visual-v2/animation/narration');const result=spawnSync('C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File','scripts/make-tts-wav.ps1','-TextFile',path.join(base,'scene-'+id+'.txt'),'-Out',path.join(base,'scene-'+id+'.wav'),'-Rate','1'],{encoding:'utf8',windowsHide:true});if(result.status!==0)throw Error(result.stderr||result.stdout);console.log('VOICE_SCENE='+id);}
+import {spawnSync} from 'node:child_process';
+const python=process.env.OPENMEETING_TTS_PYTHON||'.venv-stt/Scripts/python.exe';
+const result=spawnSync(python,['docs/design/tutorial-visual-v2/tools/build-natural-voice.py'],{stdio:'inherit',windowsHide:true});
+if(result.error)throw result.error;if(result.status!==0)process.exit(result.status||1);

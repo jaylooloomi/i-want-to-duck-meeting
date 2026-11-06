@@ -6,7 +6,7 @@
 
 - 本機預覽：http://127.0.0.1:8794/ （需要預覽程序持續運作）。
 - 離線：用Chrome或Edge開啟 duck-meeting-tutorial.html，可播放、暫停、拖曳、重播與選幕。
-- 獨立SVG：duck-meeting-tutorial.svg，會自動循環，畫面隨視窗縮放；旁白與下方說明請使用HTML播放器。
+- 獨立SVG：duck-meeting-tutorial.svg，為獨立示意素材；站台 HTML 播放器播放一次即停止，畫面隨視窗縮放；旁白與下方說明請使用HTML播放器。
 - 全部圖片已內嵌，不需額外素材檔案。HTML播放器含可開關的本機中文旁白；沒有真人錄音。
 
 ## 內容
@@ -30,16 +30,24 @@
 
 ## 操作說明與中文旁白
 
-影片下方新增隨分鏡更新的操作說明與角色標示。預設開啟中文旁白；瀏覽器允許時直接有聲播放，若阻擋則暫停畫面並提示按「播放」，點一次即可開始。重新按「開啟旁白」會從目前這幕開頭接續播放中文語音；可隨時關閉，旁邊可調音量。旁白會跟隨暫停、重播、選幕與時間拖曳，循環也會同步。
+影片下方新增隨分鏡更新的操作說明與角色標示。預設開啟中文旁白；瀏覽器允許時直接有聲播放，若阻擋則暫停畫面並提示按「播放」，點一次即可開始。重新按「開啟旁白」會從目前這幕開頭接續播放中文語音；可隨時關閉，旁邊可調音量。旁白會跟隨暫停、重播、選幕與時間拖曳，播放一次後停止在最後畫面，只有按「重播」才重新開始。
 
-旁白由本機Microsoft Hanhan Desktop製作，已內嵌HTML，離線可用，無需API金鑰。narration/tutorial-narration.wav為144秒完整旁白；tutorial-captions.vtt是分鏡說明，tutorial-narration.vtt是對應實際語音的逐句字幕；script.json為來源文字與時間軸。
+旁白由使用者選定的 01 曉臻女聲（zh-TW-HsiaoChenNeural）製作，已內嵌HTML，離線可用，播放無需API金鑰。narration/tutorial-narration.wav為144秒完整旁白；tutorial-captions.vtt是分鏡說明，tutorial-narration.vtt是對應實際語音的逐句字幕；script.json為來源文字與時間軸。
 
 新增驗證：15幕文字對應、實際音訊訊號、暫停/繼續/跳幕/拖曳/音量/關閉、3種視口及離線播放。另由獨立Agent複查通過，包括153秒循環銜接，詳見qa/narration-independent-review.md。三輪審查屬於先前版本；本次移除搜尋幕後另跑時間軸與旁白回歸。
 
-重建：在專案根目錄依序執行 node docs/design/tutorial-visual-v2/tools/build-tutorial-voice.mjs、python docs/design/tutorial-visual-v2/tools/compose-narration.py、python docs/design/tutorial-visual-v2/tools/build-narrated-viewer.py。重建需要Windows內建中文System.Speech語音；播放離線HTML不需要安裝語音元件。
+重建：在專案根目錄依序執行 node docs/design/tutorial-visual-v2/tools/build-tutorial-voice.mjs、python docs/design/tutorial-visual-v2/tools/compose-narration.py、python docs/design/tutorial-visual-v2/tools/build-narrated-viewer.py。重建需要 Python、PyAV 與 edge-tts（試聽工具安裝於 test/.tmp/voice-tools）；語音合成使用 Microsoft 線上服務，僅傳送公開教學台詞，不傳送私人會議。播放器內嵌生成的音訊，播放離線 HTML 不需網路或語音元件。
 
 ## 移除搜尋分鏡
 
 依使用者要求移除原第08幕「搜尋逐字稿」，後續重新編號。現為15幕、144秒；同步重建字幕、中文旁白、選幕與8階段進度列。產品的逐字稿搜尋功能保留。
 
 郵件草稿分鏡已展示決議、待辦、負責人與期限；第13幕重新配音，長6.98秒，在9秒分鏡內完整播畢。
+
+## 2026-11-05 自然女聲更新
+
+使用者選定 01 曉臻女聲，15 幕全部重新合成並嵌入播放器；144 秒時間軸不變。每幕保留 0.6 秒前導，語音在該幕結束前完整播畢，不截斷、不疊音。旁白預設開啟；瀏覽器禁止自動出聲時，需點播放。
+
+2026-11-05：HTML 教學取消循環，音訊與動畫在最後畫面停止；已驗證結束後維持停止、按重播才從頭開始，無 Console/Page Error。
+
+教學控制視窗跟隨站台淺深色，包括標題、說明、步驟與控制列；影片 SVG 不改色。已驗證同一視窗即時切換、淺深色各 25 個控制文字對比 >=4.5:1、四組手機/桌面操作回歸通過。

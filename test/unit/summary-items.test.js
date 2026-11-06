@@ -47,3 +47,18 @@ test('explicit Agent source columns resolve only exact original quote/time and c
  const unlinked=setSummarySource(dir,md,records,{itemId:parsed.items[0].id,revision:parsed.revision,evidenceRevision:parsed.evidenceRevision,recordIndex:null});assert.equal(unlinked.items[0].source.linked,false);
  assert.equal(summaryItems(dir,'## Discussion\n- **最終決議**：Keep originals',records).items[0].kind,'decision');
 });
+
+
+test('unresolved sections and pending-decision phrases never become confirmed decisions',t=>{const dir=fixture(t),text='## 決議\n- 正式決議。\n## 未確認事項與風險\n- 待決定：上線日期。\n- 決議：這只是待確認區的引用，不代表定案。\n### 待決定問題\n- 決定：等待客戶確認。\n## 待辦\n- 核對客戶回覆。\n## 其他\n尚未決議：維持未知。\n最終決議：已正式核准。';const items=summaryItems(dir,text).items;assert.deepEqual(items.filter(i=>i.kind==='decision').map(i=>i.text),['正式決議。','最終決議：已正式核准。']);assert.equal(items.filter(i=>i.kind==='action').length,1);});
+
+test('nested open issues inside a decision section do not inherit confirmed status',t=>{
+ const dir=fixture(t),md='## 決議\n- 已核准既有流程。\n### 待確認事項\n- 決議：此處仍待客戶確認。\n## 待辦\n- 核對客戶回覆。';
+ const items=summaryItems(dir,md).items;
+ assert.deepEqual(items.filter(i=>i.kind==='decision').map(i=>i.text),['已核准既有流程。']);
+ assert.deepEqual(items.filter(i=>i.kind==='action').map(i=>i.text),['核對客戶回覆。']);
+});
+
+test('nested risk headings preserve the outer unresolved exclusion boundary',t=>{
+ const dir=fixture(t),md='## 未確認事項與風險\n### 風險\n- 相容性尚未驗證。\n### 其他\n- 決議：仍在未確認範圍內。\n## 決議\n- 已正式核准。';
+ assert.deepEqual(summaryItems(dir,md).items.filter(i=>i.kind==='decision').map(i=>i.text),['已正式核准。']);
+});

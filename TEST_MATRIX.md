@@ -329,3 +329,21 @@ These are interface-localization tests; they do not establish Japanese/Korean AS
 - [x] FU-E2E-04 FE-E2E：來源點擊回正確會議並高亮唯一原文。
 - [x] FU-E2E-05 FE-E2E：空清單、特殊字元、錯誤回饋／重試、防重複送出狀態。
 - [x] FU-E2E-06 FE-E2E：390/1440淺深色布局、零瀏覽器錯誤。
+
+## UI regression automation (2026-11-05)
+
+- [x] UI-REG-01 / FE-E2E / recent-ui.test.js：淺深色與390/1440模板尺寸、無色彩閃爍、保存與提示。
+- [x] UI-REG-02 / FE-E2E / recent-ui.test.js：郵件選項預設勾選、透明標籤、按鈕同高、可取消與重新勾選。
+- [x] UI-REG-03 / FE-E2E / recent-ui.test.js：11個視窗X實際樣式一致，關閉後視窗消失。
+- [x] UI-REG-04 / FE-E2E / recent-ui.test.js：待辦篩選欄位同高、桌面對齊、窄版不溢出。
+- [x] UI-REG-05 / FE-E2E / recent-ui.test.js：教學控制列跟隨風格、影片保持深色，播完停止且可手動重播。
+- [x] UI-REG-06 / FE-E2E / status-feedback.test.js：真實待辦勾選再取消，提示不與播放、速度、音量、放大控制重疊；手機可捲動看見提示。
+- [x] UI-REG-07 / FE-E2E / i18n-layout.test.js：測試明確選全部原文，避免預設中文篩選讓英文測資不可見。
+- [x] UI-REG-08 / FE-E2E / locale-geometry.test.js：手機模板區在中英日韓保持相同高度，修正英文換行回歸。
+
+## 元件一致性分支
+
+- [x] UI-CONSIST-01 / FE-E2E / component-consistency.test.js：390/1440淺深色，原文閱讀寬度至少180px、名稱至少70px；手機名稱與正文分行。
+- [x] UI-CONSIST-02 / FE-E2E / component-consistency.test.js：郵件六個操作均34px/7px圓角/12px字/500字重/20px行高，disabled色彩一致且不水平溢出。
+
+- [x] UI-RWD-01 / FE-E2E / responsive-breakpoints.test.js：720–1280px斷點與480–688px高度，淺深色16項；標題立即可見、正文可捲到，側欄不把main推至下一屏。

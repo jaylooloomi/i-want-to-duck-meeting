@@ -15,3 +15,8 @@ node test/qa/audit-controls.mjs
 node --test --test-concurrency=1 test/qa/control-contrast.test.js test/qa/theme.test.js test/qa/followup.test.js test/qa/mail-footer.test.js
 
 證據：test/.tmp/control-contrast/audit.json、low-contrast.json與18張PNG；test/.tmp/qa/manual/CONTRAST_*。
+# 儲存模板按鈕樣式補驗
+
+依網站風格將模板選單與儲存按鈕統一為 34px 高、細框圓角與垂直置中，加入既有線條風格的 SVG 儲存圖示。可操作時沿用網站淺綠／深藍主色，停用時採接近面板的淡底細框；儲存邏輯未更動。
+
+`node --test --test-concurrency=1 test/qa/control-contrast.test.js`：390/1440、淺深色共 4 項通過，涵蓋停用、啟用、hover、鍵盤焦點及無水平溢出，無 Console/Page Error。`test/qa/integrity.test.js` 3 項通過。已同步目前本機 8792 站台的 HTML/CSS，未重啟或停止會議程序；重新整理可載入。

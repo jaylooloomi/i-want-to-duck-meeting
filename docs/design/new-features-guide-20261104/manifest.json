@@ -1,0 +1,10 @@
+{
+  "fictionalData": true,
+  "capturedFrom": "isolated local app fixture",
+  "artifacts": {
+    "01-templates": "01-templates.png",
+    "02-open-issues": "02-open-issues.png",
+    "03-task-board": "03-task-board.png",
+    "04-readable-controls": "04-readable-controls.png"
+  }
+}

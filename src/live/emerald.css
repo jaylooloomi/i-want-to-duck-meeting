@@ -596,7 +596,7 @@ main{overflow-y:auto;overflow-x:hidden}
 :root[data-theme="dark"] .utterance .meta .transcript-seek:hover:not(:disabled){background:#20445f;border-color:#79ccff}
 
 /* Selected spacing option 03: compact capsule, reserved metadata column. */
-.utterance .body,.utterance:nth-of-type(n) .body{grid-template-columns:76px minmax(0,1fr);column-gap:18px}
+@media(min-width:721px){.utterance .body,.utterance:nth-of-type(n) .body{grid-template-columns:76px minmax(0,1fr);column-gap:18px}}
 .utterance .meta{gap:6px}
 .utterance .meta .transcript-seek{height:26px;min-width:74px;padding:0 8px;gap:5px;font-size:11px}
 .utterance .meta .transcript-seek::before{border-top-width:4px;border-bottom-width:4px;border-left-width:7px}
@@ -672,3 +672,126 @@ main{overflow-y:auto;overflow-x:hidden}
 :root:not([data-theme=dark]) .source-file .source-file-icon{color:#006452}
 :root .language-shortcuts button[aria-pressed=true]:not(:disabled){background:var(--control-primary)!important;color:var(--control-primary-text)!important}
 :root .language-shortcuts button[aria-pressed=true]:hover:not(:disabled){background:var(--control-primary-hover)!important}
+
+/* Template action uses the workspace control shape and palette. */
+:root .summary-plan-control{column-gap:8px;row-gap:6px}
+:root .summary-plan-control label{font-weight:500}
+:root .summary-plan-control select{appearance:none;height:34px;padding:0 28px 0 10px;border:1px solid #dce5e9;border-radius:7px;background:#fbfdfe url('/assets/chevron.svg') no-repeat right 8px center;background-size:12px;color:#354b60;line-height:20px}
+:root[data-theme=dark] .summary-plan-control select{background-color:#102236;border-color:#304b64;color:#c6d8e9}
+:root #save-summary-template{height:34px;min-width:110px;padding:0 12px;gap:7px;border-radius:7px;border:1px solid transparent;font:inherit;font-size:12px;font-weight:600;line-height:20px;white-space:nowrap;transition:none}
+:root #save-summary-template svg{display:block;width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+:root #save-summary-template:disabled{background:#f3f6f9!important;border-color:#dce5eb!important;color:#536575!important;-webkit-text-fill-color:#536575!important}
+:root[data-theme=dark] #save-summary-template:disabled{background:#13263a!important;border-color:#304b64!important;color:#adbed3!important;-webkit-text-fill-color:#adbed3!important}
+
+/* Compact tutorial close action. */
+:root #close-tutorial{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;min-height:34px;padding:0;border:0;border-radius:6px;background:transparent;color:#c7d9e8;flex:none}
+:root #close-tutorial:hover{background:#203a50;color:#fff}
+#close-tutorial svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+
+/* Tutorial entry follows the New Record action palette. */
+:root .sidebar-footer .tutorial-entry{background:var(--control-primary);border-color:var(--control-primary);color:var(--control-primary-text);-webkit-text-fill-color:var(--control-primary-text);box-shadow:none}
+:root .sidebar-footer .tutorial-entry:hover{background:var(--control-primary-hover);border-color:var(--control-primary-hover);color:var(--control-primary-text)}
+
+/* Tutorial chrome follows workspace appearance; film retains its own palette. */
+:root:not([data-theme=dark]) #tutorial-dialog{background:#f7fafc;color:#173349;border-color:#d5e1e8}
+:root:not([data-theme=dark]) .tutorial-heading{background:#fff;border-color:#dce5ec}
+:root:not([data-theme=dark]) #close-tutorial{color:#405a70}
+:root:not([data-theme=dark]) #close-tutorial:hover{background:#e8eff4;color:#173349}
+
+/* Separate cross-meeting tasks from the meeting/archive switch. */
+:root .task-board-entry{margin-top:8px}
+
+/* Keep template selection and save action equally sized. */
+:root .summary-plan-control select,:root #save-summary-template{width:128px;min-width:128px;max-width:100%;flex:0 0 128px;box-sizing:border-box}
+
+/* One secondary-action style for mail selection controls. */
+:root #mail-selector>button{display:inline-flex;align-items:center;justify-content:center;min-height:34px;height:34px;padding:0 12px;margin-right:5px;border:1px solid #bdd5cf;border-radius:7px;background:#f4faf8;color:#176555;font:inherit;font-size:12px;font-weight:500;line-height:20px;vertical-align:middle;box-shadow:none}
+:root #mail-selector>button:hover:not(:disabled){background:#e7f3ee;border-color:#88b8a9}
+:root #mail-selector>button:disabled{background:#f3f6f9!important;border-color:#dce5eb!important;color:#536575!important;-webkit-text-fill-color:#536575!important}
+:root[data-theme=dark] #mail-selector>button{background:#142b40;color:#c6d8e9;border-color:#304b64}
+:root[data-theme=dark] #mail-selector>button:hover:not(:disabled){background:#1e3b54;border-color:#54748d}
+:root[data-theme=dark] #mail-selector>button:disabled{background:#13263a!important;border-color:#304b64!important;color:#adbed3!important;-webkit-text-fill-color:#adbed3!important}
+
+/* Settings close control shares the tutorial X treatment. */
+#settings-title{padding-right:44px}
+:root #close-settings{position:absolute;right:18px;top:18px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;min-height:34px;padding:0;border:0;border-radius:6px;background:transparent;color:#405a70;box-shadow:none}
+:root #close-settings:hover{background:#e8eff4;color:#173349}
+:root[data-theme=dark] #close-settings{color:#c7d9e8}
+:root[data-theme=dark] #close-settings:hover{background:#203a50;color:#fff}
+#close-settings svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+
+/* Task-board filters share a baseline and predictable responsive columns. */
+:root .task-board-filters{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(140px,1fr) minmax(140px,1fr) auto auto;align-items:end;gap:12px;margin-top:18px}
+:root .task-board-filters>label{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:none;margin:0;font-size:12px;line-height:18px}
+:root .task-board-filters input:not([type=checkbox]),:root .task-board-filters select{box-sizing:border-box;width:100%;max-width:none;min-height:36px;height:36px;margin:0;padding:0 10px;line-height:20px}
+:root .task-board-filters>label:has(input[type=checkbox]){display:flex;flex-direction:row;align-items:center;align-self:end;gap:7px;height:36px;white-space:nowrap}
+:root .task-board-filters input[type=checkbox]{width:16px;height:16px;min-height:16px;margin:0;flex:none}
+:root #refresh-task-board{display:inline-flex;align-items:center;justify-content:center;height:36px;min-height:36px;margin:0;padding:0 12px;white-space:nowrap;font-size:12px;line-height:20px;border-radius:7px}
+@media(max-width:1000px){:root .task-board-filters{grid-template-columns:repeat(3,minmax(0,1fr))}:root .task-board-filters>label:has(input[type=checkbox]){grid-column:1/3}:root #refresh-task-board{justify-self:end}}
+@media(max-width:540px){:root .task-board-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px}:root .task-board-filters>label:has(input[type=checkbox]){grid-column:auto;white-space:normal}:root #refresh-task-board{grid-column:1/-1;justify-self:stretch}}
+
+/* Shared close action across all workspace dialogs. */
+:root dialog .dialog-close,:root #issue-modal .dialog-close{position:absolute;inset:16px 16px auto auto;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;min-width:34px;min-height:34px;margin:0;padding:0;border:0;border-radius:6px;background:transparent;color:#405a70;box-shadow:none;z-index:2}
+:root dialog .dialog-close:hover,:root #issue-modal .dialog-close:hover{background:#e8eff4;color:#173349}
+:root[data-theme=dark] dialog .dialog-close,:root[data-theme=dark] #issue-modal .dialog-close{color:#c7d9e8}
+:root[data-theme=dark] dialog .dialog-close:hover,:root[data-theme=dark] #issue-modal .dialog-close:hover{background:#203a50;color:#fff}
+.dialog-close svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+dialog>h2,dialog>form>h2,.task-board-heading h2{padding-right:44px}
+:root #tutorial-dialog .dialog-close{position:static;flex:none}
+:root dialog .dialog-actions:has(>.dialog-close:only-child){display:contents}
+
+/* Canonical close-control tokens override legacy per-dialog button rules. */
+:root{--dialog-close-color:#405a70;--dialog-close-hover:#e8eff4;--dialog-close-hover-color:#173349}
+:root[data-theme=dark]{--dialog-close-color:#c7d9e8;--dialog-close-hover:#203a50;--dialog-close-hover-color:#fff}
+:root:root :is(#task-board-dialog,#tutorial-dialog,#settings-dialog,#video-dialog,#note-source-dialog,#utterance-dialog,#source-transcript-dialog,#highlights-dialog,#rename-dialog,#comparison-dialog,#help-dialog,#issue-modal) .dialog-close{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:34px;height:34px;min-width:34px;min-height:34px;padding:0;margin:0;border:0;border-radius:6px;background:transparent;color:var(--dialog-close-color);-webkit-text-fill-color:var(--dialog-close-color);box-shadow:none;opacity:1}
+:root:root :is(#task-board-dialog,#tutorial-dialog,#settings-dialog,#video-dialog,#note-source-dialog,#utterance-dialog,#source-transcript-dialog,#highlights-dialog,#rename-dialog,#comparison-dialog,#help-dialog,#issue-modal) .dialog-close:hover{background:var(--dialog-close-hover);color:var(--dialog-close-hover-color)}
+:root .dialog-close svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* Status feedback occupies its own row instead of covering audio controls. */
+:root main>footer:has(#workspace-message:not(:empty)){height:auto;min-height:38px;flex:0 0 auto;margin-top:8px}
+:root main>footer #workspace-message{position:static;inset:auto;transform:none;display:block;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere;box-shadow:none;line-height:18px}
+:root main>footer #workspace-message:not(:empty){padding:8px 12px}
+
+/* Mail section checklist uses one themed surface, without boxed label patches. */
+:root #mail-section-choices{background:#f3faf7;border-color:#c8dfd7;color:#244d43;gap:8px 20px}
+:root #mail-section-choices .mail-item-choice{display:inline-flex;align-items:center;gap:7px;padding:4px 0;margin:0;background:transparent;color:inherit;line-height:20px;min-height:32px}
+:root #mail-section-choices input[type=checkbox]{width:14px;height:14px;margin:0;flex:none;accent-color:#007967}
+:root[data-theme=dark] #mail-section-choices{background:#132a3c;border-color:#304b64;color:#d0e1f0}
+:root[data-theme=dark] #mail-section-choices .mail-item-choice{background:transparent;color:inherit}
+:root[data-theme=dark] #mail-section-choices input[type=checkbox]{accent-color:#63b9ef}
+
+/* Reserve the same template rows in every language on narrow screens. */
+@media(max-width:720px){:root .summary-plan-control{display:grid;grid-template-columns:128px 128px;gap:6px 8px;align-items:center}:root .summary-plan-control>label,:root .summary-plan-control>small{grid-column:1/-1}:root .summary-plan-control>label{line-height:18px;min-height:18px}}
+
+/* Shared component baseline: standard fields 36px, compact actions 34px. */
+:root{--ui-field-height:36px;--ui-action-height:34px;--ui-radius:7px;--ui-field-bg:#fbfdfe;--ui-field-text:#354b60;--ui-field-border:#dce5e9;--ui-secondary-bg:#f4faf8;--ui-secondary-text:#176555;--ui-secondary-border:#bdd5cf;--control-disabled-bg:#f3f6f9;--control-disabled-text:#536575;--control-disabled-border:#dce5eb}
+:root[data-theme=dark]{--ui-field-bg:#102236;--ui-field-text:#c6d8e9;--ui-field-border:#304b64;--ui-secondary-bg:#142b40;--ui-secondary-text:#c6d8e9;--ui-secondary-border:#304b64;--control-disabled-bg:#13263a;--control-disabled-text:#adbed3;--control-disabled-border:#304b64}
+:root :is(#transcript-search,#primary-lang,#secondary-lang,#theme-setting,#banner-setting,#density-setting,#default-spoken,#default-original,#default-translation,#task-query,#task-owner,#task-state){height:var(--ui-field-height);border-radius:var(--ui-radius);background-color:var(--ui-field-bg);color:var(--ui-field-text);border-color:var(--ui-field-border);font-size:12px}
+:root :is(#mail-save,#mail-copy,#mail-download,#mail-preview-button,#mail-apply,#mail-undo,#save-meeting-preferences){display:inline-flex;align-items:center;justify-content:center;height:var(--ui-action-height);min-height:var(--ui-action-height);padding:0 12px;border-radius:var(--ui-radius);font-size:12px;font-weight:500;line-height:20px}
+:root :is(#mail-copy,#mail-download,#mail-preview-button,#mail-apply,#mail-undo,#save-meeting-preferences):not(:disabled){background:var(--ui-secondary-bg);color:var(--ui-secondary-text);border:1px solid var(--ui-secondary-border)}
+:root .summary-actions>button,:root .summary-actions>button:last-child{height:34px;min-height:34px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:500;line-height:20px}
+:root #mail-selector{border-color:var(--ui-field-border);background:transparent}
+@media(min-width:721px){:root .sidebar-footer .tutorial-entry{height:38px;min-height:38px}:root .sidebar-footer{grid-template-rows:38px 59px 34px 40px;height:235px;min-height:235px}}
+@media(max-width:720px){:root .sidebar-footer .tutorial-entry{height:36px;min-height:36px}}
+
+/* Keep desktop/tablet chrome in a row at every height; legacy narrow rules must not push main below a full-height sidebar. */
+@media(min-width:721px){
+ body{height:100dvh;overflow:hidden}
+ .app-shell{display:flex;flex-direction:row;height:100dvh;min-height:0;overflow:hidden}
+ .sidebar{position:relative;top:auto;height:100dvh;max-height:100dvh;flex-shrink:0;overflow:hidden}
+ .app-shell>main{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;height:100dvh;overflow:hidden}
+}
+@media(min-width:721px) and (max-width:1050px){
+ .app-shell>.sidebar{width:224px}
+ .app-shell>main{padding:12px}
+ .content-scroll{display:block;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+ .workspace-grid{display:grid;grid-template-columns:minmax(0,1fr);height:auto;max-height:none;min-height:0;overflow:visible;gap:12px}
+ .pane-transcript,#summary-panel{height:75dvh;max-height:none;min-height:360px}
+ .pane-transcript.audio-expanded{height:auto;min-height:0}
+}
+@media(min-width:721px) and (max-height:650px){
+ .app-shell>.sidebar{overflow-y:auto}
+ .sidebar .meeting-list{flex:1 0 90px;min-height:90px}
+}
+
+@media(min-width:721px) and (max-width:1050px){.sidebar-brand{padding-inline:12px}.sidebar-brand .brand{gap:6px}.sidebar-brand .duck-logo{width:36px;height:36px}.sidebar-brand .brand-title{font-size:18px}.sidebar-brand .brand-version{font-size:9px}}

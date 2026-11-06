@@ -1,0 +1,35 @@
+{
+  "test:ui": [
+    "test/qa/recent-ui.test.js",
+    "test/qa/status-feedback.test.js",
+    "test/qa/control-contrast.test.js",
+    "test/qa/tutorial.test.js",
+    "test/qa/followup.test.js",
+    "test/qa/mail-draft.test.js",
+    "test/qa/mail-footer.test.js",
+    "test/qa/transcript-scroll.test.js",
+    "test/qa/decision-source.test.js",
+    "test/qa/action-columns.test.js",
+    "test/qa/search-highlights.test.js",
+    "test/qa/highlight-toolbar.test.js",
+    "test/qa/smart-follow.test.js",
+    "test/qa/source-picker.test.js",
+    "test/qa/i18n-layout.test.js",
+    "test/qa/locale-geometry.test.js",
+    "test/qa/theme.test.js",
+    "test/qa/transcript-header.test.js",
+    "test/qa/highlights.test.js",
+    "test/qa/language-presets.test.js",
+    "test/qa/banner-assets.test.js",
+    "test/qa/component-consistency.test.js",
+    "test/qa/responsive-breakpoints.test.js"
+  ],
+  "test:ui:recent": [
+    "test/qa/recent-ui.test.js",
+    "test/qa/status-feedback.test.js",
+    "test/qa/control-contrast.test.js",
+    "test/qa/tutorial.test.js",
+    "test/qa/component-consistency.test.js",
+    "test/qa/responsive-breakpoints.test.js"
+  ]
+}

@@ -9,7 +9,7 @@ for(const language of ['en','ko'])for(const width of [1440,1280,390])for(const t
  fs.writeFileSync(path.join(folder,'summary.md'),'# 展示會議\n\n## 會議摘要\n\n這是測試資料。\n');fs.writeFileSync(path.join(folder,'audio.wav'),Buffer.concat([createWavHeader({dataBytes:32000}),Buffer.alloc(32000)]));
  await page.addInitScript(({language,theme})=>{localStorage.setItem('duck-meeting:ui-language',language);localStorage.setItem('duck-meeting:theme',theme);},{language,theme});
  await page.route('**/api/translate',route=>route.fulfill({json:{translations:route.request().postDataJSON().texts.map(()=> 'Synthetic translation')}}));
- await page.goto(app.url+'/?id=layout&secondary=zh-TW');await page.getByText('Synthetic translation',{exact:true}).waitFor();
+ await page.goto(app.url+'/?id=layout&primary=all&secondary=zh-TW');await page.getByText('Synthetic translation',{exact:true}).waitFor();
  const names=language==='en'?['Original text','Translation','Interface language']:['원문 표시','번역 언어','인터페이스 언어'];
  const controls=names.map(name=>page.getByRole('combobox',{name,exact:true}));
  for(const select of controls){
