@@ -6,9 +6,9 @@
 
 [下載 Windows 安裝包](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.8 · Windows 10／11 x64
 
-![Duck Meeting 工作台示範，使用虛構資料](docs/design/release-0.2.0/zh-TW/actual.png)
+![Duck Meeting 工作台示範，使用虛構資料](docs/images/workspace-v0.3.8-zh-TW.png)
 
-*v0.2.0 工作台示意，使用展示資料。*
+*Duck Meeting v0.3.8 工作台實際截圖，使用虛構會議資料。*
 
 | 階段 | 你可以做什麼 |
 | --- | --- |

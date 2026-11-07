@@ -6,9 +6,9 @@ Record Google Meet, Microsoft Teams, and in-person meetings. Review audio and tr
 
 [Download Windows Setup](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.8 · Windows 10/11 x64
 
-![Workspace demo with synthetic data](docs/design/release-0.2.0/en/actual.png)
+![Workspace demo with synthetic data](docs/images/workspace-v0.3.8-en.png)
 
-*Workspace preview from v0.2.0, shown with demo data.*
+*Duck Meeting v0.3.8 workspace, captured with fictional meeting data.*
 
 | Stage | What you can do |
 | --- | --- |
