@@ -20,6 +20,7 @@ import { installCaptionObserver } from './page/caption-observer.js';
 import { installAudioCapture, installAudioOutputCapture, installTrackMirror } from './page/audio-capture.js';
 import { CaptionAssembler } from './captions/assembler.js';
 import { TranscriptStore } from './transcript/store.js';
+import { attachMeetingPanel, finishPanelReview, requestPanelStop } from './meeting-panel.js';
 import { WavWriter } from './audio/wav-writer.js';
 import { runTranscribe, sttAvailable } from './stt.js';
 
@@ -185,6 +186,10 @@ export async function runSession(opts) {
   /** @type {TranscriptStore|null} */ let store = null;
   /** @type {CaptionAssembler|null} */ let assembler = null;
   let captionsOpen = false;
+  let recordingEnabled = !config.manualStart;
+  let panel;
+  let visibleCaptionIds = new Set();
+  let pausedCaptionIds = new Set();
   let pageGone = false;
   /** @type {number|null} */ let joinedAtMs = null;
   /** @type {string|null} */ let endReason = null;
@@ -258,7 +263,16 @@ export async function runSession(opts) {
   const onCaptions = (/** @type {any} */ p) => {
     if (!captionsOpen || !assembler) return;
     try {
-      const blocks = p && Array.isArray(p.blocks) ? p.blocks : null;
+      let blocks = p && Array.isArray(p.blocks) ? p.blocks : [];
+      visibleCaptionIds = new Set(blocks.map(block => block.id));
+      if (!recordingEnabled) {
+        pausedCaptionIds = visibleCaptionIds;
+        return;
+      }
+      // Meet can retain the same caption block across resume. Wait for a new block
+      // so text accumulated during the pause isn't saved as a new utterance.
+      pausedCaptionIds = new Set([...pausedCaptionIds].filter(id => visibleCaptionIds.has(id)));
+      blocks = blocks.filter(block => !pausedCaptionIds.has(block.id));
       if (blocks && blocks.length) {
         lastCaptionActivity = Date.now();
         sawCaptions = true;
@@ -271,7 +285,10 @@ export async function runSession(opts) {
   };
   const onAudio = (/** @type {string} */ b64) => {
     try {
-      if (wav && typeof b64 === 'string' && b64) wav.write(Buffer.from(b64, 'base64'));
+      if (wav && typeof b64 === 'string' && b64) {
+        const pcm = Buffer.from(b64, 'base64');
+        wav.write(recordingEnabled ? pcm : Buffer.alloc(pcm.length));
+      }
     } catch (err) {
       L.warn(`audio write failed: ${err && err.message}`);
     }
@@ -610,6 +627,33 @@ export async function runSession(opts) {
     const conn = await connectChrome(chrome.cdpUrl);
     browser = conn.browser;
     page = conn.page;
+    if (hooks.onPage) await hooks.onPage(page);
+    const intervals = [{enabled: recordingEnabled, at: new Date().toISOString()}];
+    setStatus({recordingControl: {enabled: recordingEnabled, intervals}});
+    try {
+      panel = await attachMeetingPanel(page, {
+        dir, origins: [meetingOrigin], canPause: true,
+        onAction(action) {
+          if (action === 'stop') { requestPanelStop(dir); return; }
+          if (stopRequested() || readStatus(dir)?.state !== 'in_call') throw new Error('會議尚未就緒或正在結束');
+          const enabled = action === 'start';
+          if (enabled === recordingEnabled) return;
+          if (!enabled) {
+            if (assembler) emit(assembler.flush(mono(Date.now())));
+            assembler = new CaptionAssembler();
+            pausedCaptionIds = visibleCaptionIds;
+          }
+          recordingEnabled = enabled;
+          intervals.push({enabled, at: new Date().toISOString()});
+          setStatus({recordingControl: {enabled, intervals}});
+          publishLive();
+          writeStats(true);
+        },
+      });
+    } catch (error) {
+      L.warn(`meeting panel unavailable: ${error.message}`);
+      if (!recordingEnabled) throw error;
+    }
     browser.on('disconnected', () => { pageGone = true; });
     page.on('close', () => { pageGone = true; });
     page.on('crash', () => {
@@ -717,6 +761,7 @@ export async function runSession(opts) {
     }
     writeStats(true);
 
+    if (hooks.afterReady) await hooks.afterReady(page);
     endReason = await mainLoop();
     L.info(`meeting over: ${endReason}`);
   } catch (err) {
@@ -730,6 +775,7 @@ export async function runSession(opts) {
   }
 
   // --- finalize -----------------------------------------------------------------------------
+  panel?.dispose();
   const endedAt = new Date().toISOString();
   if (joinedAtMs !== null) setStatus({ state: 'leaving' });
   try {
@@ -829,5 +875,6 @@ export async function runSession(opts) {
 
   for (const s of signals) process.off(s, onSignal);
   process.off('exit', onExit);
+  finishPanelReview(dir, L);
   return result;
 }

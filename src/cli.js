@@ -1,3 +1,5 @@
+import { writeCrosscheck } from './transcript/crosscheck.js';
+import { writeMinutes } from './transcript/minutes.js';
 import {readSummaryPlan} from './summary-plan.js';
 import {readMeetingPreferences,resolveMeetingLanguage} from './meeting-preferences.js';
 import {readMailDraft,saveMailDraft} from './mail-draft.js';
@@ -114,7 +116,9 @@ const USAGE = `openmeeting — Google Meet 靜音記錄機器人
   notes-plan <id>                                          讀取本場整理模板與 Agent 輸出規格
   notes-pending                                           列出目前 Codex 對話待接手的會議
   notes-status <id> <generating|ready|failed|idle> [--progress N] [--stage 文字]  同步更新網頁面板的 Agent 整理階段
-  transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav`;
+  transcribe <id|latest> [--model M]                      用 Whisper 轉錄 audio.wav
+  crosscheck <id>                                         對齊原生字幕與既有錄音轉錄
+  report <id> [審閱JSON路徑]                                產生紀錄草稿或驗證引文後輸出審閱稿`;
 
 /**
  * @typedef {object} Io
@@ -1324,6 +1328,28 @@ export async function main(argv, io = {}) {
       case 'doctor': return await cmdDoctor(ctx);
       case 'setup-stt': return await cmdSetupStt(ctx);
       case 'transcribe': return await cmdTranscribe(ctx, positionals, flags);
+      case 'crosscheck':
+      case 'report': {
+        const [id, inputFile] = positionals;
+        if (!id || id === 'latest' || positionals.length > (command === 'report' ? 2 : 1)) {
+          err('請指定確切的會議 ID');
+          return 1;
+        }
+        const meeting = resolveMeeting(ctx.config.meetingsDir, id);
+        if (!meeting || meeting.id !== id) { err('找不到該會議'); return 1; }
+        if (!TERMINAL.includes(readStatus(meeting.dir)?.state)) { err('meeting_not_finished'); return 1; }
+        if (command === 'crosscheck') {
+          const {mdPath, jsonPath} = writeCrosscheck(meeting.dir);
+          out(`TRANSCRIPT_CROSSCHECK=${mdPath}`);
+          out(`CROSSCHECK_JSON=${jsonPath}`);
+        } else {
+          const input = inputFile ? JSON.parse(fs.readFileSync(inputFile, 'utf8')) : undefined;
+          const {mdPath, jsonPath} = writeMinutes(meeting.dir, input, {allowMissingRecording:true});
+          out(`MEETING_REPORT=${mdPath}`);
+          out(`MEETING_REPORT_JSON=${jsonPath}`);
+        }
+        return 0;
+      }
       default:
         err(`未知的指令：${command}`);
         out(USAGE);

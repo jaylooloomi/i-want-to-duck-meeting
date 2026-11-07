@@ -1,6 +1,7 @@
 import {LANGUAGES,canonicalLanguage} from './meeting-preferences.js';
 import path from 'node:path';
 import {launchChrome, connectChrome} from './chrome.js';
+import {attachMeetingPanel, requestPanelStop} from './meeting-panel.js';
 import {installTeamsCaptionTap} from './teams-captions.js';
 
 async function clickVisible(locator) {
@@ -76,9 +77,9 @@ export async function configureTeamsPage(page, {displayName, language='cmn-Hant-
   return 'waiting_page';
 }
 
-export async function startTeamsBrowser({config,url,onCaption,onState,signal}) {
-  let chrome, browser, timer, stopped=false, running=false;
-  const close=async()=>{stopped=true;clearInterval(timer);await browser?.close().catch(()=>{});await chrome?.close().catch(()=>{});};
+export async function startTeamsBrowser({config,url,onCaption,onState,signal,dir}) {
+  let chrome, browser, panel, timer, stopped=false, running=false;
+  const close=async()=>{stopped=true;panel?.dispose();clearInterval(timer);await browser?.close().catch(()=>{});await chrome?.close().catch(()=>{});};
   signal?.addEventListener('abort',()=>void close(),{once:true});
   try {
     chrome=await launchChrome({profileDir:path.join(config.profileDir,'teams-notetaker'),chromePath:config.chromePath,
@@ -87,6 +88,18 @@ export async function startTeamsBrowser({config,url,onCaption,onState,signal}) {
     const connected=await connectChrome(chrome.cdpUrl);browser=connected.browser;
     if(signal?.aborted){await close();throw new Error('Teams browser cancelled');}
     const {context,page}=connected;
+    if (dir) {
+      try {
+        panel = await attachMeetingPanel(page, {
+          dir,
+          origins: ['https://teams.live.com', 'https://teams.microsoft.com', 'https://teams.cloud.microsoft'],
+          onAction(action) {
+            if (action !== 'stop') throw new Error('Teams 採自動雙路記錄');
+            requestPanelStop(dir);
+          },
+        });
+      } catch { /* The optional panel must not interrupt native captions. */ }
+    }
     await context.exposeBinding('__omTeamsCaption',(source,event)=>{
       const host=new URL(source.frame.url()).hostname;
       if(['teams.live.com','teams.microsoft.com','teams.cloud.microsoft'].includes(host)) onCaption(event);

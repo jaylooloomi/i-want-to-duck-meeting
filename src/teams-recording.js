@@ -2,6 +2,7 @@ import { MicrophoneService } from './microphone.js';
 import { audioDevices, selectDevices, readAudioSettings } from './audio-settings.js';
 import { readStatus, writeStatus } from './status.js';
 import { startTeamsBrowser } from './teams-browser.js';
+import { finishPanelReview } from './meeting-panel.js';
 
 // The worker owns audio plus a dedicated native-caption browser; no assistant heartbeat.
 export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
@@ -18,7 +19,7 @@ export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
   let browser;
   const controller=new AbortController();
   // Audio is independent: failure/login in the browser must not discard recordings.
-  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config:{...config,displayName:status.displayName||config.displayName,captionLang:status.languagePreferences?.captionLanguage || config.captionLang},url,signal:controller.signal,
+  const browserTask=status.teamsBrowserEnabled===false ? Promise.resolve() : (deps.startBrowser || startTeamsBrowser)({config:{...config,displayName:status.displayName||config.displayName,captionLang:status.languagePreferences?.captionLanguage || config.captionLang},url,dir,signal:controller.signal,
     onCaption:event=>session.platformCaption?.(event),
     onState:state=>{session.captionLanguage=state.captionLanguage||'unknown';if(service.current===session && !session.stopping)writeStatus(dir,{teamsBrowser:state});},
   }).then(result=>{browser=result;}).catch(error=>{
@@ -27,6 +28,6 @@ export async function runTeamsRecording({config,dir,id,url,status},deps={}) {
   const stop=()=>{if(service.current && !session.stopping)service.stop(token,'signal');};
   process.once('SIGINT',stop);process.once('SIGTERM',stop);
   const timeout=setTimeout(()=>{if(service.current && !session.stopping)service.stop(token,'max_duration');},config.maxDurationMs);
-  try {await session.finished;return readStatus(dir);}
+  try {await session.finished;finishPanelReview(dir);return readStatus(dir);}
   finally {clearTimeout(timeout);process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);controller.abort();await browserTask;await browser?.close();}
 }

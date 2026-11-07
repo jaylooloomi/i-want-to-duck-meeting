@@ -441,6 +441,8 @@ Agent-authored Markdown notes can be viewed as overview, decisions or actions, c
 
 **Sources and review** compares existing platform captions with `transcript-whisper.json` when present. It aligns using estimated meeting-relative timestamps and highlights wording, segmentation and digit/decimal differences without rewriting either source. Unaligned/missing evidence is disclosed. This is advisory review, not a proof of accuracy; if no recording transcription exists, ask the Agent to transcribe the saved recording first. Recording/Agent handoff must finish before archive/delete actions are enabled.
 
+**In-meeting controls and offline review.** The dedicated Meet/Teams window can show recent captions and stop the recording. Meet also supports pause and resume. Use `crosscheck <ID>` for wording-based alignment and `report <ID>` for a separate review draft. See [controls, source comparison and report format](docs/transcript-review.md).
+
 Translation sends text to the existing Google translation service and can fail or require an internet connection. Failed translations show retry feedback; pending text is translated on a roughly 1.4-second request cadence (plus caption, polling and provider latency), then corrected at utterance finalization. Adding a target language does not certify that platform subtitles or a local speech model recognize that language correctly. No real-service Japanese/German recognition certification is claimed.
 
 
