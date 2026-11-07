@@ -6,9 +6,11 @@
 
 [下載 Windows 安裝包](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.8 · Windows 10／11 x64
 
-![Duck Meeting 工作台示範，使用虛構資料](docs/images/workspace-v0.3.8-zh-TW.png)
+![雙語逐字稿，含發言者、時間與星標](docs/images/transcript-v0.3.8-zh-TW.png)
 
-*Duck Meeting v0.3.8 工作台實際截圖，使用虛構會議資料。*
+<img src="docs/images/notes-v0.3.8-zh-TW.png" width="1035" alt="會議紀錄，含摘要、決議、待辦與來源">
+
+*Duck Meeting v0.3.8 實際介面，使用虛構會議資料。* [查看完整工作台截圖](docs/images/workspace-v0.3.8-zh-TW.png)
 
 | 階段 | 你可以做什麼 |
 | --- | --- |
