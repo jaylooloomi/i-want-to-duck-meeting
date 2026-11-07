@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.3.7-informational" alt="Version 0.3.7">
+  <img src="https://img.shields.io/badge/version-0.3.8-informational" alt="Version 0.3.8">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 or later">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code plugin">
@@ -45,7 +45,7 @@ The recorder collects platform captions/audio and uses local speech models where
 
 ## Windows installer (recommended)
 
-Download **DuckMeeting-0.3.7-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
+Download **DuckMeeting-0.3.8-Setup-x64.exe** from [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest). Run Setup, choose Codex / Claude Code integrations and a desktop shortcut, then open a new Agent conversation and paste a meeting link. Claude integration requires the Claude CLI; both Agents and Google Chrome remain separately installed applications. No Git, global Node.js or npm is required for the installer edition.
 
 - Installs per user, without administrator rights, under `%LOCALAPPDATA%\Programs\DuckMeeting`. Bundled Node.js 24.13.0 and Playwright runtime are included. Windows x64 only (Windows 10/11).
 - Recordings, notes, sign-in profile and downloaded models live separately under `%LOCALAPPDATA%\DuckMeeting\data`. Existing source-checkout data is not migrated automatically. Installer workspace: `http://127.0.0.1:8792`; source checkout keeps port 8791.
@@ -581,6 +581,8 @@ Use **All action items** in the sidebar to filter tasks by owner, open/completed
 
 Run `npm run test:ui:recent` for recent UI fixes, or `npm run test:ui` for the full known-issue browser regression suite. Tests launch isolated local servers and Headless Chrome; failures retain screenshots, DOM snapshots and Playwright traces. See [UI regression guide](docs/qa/UI_REGRESSION.md).
 
-## v0.3.7 release contents
+## v0.3.8 release contents
 
-The Windows installer now bundles the workspace fixes: dark mail checklists, consistent controls and close icons, responsive tablet/short-window layout, meeting templates and follow-up tasks, and the natural narrated tutorial that stops after one play. Source-only or local file updates are not installer updates: verify the version shown below Duck Meeting is v0.3.7 after running Setup. Existing meeting data remains in the separate local data directory.
+The Windows installer adds the in-meeting controls, wording-based transcript comparison and quotation-checked review reports. [See the v0.3.8 release notes](docs/releases/v0.3.8.md).
+
+The Windows installer now bundles the workspace fixes: dark mail checklists, consistent controls and close icons, responsive tablet/short-window layout, meeting templates and follow-up tasks, and the natural narrated tutorial that stops after one play. Source-only or local file updates are not installer updates: verify the version shown beside Duck Meeting is v0.3.8 after running Setup. Existing meeting data remains in the separate local data directory.

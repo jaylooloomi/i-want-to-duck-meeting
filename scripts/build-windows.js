@@ -12,6 +12,10 @@ for(const tree of trees)fs.cpSync(tree,path.join(payload,tree),{recursive:true,f
 fs.mkdirSync(path.join(payload,'docs','third-party'),{recursive:true});
 for(const file of ['before-you-do-LICENSE.txt','video-recording.md'])fs.copyFileSync(path.join('docs','third-party',file),path.join(payload,'docs','third-party',file));
 for(const file of ['package.json','package-lock.json','LICENSE','README.md','README.zh-TW.md'])fs.copyFileSync(file,path.join(payload,file));
+fs.mkdirSync(path.join(payload,'docs','releases'),{recursive:true});
+for(const file of ['transcript-review.md','meeting-minutes.schema.json',`releases/v${version}.md`]){
+  fs.copyFileSync(path.join('docs',file),path.join(payload,'docs',file));
+}
 fs.mkdirSync(path.join(payload,'node_modules'),{recursive:true});fs.cpSync('node_modules/playwright-core',path.join(payload,'node_modules/playwright-core'),{recursive:true});
 async function download(url,file){const response=await fetch(url,{signal:AbortSignal.timeout(180000)});if(!response.ok)throw new Error(url+': '+response.status);fs.writeFileSync(file,Buffer.from(await response.arrayBuffer()));}
 const zip=path.join(cache,zipName);if(!fs.existsSync(zip))await download(`https://nodejs.org/dist/v${nodeVersion}/${zipName}`,zip);

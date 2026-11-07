@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 授權"></a>
-  <img src="https://img.shields.io/badge/version-0.3.7-informational" alt="版本 0.3.7">
+  <img src="https://img.shields.io/badge/version-0.3.8-informational" alt="版本 0.3.8">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey" alt="Windows 10/11">
   <img src="https://img.shields.io/badge/Node.js-22%2B-339933" alt="Node.js 22 以上">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-D97757" alt="Claude Code 外掛">
@@ -47,7 +47,7 @@ Duck Meeting 是專為 **Codex 與 Claude Code** 設計的本機開會工具：�
 
 ## Windows 安裝包（建議）
 
-從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.7-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
+從 [GitHub Releases](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) 下載 **DuckMeeting-0.3.8-Setup-x64.exe**，雙擊安裝，選擇 Codex／Claude Code 整合與桌面捷徑。完成後開新 Agent 對話，貼上會議連結。不需自行安裝 Git、Node.js 或 npm；Chrome、Codex／Claude Code 仍需另外安裝，Claude 整合需要 Claude CLI。
 
 - 支援 Windows 10/11 x64；按使用者安裝至 `%LOCALAPPDATA%\Programs\DuckMeeting`，不需管理員權限。
 - 會議、錄音、登入設定及模型獨立存於 `%LOCALAPPDATA%\DuckMeeting\data`，升級預設保留。原始碼版的舊資料不會自動搬移。安裝包使用本機 8792 埠，原始碼版維持 8791。
@@ -595,6 +595,8 @@ master 已啟用分支保護：一般寫入者須透過 PR、取得至少 1 份�
 
 執行 `npm run test:ui:recent` 檢查近期畫面修正，或 `npm run test:ui` 跑完整已知問題回歸。測試自動啟動隔離站台與 Headless Chrome，失敗保留截圖、DOM 與 Playwright trace。詳見[畫面回歸指南](docs/qa/UI_REGRESSION.md)。
 
-## v0.3.7 發布內容
+## v0.3.8 發布內容
 
-Windows 安裝包已納入深色郵件勾選區、元件與 X 統一、窄／矮視窗排版、會議模板與跨會議待辦，以及自然女聲、播放一次即停止的操作教學。原始碼或本機覆蓋檔案不等於安裝包更新：執行新版 Setup 後，請確認產品名稱旁顯示 v0.3.7。原會議資料保留在獨立的本機資料目錄。
+新版安裝包納入會議視窗控制、逐字稿文字對齊與引文核對報告。[查看 v0.3.8 發布說明](docs/releases/v0.3.8.md)。
+
+Windows 安裝包已納入深色郵件勾選區、元件與 X 統一、窄／矮視窗排版、會議模板與跨會議待辦，以及自然女聲、播放一次即停止的操作教學。原始碼或本機覆蓋檔案不等於安裝包更新：執行新版 Setup 後，請確認產品名稱旁顯示 v0.3.8。原會議資料保留在獨立的本機資料目錄。
