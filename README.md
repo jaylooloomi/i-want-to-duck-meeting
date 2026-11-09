@@ -1,40 +1,51 @@
-<h1>Duck Meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting" width="40"></h1>
+<h1>Duck Meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting logo" width="40"></h1>
 
-[繁體中文](README.zh-TW.md)
+**Record the meeting. Review the transcript. Let your Agent prepare the follow-up.**
 
-Record Google Meet, Microsoft Teams, and in-person meetings. Review audio and transcripts in a local workspace, then ask your existing Codex or Claude Code Agent for decisions, tasks and an email draft.
+Duck Meeting captures Google Meet, Microsoft Teams, and in-person meetings in a local workspace. Use your existing Codex or Claude Code account to turn the transcript into decisions, tasks, and an editable email draft.
 
-[Download Windows Setup](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.9 · Windows 10/11 x64
+[Download for Windows 10/11 x64](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · [繁體中文](README.zh-TW.md)
+
+![Duck Meeting workspace with transcript and meeting notes side by side](docs/images/workspace-v0.3.8-en.png)
+
+*Duck Meeting v0.3.8 workspace shown with fictional meeting data.*
+
+## What you can do
+
+- **Capture and follow live.** Record audio, read live captions and translations, and star important moments. The dedicated Meet or Teams window can show recent captions and stop capture. Meet also supports pause and resume.
+- **Review the evidence.** Search originals and translations, play audio from a transcript timestamp, and jump from a linked decision or task to the source. Compare platform captions with an existing audio transcript using `openmeeting crosscheck <ID>`, or use `openmeeting report <ID>` to draft a review and verify quotations.
+- **Follow up.** Give your Agent a notes template, track tasks across meetings, and edit or copy a local email draft.
+
+## Get started
+
+1. Run the Windows installer and select the Codex skill or Claude Code plugin. Install Chrome and your chosen Agent separately. The Claude Code integration requires the `claude` CLI.
+2. In a new Agent chat, enter `Record this meeting <URL>`. Sign in or wait for host admission when required. For an in-person meeting, start a microphone recording from Duck Meeting.
+3. After the call, ask your Agent to summarize the meeting. Review the summary, decisions, tasks, and email draft in Duck Meeting.
+
+[Installation and updates](docs/installation.md) · [Evidence review guide](docs/transcript-review.md)
+
+## Where the data goes
+
+| Step | Data |
+| --- | --- |
+| Capture | Recordings, captions, and transcripts are saved on your computer. |
+| Live translation | When enabled, transcript text is sent to Google Translate. |
+| Meeting notes | Your signed-in Agent processes meeting text using its existing account allowance. Duck Meeting requires no separate summary API key. |
+
+[Agent workflow and architecture](docs/AGENT_ARCHITECTURE.md)
+
+<details>
+<summary>Close-up screenshots of the transcript and meeting notes</summary>
 
 ![Bilingual transcript with speaker names, timestamps and a highlighted excerpt](docs/images/transcript-v0.3.8-en.png)
 
 <img src="docs/images/notes-v0.3.8-en.png" width="1035" alt="Meeting notes with summary, decisions, action items and source references">
 
-*Duck Meeting v0.3.8, shown with fictional meeting data.* [View the full workspace screenshot](docs/images/workspace-v0.3.8-en.png)
+</details>
 
-| Stage | What you can do |
-| --- | --- |
-| Start | Open a dedicated Meet or Teams window, or start an in-person recording. |
-| Record | Follow bilingual transcripts and mark key moments. |
-| Review | Replay a timestamp or jump from a linked decision back to the source. |
-| Follow up | Use a notes template, track tasks across meetings and edit an email draft. |
+## Releases and license
 
-## New in v0.3.8
+- **v0.3.9** fixes transcript flicker as translations arrive in batches. [Release notes](docs/releases/v0.3.9.md)
+- **v0.3.8** adds meeting controls, transcript comparison, and quotation review. [Release notes](docs/releases/v0.3.8.md)
 
-- **In-meeting controls.** View recent captions and end recording from the dedicated Meet or Teams window. Meet also supports pause and resume.
-- **Transcript comparison.** `openmeeting crosscheck <ID>` aligns platform captions with an existing audio transcript and flags differences in numbers, dates and wording.
-- **Evidence review.** `openmeeting report <ID>` creates a review draft. With reviewed JSON, it checks quotations against the cited source segments.
-
-[Usage guide](docs/transcript-review.md) · [Release notes](docs/releases/v0.3.8.md)
-
-## Start in three steps
-
-1. Run Setup and select your Agent integration. Install Chrome and your chosen Agent separately. Claude Code integration requires the `claude` CLI.
-2. Paste a Meet or Teams link into a new Agent chat and ask it to record. Sign in and wait for host admission as needed.
-3. After the call, ask “summarize this meeting.” Review notes, tasks and the local email draft in Duck Meeting.
-
-## Account and data
-
-Audio and transcripts are saved locally. The standard workflow uses your existing Agent allowance without a separate summary API key. Agent processing can send text to its provider, and optional live translation sends text to Google. v0.3.8 meeting controls were tested with a simulated Meet session. Live Meet and Teams validation is pending.
-
-[Installation](docs/installation.md) · [Architecture](docs/AGENT_ARCHITECTURE.md) · [MIT license](LICENSE)
+Created by Arthur Wang ([@jaylooloomi](https://github.com/jaylooloomi)). Feedback and contributions are welcome. [Open an issue](https://github.com/jaylooloomi/i-want-to-duck-meeting/issues) · [MIT license](LICENSE)
