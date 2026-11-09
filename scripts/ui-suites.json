@@ -21,6 +21,7 @@
     "test/qa/transcript-header.test.js",
     "test/qa/highlights.test.js",
     "test/qa/language-presets.test.js",
+    "test/qa/live-translation.test.js",
     "test/qa/banner-assets.test.js",
     "test/qa/component-consistency.test.js",
     "test/qa/responsive-breakpoints.test.js"

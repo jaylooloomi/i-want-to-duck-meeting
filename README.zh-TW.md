@@ -4,7 +4,7 @@
 
 記錄 Google Meet、Microsoft Teams 與現場會議。在本機工作台回聽、看逐字稿，再讓你已有的 Codex 或 Claude Code 整理決議、待辦和郵件草稿。
 
-[下載 Windows 安裝包](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.8 · Windows 10／11 x64
+[下載 Windows 安裝包](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.9 · Windows 10／11 x64
 
 ![雙語逐字稿，含發言者、時間與星標](docs/images/transcript-v0.3.8-zh-TW.png)
 

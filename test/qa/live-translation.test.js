@@ -33,3 +33,43 @@ test('LIVE-TRANSLATE switching translation off discards late UI responses',{time
  await page.getByText('尚未完成的字幕',{exact:true}).waitFor();
  assert.equal(await page.getByText('Do not display late translation.',{exact:true}).count(),0);
 }));
+
+test('LIVE-TRANSLATE batched results keep the transcript position and focused controls stable',{timeout:25000},t=>browserCase(t,async({page,app})=>{
+ const records=Array.from({length:9},(_,i)=>record('測試字幕 '+(i+1),'測試講者',new Date(Date.UTC(2026,10,4,0,0,i)).toISOString()));
+ app.seed('translation-batches',{state:'done'},records);
+ const batches=Array.from({length:3},()=>({requested:defer(),release:defer()}));
+ let calls=0;
+ await page.route('**/api/translate',async route=>{
+  const batch=batches[calls++];
+  const {texts}=route.request().postDataJSON();
+  if(batch){batch.requested.resolve();await batch.release.promise;}
+  await route.fulfill({json:{translations:texts.map(text=>'Translation '+text.split(' ').at(-1))}});
+ });
+ await page.addInitScript(()=>localStorage.setItem('duck-meeting:theme','dark'));
+ await page.goto(app.url+'/?id=translation-batches&primary=all&secondary=none');
+ const transcript=page.getByRole('region',{name:'會議逐字稿',exact:true});
+ const language=page.getByRole('combobox',{name:'翻譯語言',exact:true});
+ await transcript.getByText(records[0].text,{exact:true}).waitFor();
+ await language.selectOption('en');
+ const star=transcript.getByRole('button',{name:'標記整段重點：測試字幕 1',exact:true});
+ const status=page.getByText('翻譯中…',{exact:true});
+ try{
+  await status.waitFor();
+  const before=await transcript.boundingBox();
+  await star.focus();
+  const original=await star.elementHandle();
+  for(const [index,number] of [9,5,1].entries()){
+   await batches[index].requested.promise;
+   await status.waitFor();
+   batches[index].release.resolve();
+   await transcript.getByText('Translation '+number,{exact:true}).waitFor();
+   assert.ok(await original.evaluate(node=>node.isConnected&&node===document.activeElement),'Translation replaced or blurred the original control');
+   assert.equal((await transcript.boundingBox()).y,before.y,'Translation moved the whole transcript panel');
+  }
+  await status.waitFor({state:'hidden'});
+  assert.equal((await transcript.boundingBox()).y,before.y,'Completion moved the whole transcript panel');
+  assert.equal(calls,3);
+ }finally{
+  for(const batch of batches)batch.release.resolve();
+ }
+}));

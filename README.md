@@ -4,7 +4,7 @@
 
 Record Google Meet, Microsoft Teams, and in-person meetings. Review audio and transcripts in a local workspace, then ask your existing Codex or Claude Code Agent for decisions, tasks and an email draft.
 
-[Download Windows Setup](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.8 · Windows 10/11 x64
+[Download Windows Setup](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · v0.3.9 · Windows 10/11 x64
 
 ![Bilingual transcript with speaker names, timestamps and a highlighted excerpt](docs/images/transcript-v0.3.8-en.png)
 

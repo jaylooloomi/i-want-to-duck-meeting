@@ -23,6 +23,8 @@ const recordingStates = new Set(['starting','launching','joining','waiting_login
 let sidebarFilter = 'active', cachedMeetings = [], confirmDeleteId = '';
 const translationRetryAt = new Map(), translationNextAt = new Map(), draftTranslations = new Map();
 const translations = new Map(), autoTriggeredIds = new Set();
+let translationRevision = 0, renderedTranslationRevision = -1;
+let translationStatusKey = '';
 function syncSelection() {
   const url = new URL(location.href); url.searchParams.set('id', selected);
   if(primaryLang)url.searchParams.set('primary',primaryLang.value||'all');
@@ -239,13 +241,18 @@ function searchRecords(records){const text=$('transcript-search').value.trim().t
 function draftKey(record,target,meetingId=currentRecord?.id){return [meetingId,target,record.speaker||'',record.t0||''].join('|');}
 async function requestTranslations(records,pending=[],meetingId=currentRecord?.id) {
   const target=secondaryLang?.value||'none';
-  const status=text=>{if(secondaryLang?.value===target && currentRecord?.id===meetingId)$('translation-status').textContent=text;};
-  if(target==='none'){status('');return;}
-  if(translating || Date.now()<(translationRetryAt.get(target)||0) || Date.now()<(translationNextAt.get(target)||0))return;
+  const statusKey=JSON.stringify([meetingId,target]);
+  const statusNode=$('translation-status');
+  const status=text=>{
+    if(secondaryLang?.value===target && currentRecord?.id===meetingId && statusNode.textContent!==text)statusNode.textContent=text;
+  };
+  if(translationStatusKey!==statusKey){translationStatusKey=statusKey;status('');}
+  if(target==='none'||translating)return;
   const draftRows=pending.filter(r=>r.text?.trim().length>=2 && draftTranslations.get(draftKey(r,target,meetingId))?.source!==r.text).slice(-4);
   const finals=[...new Set(records.map(r=>r.text).filter(t=>t&&!translations.has(target+':'+t)))].slice(-4);
   const texts=[...new Set([...draftRows.map(r=>r.text),...finals])];
   if(!texts.length){status('');return;}
+  if(Date.now()<(translationRetryAt.get(target)||0) || Date.now()<(translationNextAt.get(target)||0))return;
   translating=true;translationNextAt.set(target,Date.now()+1400);status(draftRows.length?uiText('即時暫譯中…'):uiText('翻譯中…'));
   try{
     const response=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({texts,target}),signal:AbortSignal.timeout(7000)});
@@ -259,8 +266,8 @@ async function requestTranslations(records,pending=[],meetingId=currentRecord?.i
     });
     while(draftTranslations.size>96)draftTranslations.delete(draftTranslations.keys().next().value);
     if(missing){status(uiText('部分翻譯暫時無法取得，將自動重試。'));translationRetryAt.set(target,Date.now()+5000);}
-    else{status('');translationRetryAt.delete(target);}
-    signature='';
+    else translationRetryAt.delete(target);
+    translationRevision++;
   }catch{status(uiText('翻譯服務暫時無法使用，將自動重試。'));translationRetryAt.set(target,Date.now()+5000);}
   finally{translating=false;}
 }
@@ -591,17 +598,28 @@ function row(record, pending) {
   if (pending) { const draft = document.createElement('span'); draft.className = 'draft'; draft.textContent = record.source === 'local-audio' || record.source?.startsWith('teams-') ? uiText('語音辨識中') : uiText('字幕更新中'); meta.append(draft); }
   const text = document.createElement('p'); text.className = 'text'; appendSearchText(text,record.text);
   body.append(meta, text);
-  const target = secondaryLang ? secondaryLang.value : 'none';
+  card.append(avatar, body);
+  renderRowTranslation(body, record, pending);
+  return card;
+}
+
+function renderRowTranslation(body, record, pending) {
+  const target = secondaryLang?.value || 'none';
   const exact=target!=='none'?translations.get(target+':'+record.text):'';
   const previous=target!=='none'?draftTranslations.get(draftKey(record,target)):null;
   const translated=exact||previous?.text||'';
-  if (translated && translated !== record.text) {
-    const sub=document.createElement('p');sub.className='subtext';
-    if(pending||!exact){const label=document.createElement('small');label.className='draft-translation-label';label.textContent=uiText('暫譯 · 持續更新');sub.append(label);}
-    const copy=document.createElement('span');appendSearchText(copy,translated);sub.append(copy);
-    body.append(sub);
-  }
-  card.append(avatar, body); return card;
+  const existing=body.querySelector('.subtext');
+  if(!translated||translated===record.text){existing?.remove();return;}
+  const draft=pending||!exact;
+  const key=JSON.stringify([translated,draft]);
+  if(existing?.dataset.translation===key)return;
+  const sub=document.createElement('p');
+  sub.className='subtext';
+  sub.dataset.translation=key;
+  if(draft){const label=document.createElement('small');label.className='draft-translation-label';label.textContent=uiText('暫譯 · 持續更新');sub.append(label);}
+  const copy=document.createElement('span');appendSearchText(copy,translated);sub.append(copy);
+  if(existing)existing.replaceWith(sub);
+  else body.append(sub);
 }
 
 primaryLang?.addEventListener('change', () => { signature = ''; syncSelection(); syncLanguagePresets(); void pollNow(); });
@@ -627,7 +645,8 @@ async function pollNow() {
       if (summaryBody) summaryBody.replaceChildren(Object.assign(document.createElement('div'), { className:'empty', textContent:uiText('尚無會議記錄可供整理。') }));
       $('count').textContent = uiText('0 段發言'); if (paneCount) paneCount.textContent = uiText('0 段對話');
       $('meet').hidden = true; $('meet').removeAttribute('href');
-      $('updated').textContent = ''; signature = ''; summarySignature = '';
+      $('updated').textContent = ''; $('translation-status').textContent = '';
+      translationStatusKey = ''; signature = ''; summarySignature = '';
       $('connection').textContent = uiText('● 已連線'); return;
     }
     const requestedId = selected;
@@ -642,8 +661,11 @@ async function pollNow() {
     $('speaking').textContent = data.status?.error?.message || (data.activeSpeakers.length ? (['microphone','teams'].includes(data.status?.source) ? uiText('語音辨識 · ') : uiText('字幕活動 · ')) + data.activeSpeakers.join('、') : (['done','archived','failed'].includes(data.status?.state) ? uiText('記錄已停止') : uiText('等待新的發言…')));
     updateSummaryPanel(data);
     document.dispatchEvent(new CustomEvent('workspace-rendered',{detail:data}));
-    const filtered = searchRecords(filterRecords(data.records));
-    void requestTranslations(filterRecords(data.records),filterRecords(data.pending),data.id);
+    const sourceRecords = filterRecords(data.records);
+    const sourcePending = filterRecords(data.pending);
+    const filtered = searchRecords(sourceRecords);
+    const pending = searchRecords(sourcePending);
+    void requestTranslations(sourceRecords,sourcePending,data.id);
     $('count').textContent = filtered.length + uiText(' 段發言');
     if (paneCount) paneCount.textContent = filtered.length + uiText(' 段對話');
     if (data.status?.source === 'teams' && data.status?.state === 'in_call') {
@@ -661,17 +683,26 @@ async function pollNow() {
       }catch{}
     }
     const target = secondaryLang ? secondaryLang.value : 'none';
-    const next = JSON.stringify([data.id, data.status?.state,!!data.video?.segments?.length,!!data.workspace?.audio?.length, filtered, data.pending, primaryLang?.value, target, filtered.map((r) => translations.get(target + ':' + r.text) || '')]);
+    const next = JSON.stringify([data.id, data.status?.state,!!data.video?.segments?.length,!!data.workspace?.audio?.length, filtered, pending, primaryLang?.value, target]);
     if(followMeeting!==data.id){followMeeting=data.id;followPaused=false;unseenSpeech=false;speechSignature='';}
     const sourceSignature=JSON.stringify([data.records,data.pending].map(list=>list.map(r=>[r.text,r.t0,r.speaker])));
     const canFollow=$('follow').checked&&!followPaused&&!$('transcript-search').value.trim()&&!$('highlights-only').checked;
     if(!canFollow&&speechSignature&&sourceSignature!==speechSignature)unseenSpeech=true;
     speechSignature=sourceSignature;
-    if (next !== signature) {
-      const rows = [...filtered.map((r) => row(r, false)), ...searchRecords(filterRecords(data.pending)).map((r) => row(r, true))];
-      if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = $('transcript-search').value.trim()?uiText('找不到符合的逐字稿'):uiText('尚無字幕，開始發言後會自動顯示。'); rows.push(empty); }
+    if (next !== signature || renderedTranslationRevision !== translationRevision) {
       const reading=readingAnchor();
-      renderingTranscript=true;transcriptBox.replaceChildren(...rows); signature = next;
+      renderingTranscript=true;
+      if(next!==signature){
+        const rows = [...filtered.map((r) => row(r, false)), ...pending.map((r) => row(r, true))];
+        if (!rows.length) { const empty = document.createElement('div'); empty.className = 'empty'; empty.textContent = $('transcript-search').value.trim()?uiText('找不到符合的逐字稿'):uiText('尚無字幕，開始發言後會自動顯示。'); rows.push(empty); }
+        transcriptBox.replaceChildren(...rows);
+        signature = next;
+      }else{
+        [...filtered,...pending].forEach((record,index)=>{
+          renderRowTranslation(transcriptBox.children[index].querySelector('.body'),record,index>=filtered.length);
+        });
+      }
+      renderedTranslationRevision = translationRevision;
       updateLatestButton();
       if(canFollow&&data.status?.state==='in_call'&&filtered.length+data.pending.length>0){transcriptBox.scrollTop=transcriptBox.scrollHeight;unseenSpeech=false;updateLatestButton();}
       else restoreReadingAnchor(reading);
