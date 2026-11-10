@@ -1,7 +1,7 @@
 <h1 align="center">Duck Meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting logo" width="36" height="36"></h1>
 
-<p align="center"><strong>Record the meeting. Review the transcript. Let your Agent prepare the follow-up.</strong><br>
-Duck Meeting captures Google Meet, Microsoft Teams, and in-person meetings in a local workspace. Use your existing Codex or Claude Code account to turn the transcript into decisions, tasks, and an editable email draft.</p>
+<p align="center"><strong>Record meetings. Let your Agent take notes.</strong><br>
+Capture Meet, Teams, and in-person meetings. Review recordings and bilingual transcripts, then ask Codex or Claude Code for decisions, tasks, and a draft email.</p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/static/v1?label=license&amp;message=MIT&amp;color=3b82f6&amp;style=flat" alt="MIT license"></a> <a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><img src="https://img.shields.io/github/v/release/jaylooloomi/i-want-to-duck-meeting?style=flat&amp;color=8b87de" alt="Latest GitHub release"></a><br>

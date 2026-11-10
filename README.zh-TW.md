@@ -1,7 +1,7 @@
-<h1 align="center">Duck Meeting｜AI 會議工作台 <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting 標誌" width="36" height="36"></h1>
+<h1 align="center">Duck Meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting 標誌" width="36" height="36"></h1>
 
-<p align="center"><strong>記錄會議、核對原文，讓你已有的 Agent 接手整理。</strong><br>
-Duck Meeting 可記錄 Google Meet、Microsoft Teams 與現場會議。錄音和逐字稿集中在本機工作台，再交給你已有的 Codex 或 Claude Code 整理決議、待辦和可編輯的郵件草稿。</p>
+<p align="center"><strong>記錄會議，交給你已有的 Agent 整理。</strong><br>
+記錄 Meet、Teams 與現場會議，在本機回聽並查看雙語逐字稿，再請 Codex 或 Claude Code 整理決議、待辦與郵件草稿。</p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/static/v1?label=license&amp;message=MIT&amp;color=3b82f6&amp;style=flat" alt="MIT license"></a> <a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><img src="https://img.shields.io/github/v/release/jaylooloomi/i-want-to-duck-meeting?style=flat&amp;color=8b87de" alt="Latest GitHub release"></a><br>
