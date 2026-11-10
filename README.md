@@ -1,14 +1,21 @@
-<h1>Duck Meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting logo" width="40"></h1>
+<h1 align="center">Duck Meeting <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting logo" width="36" height="36"></h1>
 
-**Record the meeting. Review the transcript. Let your Agent prepare the follow-up.**
+<p align="center"><strong>Record the meeting. Review the transcript. Let your Agent prepare the follow-up.</strong><br>
+Duck Meeting captures Google Meet, Microsoft Teams, and in-person meetings in a local workspace. Use your existing Codex or Claude Code account to turn the transcript into decisions, tasks, and an editable email draft.</p>
 
-Duck Meeting captures Google Meet, Microsoft Teams, and in-person meetings in a local workspace. Use your existing Codex or Claude Code account to turn the transcript into decisions, tasks, and an editable email draft.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/static/v1?label=license&amp;message=MIT&amp;color=3b82f6&amp;style=flat" alt="MIT license"></a> <a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><img src="https://img.shields.io/github/v/release/jaylooloomi/i-want-to-duck-meeting?style=flat&amp;color=8b87de" alt="Latest GitHub release"></a><br>
+  <a href="#get-started"><img src="https://img.shields.io/static/v1?label=platform&amp;message=Windows%2010/11%20x64&amp;color=64748b&amp;style=flat" alt="Windows 10/11 x64"></a><br>
+  <a href="docs/AGENT_ARCHITECTURE.md"><img src="https://img.shields.io/static/v1?label=Agent&amp;message=Codex%20%2B%20Claude%20Code&amp;color=487fa8&amp;style=flat" alt="Codex and Claude Code"></a><br>
+  <a href="#what-you-can-do"><img src="https://img.shields.io/static/v1?label=UI&amp;message=%E7%B9%81%E4%B8%AD%20/%20EN%20/%20%E6%97%A5%E6%9C%AC%E8%AA%9E%20/%20%ED%95%9C%EA%B5%AD%EC%96%B4&amp;color=637e64&amp;style=flat" alt="Interface languages: 繁體中文, English, 日本語, 한국어"></a> <a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/actions/workflows/windows-installer.yml"><img src="https://img.shields.io/static/v1?label=CI&amp;message=view%20runs&amp;color=64748b&amp;style=flat" alt="Windows installer workflow"></a>
+</p>
 
-[Download for Windows 10/11 x64](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · [繁體中文](README.zh-TW.md)
+<p align="center"><a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest">Download for Windows x64</a> · <a href="README.zh-TW.md">繁體中文</a></p>
 
-![Duck Meeting workspace with transcript and meeting notes side by side](docs/images/workspace-v0.3.8-en.png)
+<p align="center"><a href="#what-you-can-do"><img src="https://img.shields.io/static/v1?label=LOCAL%20CAPTURE&amp;message=AGENT%20NOTES&amp;labelColor=143e39&amp;color=087b68&amp;style=for-the-badge" alt="LOCAL CAPTURE · AGENT NOTES"></a></p>
 
-*Duck Meeting v0.3.8 workspace shown with fictional meeting data.*
+<p align="center"><img src="docs/images/workspace-v0.3.8-en.png" width="900" alt="Duck Meeting workspace with transcript and meeting notes"><br>
+<sub>Windows app screenshot · v0.3.8 · fictional meeting data</sub></p>
 
 ## What you can do
 

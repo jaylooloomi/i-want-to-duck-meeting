@@ -1,14 +1,21 @@
-<h1>Duck Meeting｜AI 會議工作台 <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting 標誌" width="40"></h1>
+<h1 align="center">Duck Meeting｜AI 會議工作台 <img src="docs/images/duck-meeting-icon.svg" alt="Duck Meeting 標誌" width="36" height="36"></h1>
 
-**記錄會議、核對原文，讓你已有的 Agent 接手整理。**
+<p align="center"><strong>記錄會議、核對原文，讓你已有的 Agent 接手整理。</strong><br>
+Duck Meeting 可記錄 Google Meet、Microsoft Teams 與現場會議。錄音和逐字稿集中在本機工作台，再交給你已有的 Codex 或 Claude Code 整理決議、待辦和可編輯的郵件草稿。</p>
 
-Duck Meeting 可記錄 Google Meet、Microsoft Teams 與現場會議。錄音和逐字稿集中在本機工作台，再交給你已有的 Codex 或 Claude Code 整理決議、待辦和可編輯的郵件草稿。
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/static/v1?label=license&amp;message=MIT&amp;color=3b82f6&amp;style=flat" alt="MIT license"></a> <a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest"><img src="https://img.shields.io/github/v/release/jaylooloomi/i-want-to-duck-meeting?style=flat&amp;color=8b87de" alt="Latest GitHub release"></a><br>
+  <a href="#三步開始"><img src="https://img.shields.io/static/v1?label=platform&amp;message=Windows%2010/11%20x64&amp;color=64748b&amp;style=flat" alt="Windows 10/11 x64"></a><br>
+  <a href="docs/AGENT_ARCHITECTURE.md"><img src="https://img.shields.io/static/v1?label=Agent&amp;message=Codex%20%2B%20Claude%20Code&amp;color=487fa8&amp;style=flat" alt="Codex and Claude Code"></a><br>
+  <a href="#你可以做什麼"><img src="https://img.shields.io/static/v1?label=UI&amp;message=%E7%B9%81%E4%B8%AD%20/%20EN%20/%20%E6%97%A5%E6%9C%AC%E8%AA%9E%20/%20%ED%95%9C%EA%B5%AD%EC%96%B4&amp;color=637e64&amp;style=flat" alt="Interface languages: 繁體中文, English, 日本語, 한국어"></a> <a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/actions/workflows/windows-installer.yml"><img src="https://img.shields.io/static/v1?label=CI&amp;message=view%20runs&amp;color=64748b&amp;style=flat" alt="Windows installer workflow"></a>
+</p>
 
-[下載 Windows 10／11 x64 安裝包](https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest) · [English](README.md)
+<p align="center"><a href="https://github.com/jaylooloomi/i-want-to-duck-meeting/releases/latest">下載 Windows x64 安裝包</a> · <a href="README.md">English</a></p>
 
-![Duck Meeting 工作台，並排顯示逐字稿與會議紀錄](docs/images/workspace-v0.3.8-zh-TW.png)
+<p align="center"><a href="#你可以做什麼"><img src="https://img.shields.io/static/v1?label=%E6%9C%AC%E6%A9%9F%E9%8C%84%E9%9F%B3&amp;message=Agent%20%E6%95%B4%E7%90%86&amp;labelColor=143e39&amp;color=087b68&amp;style=for-the-badge" alt="本機錄音 · Agent 整理"></a></p>
 
-*Duck Meeting v0.3.8 實際介面，使用虛構會議資料。*
+<p align="center"><img src="docs/images/workspace-v0.3.8-zh-TW.png" width="900" alt="Duck Meeting 工作台，並排顯示逐字稿與會議紀錄"><br>
+<sub>Windows 實際介面 · v0.3.8 · 虛構會議資料</sub></p>
 
 ## 你可以做什麼
 
